@@ -1,0 +1,26 @@
+{
+  "name": "Browse Bluetooth",
+  "description": "This chrome packaged app connects to my phone.",
+  "version": "0.1",
+  "manifest_version": 2,
+  "permissions":[
+      "http://localhost/",
+      "http://fonts.googleapis.com/"	
+  ],
+
+  "bluetooth" : {     
+      // Permission for chrome.bluetooth.addProfile
+      // The application is allowed to communicate according
+      // to these protocol classes: Serial Port (0x1101),
+      // Personal Area Networking User (0x1105) and Network
+      // Access Point (0x1106)
+      "uuids": [ "1101", "1105", "1106" ]
+  },
+
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
+  },
+  "icons": { "16": "16-lightbulb.png", "128": "128-lightbulb.png" }
+}

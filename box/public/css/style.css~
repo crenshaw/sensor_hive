@@ -1,0 +1,9 @@
+body {
+    font-family: 'Lato', san-serif;
+}
+
+h1 {
+    font-color: blue;
+    font-family: 'Varela+Round', san-serif;
+    font-size: 200%;
+}

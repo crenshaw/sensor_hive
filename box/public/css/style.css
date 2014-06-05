@@ -1,0 +1,18 @@
+body {
+    padding: 1em;
+    font-family: 'Lato', san-serif;
+}
+
+p {
+    display: inline;
+}
+
+h1 {
+    font-color: blue;
+    font-family: 'Varela Round', san-serif;
+    font-size: 200%;
+}
+
+ul {
+    list-style: none;
+}

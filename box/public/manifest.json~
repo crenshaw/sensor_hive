@@ -1,0 +1,20 @@
+{
+  "name": "Browse Bluetooth",
+  "description": "This chrome packaged app scans for nearby bluetooth devices and lists them",
+  "version": "0.1",
+  "manifest_version": 2,
+  "bluetooth" : {     
+    	// Permission for chrome.bluetooth.addProfile
+  		// The application is allowed to communicate according
+  		// to these protocol classes: Personal Area Networking User (0x1105)
+  		// and Network Access Point (0x1106)
+  	"uuids": [ "1105", "1106" ]
+},
+
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
+  },
+  "icons": { "16": "16-lightbulb.png", "128": "128-lightbulb.png" }
+}
