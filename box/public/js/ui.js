@@ -8,26 +8,24 @@
 
 // Extend the namespace
 var bt = bt || {};
-bt.devices = {};
+bt.ui = {};
 
 /**
- * devices()
+ * ui()
  * 
- * Define the devices module.
+ * Define the user interface module.
  * 
  */
-bt.devices = function() {
+bt.ui = function() {
 
     // The intention of this approach is to be framework-agnostic
     // and to avoid namespace pollution by encapsulating the contents of 
-    // the module in a function called bt.devices().
+    // the module in a function called bt.ui().
 
     // ************************************************************************
     // Variables local to this module.
     // ************************************************************************
-    var device_names = {};
-    var powered = false;
-    var socket = {};
+
 
     // ************************************************************************
     // Methods local to this module.
@@ -40,33 +38,32 @@ bt.devices = function() {
     // ************************************************************************
 
     /**
-     * initialize()
+     * displayLocals()
      *
+     * Given an array, display the elements of that array in 
+     * the container local_devices_list.
      */
-    bt.devices.initialize = function() {
+    bt.ui.displayLocals = function(array) {
 
+	// Grab the local device list container
+	var list = document.getElementById('local_devices_list');
 
-    }
+	// Affirm that we have what we need to do the work.
+	if(array != undefined && list != undefined) {
 
-    /**
-     * connect()
-     * 
-     */
-    bt.devices.connect = function() {
-
-	// Use the google chrome serial API to get information about
-	// serial devices on the system.
-	chrome.serial.getDevices(function(array){
 	    for(var i = 0; i < array.length; i++) {
-		console.log(array[i].path);
+		
+		var node = document.createElement("LI");
+		var contents = document.createTextNode(array[i].path);
+		node.appendChild(contents);
+		list.appendChild(node);
+		
 	    }
+	}
+    };
 
-	    bt.ui.displayLocals(array);
-	});
-    }
-
-} // end bt.devices module
+} // end bt.ui module
 
 
 // Invoke module.
-bt.devices();
+bt.ui();

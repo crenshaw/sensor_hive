@@ -1,21 +1,22 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Bluetooth Browser</title>
+    <title>Sensor Browser</title>
     <link rel="stylesheet" type="text/css" href="./css/style.css" />
     <link rel="stylesheet" type="text/css" href="./css/fonts.css" />
   </head>
   <body>
     <div id = "wrap">
-      <h1>DEVICE INFORMATION:</h1>    
-      <div id = "device_list"></div>
-      <ul>
-	<li> <p>Address: </p><p id = "device_addr">unknown</p></li>
-        <li> <p>Connected: </p><p id = "device_conn">false</p> </li>
-        <li> <p>Name: </p><p id = "device_name">unknown</p> </li>
-      </ul>
+      <h1>SENSE</h1>    
+      <div id = "local_devices">
+	<h3> Local Serial Devices:</h3>
+	<ul id = "local_devices_list">
+	  <li> <p> </p> </li>
+	</ul>
+      </div>
     </div>
   </body>
   <script src ="./js/main.js"></script>
+  <script src ="./js/ui.js"></script>
   <script src ="./js/devices.js"></script>
 </html>

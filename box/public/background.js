@@ -4,10 +4,10 @@
  * The background script defines what the Chrome Packaged App should
  * do when the app is launched.
  *
- * The app affirms that the machine's bluetooth adapter is on and then
- * gets a particular device's information.
+ * The app has the following behavior:
+ *    TODO: ADD DESCRIPTION.
  *
- * Initial code based on tutorial here:
+ * Initial code based on tutorials here:
  *  https://developer.chrome.com/apps/app_bluetooth
  */
 
