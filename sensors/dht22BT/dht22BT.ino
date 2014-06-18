@@ -40,13 +40,13 @@ void loop(void)
       byte c = Serial.read ();
 
       // If a measurement is requested, measure data and send it back
-      if (c == 'm'){
+      //if (c == 'm'){
 
           int h = (int)dht.readHumidity();
           int t = (int)dht.readTemperature();
 
           // Send data (temperature,humidity)
           Serial.println(String(t) + "," + String(h));
-      }
+      //}
   }
 }
