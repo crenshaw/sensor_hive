@@ -45,42 +45,66 @@ bt.devices = function() {
      */
     bt.devices.initialize = function() {
 
+	// Use the google chrome serial API to setup listeners for
+	// receiving serial data or errors.  
+	chrome.serial.onReceive.addListener(function(info){
+	    
+	    var dv = new DataView(info.data);
 
+	    for(var i = 0; i < info.data.byteLength; i++) {
+		console.log(String.fromCharCode(dv.getInt8(i)));
+	    }
+
+	    // bt.data.log(info);
+
+	});
+
+	chrome.serial.onReceiveError.addListener(function(info){console.log(info);});
+
+    }
+
+    /**
+     * scan()
+     *
+     * Scan for local serial devices and ask the ui to list them
+     * for the user.
+     */
+    bt.devices.scan = function(){
+	
+	// Use the google chrome serial API to get information about
+	// serial devices on the system.
+	chrome.serial.getDevices(function(array){	    
+	    bt.ui.displayLocals(array);
+	});
+
+    }
+
+    /**
+     * configure
+     *
+     * Given an array of device paths, deviceArray, and a action
+     * (expressed as a string), configure each device in the device
+     * array according the the requested action.
+     *
+     * For example configure(['/dev/ttyACM0'], 'connect') will
+     * attempt to establish a connection with the device
+     * at the path '/dev/ttyACM0'.
+     */
+    bt.devices.configure = function(deviceArray, action) {
+	if(action === 'connect') {
+	    bt.devices.connect(deviceArray[0]);
+	}
     }
 
     /**
      * connect()
      * 
+     * Establish a connection between this machine and the device
+     * specified by the pathname provided, e.g. '/dev/ttyACM0'.
      */
-    bt.devices.connect = function() {
+    bt.devices.connect = function(device) {
 
-
-	// Use the google chrome serial API to setup listeners for
-	// receiving serial data or errors.  For now, just log received data
-	// to the console.
-	chrome.serial.onReceive.addListener(function(info){
-	    
-	    var dv = new DataView(info.data);
-
-	    for(var i = 0; i < info.data.byteLength; i++)
-		{
-		    console.log(String.fromCharCode(dv.getInt8(i)));
-		}
-	    });
-
-
-	chrome.serial.onReceiveError.addListener(function(info){console.log(info);});
-
-
-	// Use the google chrome serial API to get information about
-	// serial devices on the system.
-	chrome.serial.getDevices(function(array){
-	    for(var i = 0; i < array.length; i++) {
-		console.log(array[i].path);
-	    }
-
-	    bt.ui.displayLocals(array);
-	});
+	console.log("Invoking connect");
 	
 	// Create a 1-byte array buffer and put an 'm' in it.
 	// TODO: This doesn't seem to write an 'm' to the ArrayBuffer.
@@ -98,11 +122,8 @@ bt.devices = function() {
 		       "ctsFlowControl": true};
 	
 
-	// Using this call to connect to the bluetooth shield seems
-	// somewhat successful in that the "Conn" LED on the board
-	// blinks faster after this call, indicating that the hardware
-	// believes it is connected.
-	chrome.serial.connect("/dev/cu.AdafruitEZ-Link237e-SPP", options, function(ci) {
+	// Connect to the device supplied by this function's parameter, 'device'.
+	chrome.serial.connect(device, options, function(ci) {
 	    chrome.serial.send(ci.connectionId, data, function(sendInfo){console.log(sendInfo);});
 	    
 

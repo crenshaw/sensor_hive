@@ -1,3 +1,8 @@
+
+/* 
+ * GENERICS
+ */
+
 body {
     padding: 1em;
     font-family: 'Lato', san-serif;
@@ -14,4 +19,127 @@ h1 {
 
 ul {
     list-style: none;
+}
+
+/*
+ * CLASSES
+ */
+
+/* DIVS */
+
+div.subsection {
+    float: left;
+    margin-left: 10px;
+}
+
+div.menubar {
+    height: 60px;
+}
+
+/* UNORDERED LISTS */
+
+/* Each list item in a menubar is horizontal */
+ul.menu {
+    margin: 0;
+    padding-left:0;
+}
+
+ul.menu li {
+    display: inline-block;
+    margin-left: 0;
+    margin-top: 0.5em;
+    margin-bottom: 0;
+    margin-right: 37px;
+}
+
+/* ---------------------------------------------------------- */
+
+/* PARAGRAPHS */
+
+/* menuitem class */
+p.menuitem {
+    width: 32px;
+    height: 32px;
+    text-indent: -9999px;
+    margin: 0;
+    border: 2px solid gray;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+}
+
+p.menuitem:hover, .shadow {
+  -moz-box-shadow:    1px 1px 1px 1px #ccc;
+  -webkit-box-shadow: 1px 1px 1px 1px #ccc;
+  box-shadow:         1px 1px 1px 1px #ccc;
+}
+
+/* local_device class */
+p.local_device {
+    color: gray;
+    cursor: default;
+}
+
+p.local_device:hover {
+    background-color: black;
+    color: white;
+}
+
+p.selected {
+    background-color: #ff0066;
+    color: white;
+}
+
+/* ---------------------------------------------------------- 
+ * UNIQUE IDENTIFIERS
+ */
+
+/* For the menubar, set the images for * specific menu elements */
+p#add {
+    position:absolute;
+    background-image:url('../icons/add.png');
+}
+
+p#delete {
+    position:absolute;
+    background-image:url('../icons/delete.png');
+}
+
+p#connect {
+    position:absolute;
+    background-image:url('../icons/connect.png');
+}
+
+p#disconnect {
+    position:absolute;
+    background-image:url('../icons/disconnect.png');
+}
+
+p#register {
+    position:absolute;
+    background-image:url('../icons/register.png');    
+}
+
+div#local_devices {
+    width: 220px;
+    height: 200px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    border: 1px solid silver;
+    background-color: #f5f5f5;
+}
+
+div#data_window {
+    width: 300px;
+    height: 80px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    border: 1px solid silver;
+    background-color: #f5f5f5;
+}
+
+ul#local_devices_list {
+    padding-left: 1em;
 }

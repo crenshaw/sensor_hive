@@ -25,7 +25,14 @@ bt.main = function() {
 
     function init_main(){
 	console.log("init_main() invoked...");
-	bt.devices.connect();
+	
+	// Initialize the user interface and the devices
+	// handler.
+	bt.ui.initialize();
+	bt.devices.initialize();
+
+	// Scan for local devices.
+	bt.devices.scan();	
     }
 
     if(window.attachEvent) {

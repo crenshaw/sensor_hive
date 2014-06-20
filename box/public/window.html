@@ -8,12 +8,35 @@
   <body>
     <div id = "wrap">
       <h1>SENSE</h1>    
-      <div id = "local_devices">
+
+
+      <div class = "subsection" id = "menus">
 	<h3> Local Serial Devices:</h3>
-	<ul id = "local_devices_list">
-	  <li> <p> </p> </li>
-	</ul>
+	<div id = "local_devices">
+	  <ul id = "local_devices_list">
+	    <li> <p class = "local_device">/dev/ttyFake</p> </li>
+	  </ul>
+	</div>
+	<div class = "menubar" >
+	  <ul class = "menu" id = "local_devices_menu">
+	    <li ><p class = "menuitem" id = "add">add</p></li>
+	    <li ><p class = "menuitem" id = "delete">delete</p></li>
+	    <li> <p class = "menuitem" id = "connect">connect</p></li>
+	    <li> <p class = "menuitem" id = "disconnect">disconnect</p></li> 
+	    <li> <p class = "menuitem" id = "register">register</p></li>
+	  </ul>
+	</div>
+      </div> 
+
+      <div class = "subsection" id = "data">
+	<h3>Data Window:</h3>
+	<div id = "data_window"> 
+	  jkdflsjfkdls
+	</div>
+
       </div>
+
+
     </div>
   </body>
   <script src ="./js/main.js"></script>

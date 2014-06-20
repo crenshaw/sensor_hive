@@ -24,8 +24,8 @@ chrome.app.runtime.onLaunched.addListener(function() {
     // Create the window
     chrome.app.window.create('window.html', {
 	'bounds' : {
-	    'width' : 400,
-	    'height' : 500
+	    'width' : 600,
+	    'height' : 400
 	}
     });   
 
