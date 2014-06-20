@@ -24,7 +24,6 @@ bt.main = function() {
     // the module in a function called bt.main().
 
     function init_main(){
-	console.log("init_main() invoked...");
 	
 	// Initialize the user interface and the devices
 	// handler.

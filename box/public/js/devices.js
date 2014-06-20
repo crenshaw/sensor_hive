@@ -25,7 +25,7 @@ bt.devices = function() {
     // ************************************************************************
     // Variables local to this module.
     // ************************************************************************
-    var device_names = {};
+    var devices = {};
     var powered = false;
     var socket = {};
 
@@ -46,19 +46,8 @@ bt.devices = function() {
     bt.devices.initialize = function() {
 
 	// Use the google chrome serial API to setup listeners for
-	// receiving serial data or errors.  
-	chrome.serial.onReceive.addListener(function(info){
-	    
-	    var dv = new DataView(info.data);
-
-	    for(var i = 0; i < info.data.byteLength; i++) {
-		console.log(String.fromCharCode(dv.getInt8(i)));
-	    }
-
-	    // bt.data.log(info);
-
-	});
-
+	// receiving serial data or errors.
+	chrome.serial.onReceive.addListener(bt.data.parse);
 	chrome.serial.onReceiveError.addListener(function(info){console.log(info);});
 
     }
@@ -94,7 +83,29 @@ bt.devices = function() {
 	if(action === 'connect') {
 	    bt.devices.connect(deviceArray[0]);
 	}
+	
+	else if(action == 'refresh') {
+	    bt.devices.refresh();
+	}
     }
+
+    /**
+     *
+     * refresh()
+     *
+     */
+    bt.devices.refresh = function()
+    {
+
+	// Create a 1-byte array buffer and put an 'm' in it.
+	// TODO: This doesn't seem to write an 'm' to the ArrayBuffer.
+	// TODO: This needs to be a function since I'm doing it more than once.
+	var data = new ArrayBuffer(1);
+	var dv = new DataView(data);
+	dv.setInt8(0,'m');
+
+	chrome.serial.send(devices.ci.connectionId, data, function(sendInfo){console.log(sendInfo);});
+    };
 
     /**
      * connect()
@@ -104,19 +115,15 @@ bt.devices = function() {
      */
     bt.devices.connect = function(device) {
 
-	console.log("Invoking connect");
-	
 	// Create a 1-byte array buffer and put an 'm' in it.
 	// TODO: This doesn't seem to write an 'm' to the ArrayBuffer.
 	var data = new ArrayBuffer(1);
 	var dv = new DataView(data);
 	dv.setInt8(0,'m');
 
-
 	// Create connection options.
 	var options = {"persistent": false, 
 		       "name": "dht22",
-		       "bufferSize": 10,
 		       "bitrate": 115200,
 		       "receiveTimeout": 10000,
 		       "ctsFlowControl": true};
@@ -124,6 +131,13 @@ bt.devices = function() {
 
 	// Connect to the device supplied by this function's parameter, 'device'.
 	chrome.serial.connect(device, options, function(ci) {
+	    
+	    // Keep track of the connectionInformation for this device.
+	    devices.device = device;
+	    devices.ci = ci;
+
+	    console.log(devices);
+
 	    chrome.serial.send(ci.connectionId, data, function(sendInfo){console.log(sendInfo);});
 	    
 

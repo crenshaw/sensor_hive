@@ -47,7 +47,6 @@ bt.ui = function() {
 	// Grab all of the devices that are currently "selected" so that
 	// we can invoke the action on these devices.
 	var objects = document.getElementsByClassName('selected');
-	console.log(objects);
 
 	// Did somebody forget to select a device?
 	// If so, the code cannot continue.
@@ -99,9 +98,6 @@ bt.ui = function() {
      */
     bt.ui.initialize = function() {
 
-	//
-	console.log("Initializing menu");
-
 	// Grab the menubar <ul> and add an event handler to it.
 	var menu = document.getElementById('local_devices_menu');
 	menu.onclick = delegateMenu;
@@ -109,6 +105,30 @@ bt.ui = function() {
 	// Grab the local devices list and add an event handler to it.
 	var list = document.getElementById('local_devices_list');
 	list.onclick = selectDevice;
+    }
+
+    /**
+     * log()
+     *
+     * Log the provided data in the Data Window.
+     */
+    bt.ui.log = function(datum) {
+	
+	// Grab the data list.
+	var dw = document.getElementById('data_list');
+
+	// Create an empty <li> element 
+	var node = document.createElement("LI");
+	var p = document.createElement("P");
+	//p.classList.add("local_device");
+	node.appendChild(p);
+	
+	// Give it some contents.
+	var contents = document.createTextNode(datum);
+	p.appendChild(contents);	
+	
+	// Add the new <li> element to the list.
+	dw.appendChild(node);
     }
 
     /**
