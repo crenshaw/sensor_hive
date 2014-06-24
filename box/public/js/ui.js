@@ -136,12 +136,19 @@ bt.ui = function() {
      * 
      * Display an error message, m, to the user.
      *
-     * TODO: Create an infobox for this, instead of logging
-     * messages to the console.
+     * @param m The message to dispaly.
      */
     bt.ui.error = function(m) {
-	console.log(m);
-    }
+	
+	// Grab the div for errors and add the provided message.
+	var err = document.getElementById('errors');
+	
+	var p= document.createElement("P");
+	var contents = document.createTextNode(m);
+	p.appendChild(contents);
+	err.appendChild(p);
+	
+    };
     
 
     /**
