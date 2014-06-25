@@ -1,8 +1,8 @@
 /**
  * data.js
  * 
- * Defines the packaged app's functionality for parsing data received
- * from devices.
+ * Defines the packaged app's functionality for parsing and locally
+ * storing data (offline) received from local devices.
  *
  */
 
@@ -26,10 +26,21 @@ bt.data = function() {
     // Variables local to this module.
     // ************************************************************************
     var unfinished = "";
+    var db = null;
 
     // ************************************************************************
     // Methods local to this module.
     // ************************************************************************
+    open = function() {
+	var version = 1;
+	var request = indexedDB.open("todos", version);
+	
+	request.onsuccess = function(e) {
+	    db = e.target.result;
+	};
+
+	request.onerror = onerror;
+    };
 
     // ************************************************************************
     // Methods provided by this module, visible to others via 

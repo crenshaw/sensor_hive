@@ -5,6 +5,7 @@
   "manifest_version": 2,
   "permissions":[
       "serial",
+      "unlimitedStorage",
       "http://localhost/",
       "http://fonts.googleapis.com/"	
   ],
