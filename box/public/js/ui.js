@@ -32,6 +32,28 @@ bt.ui = function() {
     // ************************************************************************
 
     /**
+     * dataMenu
+     *
+     * When the user clicks the data menubar, this function deploys the 
+     * corresponding behaviour according to the button that was clicked.
+     */
+    var dataMenu = function(e) {
+
+	// Get the id of the target that was clicked and deploy
+	// the corresponding action.
+	var action = e.target.id
+
+	if (action === 'trash') {
+	    bt.ui.clear();
+	}
+
+	else if(action === 'save') {
+	    console.log('Clicked save button');
+	}
+
+    }
+
+    /**
      * delegateMenu
      *
      * When the user clicks on the local devices menubar, this
@@ -90,7 +112,6 @@ bt.ui = function() {
     // the bt namespace.
     // ************************************************************************
 
-
     /**
      * initialize()
      *
@@ -98,19 +119,25 @@ bt.ui = function() {
      */
     bt.ui.initialize = function() {
 
-	// Grab the menubar <ul> and add an event handler to it.
+	// Grab the local devices menubar <ul> and add an event handler to it.
 	var menu = document.getElementById('local_devices_menu');
 	menu.onclick = delegateMenu;
 
 	// Grab the local devices list and add an event handler to it.
 	var list = document.getElementById('local_devices_list');
 	list.onclick = selectDevice;
+
+	// Grab the data menubar and add an event handler to it.
+	menu = document.getElementById('data_menu');
+	menu.onclick = dataMenu;
     }
 
     /**
      * log()
      *
      * Log the provided data in the Data Window.
+     * 
+     * @param datum The data to log.
      */
     bt.ui.log = function(datum) {
 	
@@ -136,7 +163,7 @@ bt.ui = function() {
      * 
      * Display an error message, m, to the user.
      *
-     * @param m The message to dispaly.
+     * @param m The message to display.
      */
     bt.ui.error = function(m) {
 	
@@ -150,7 +177,20 @@ bt.ui = function() {
 	
     };
     
-
+    /**
+     * clear
+     *
+     * Clear the data window.
+     *
+     * TODO: For cleaner code, I need to create a window object that
+     * has methods such as clear() or log().  Stay tuned.
+     *
+     */
+    bt.ui.clear = function() {
+	var win = document.getElementById('data_list');
+	win.innerHTML = "";
+    }
+       
     /**
      * displayLocals()
      *
