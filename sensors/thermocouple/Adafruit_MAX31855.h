@@ -30,8 +30,11 @@ class Adafruit_MAX31855 {
   double readCelsius(void);
   double readFarenheit(void);
   uint8_t readError();
+  boolean isUsed (void) { return inUse;}
+  void setUsed (boolean use) { inUse = use;}
 
  private:
   int8_t sclk, miso, cs;
+  boolean inUse;
   uint32_t spiread32(void);
 };
