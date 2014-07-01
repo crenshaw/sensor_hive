@@ -29,9 +29,11 @@ bt.devices = function() {
 
     // Create connection options.
     var options = {"persistent": false, 
+		   "bufferSize": 75,
 		   "name": "dht22",
 		   "bitrate": 115200,
 		   "receiveTimeout": 10000,
+		   "sendTimeout": 10000,
 		   "ctsFlowControl": true};
    
 
@@ -85,14 +87,22 @@ bt.devices = function() {
      */
     function refresh(){
 
-	// Create a 1-byte array buffer and put an 'm' in it.
-	// TODO: This doesn't seem to write an 'm' to the ArrayBuffer.
-	// TODO: This needs to be a function since I'm doing it more than once.
-	var data = new ArrayBuffer(1);
-	var dv = new DataView(data);
-	dv.setInt8(0,'m');
+	// Create a message and place it in an ArrayBuffer.
+	var data = makeMessage('0R1!');
 
-	chrome.serial.send(this.ci.connectionId, data, function(sendInfo){console.log(sendInfo);});
+	var id = this.ci.connectionId;
+
+	chrome.serial.send(id, data, function(sendInfo){
+		console.log(sendInfo);
+	    });
+
+	/*
+	chrome.serial.send(id, data, function(sendInfo){
+	    chrome.serial.flush(id, function(result) {
+		console.log(result);
+		console.log(sendInfo);
+	    })});
+	*/
     };
 
     /**
@@ -114,6 +124,25 @@ bt.devices = function() {
 
     };
 
+    /**
+     * makeMessage()
+     *
+     * Convert the provided message, m, to a well-formed ArrayBuffer
+     * to send to the daq.
+     */    
+    function makeMessage(m) {
+
+	var data = new ArrayBuffer(m.length*2); 
+	var dv = new Uint16Array(data);
+	
+	for(var i = 0; i < m.length; i++)
+	    {
+		dv[i] = m.charCodeAt(i);
+	    }
+
+	return data;
+    }
+    
     // ************************************************************************
     // Methods provided by this module, visible to others via 
     // the bt.devices namespace.
@@ -250,11 +279,9 @@ bt.devices = function() {
      */
     bt.devices.connect = function(path) {
 
-	// Create a 1-byte array buffer and put an 'm' in it.
-	// TODO: This doesn't seem to write an 'm' to the ArrayBuffer.
-	var data = new ArrayBuffer(1);
-	var dv = new DataView(data);
-	dv.setInt8(0,'m');	
+
+	// Create a message and place it in an ArrayBuffer.
+	var data = makeMessage('01R!');
 
 	// Connect to the device supplied by this function's
 	// parameter, 'device'.  Once the connection is completed,
@@ -267,7 +294,7 @@ bt.devices = function() {
 	    // the device represented by 'path' was not available for
 	    // connection.
 	    if (ci === undefined) {
-		bt.ui.error("The device is not available for connection.  Perhaps it must be paired or turned on.");
+		bt.ui.error("The device is not available for connection.  Perhaps it must be turned on?");
 	    }
 	    
 	    else {

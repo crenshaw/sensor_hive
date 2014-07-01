@@ -30,6 +30,9 @@ bt.main = function() {
 	bt.ui.initialize();
 	bt.devices.initialize();
 
+	// Open the local database, creating the table if necessary.
+	bt.data.open();
+
 	// Scan for local devices.
 	bt.devices.scan();	
     }
