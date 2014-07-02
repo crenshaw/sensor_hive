@@ -155,8 +155,8 @@ div#local_devices {
 }
 
 div#data_window {
-    width: 300px;
-    height: 200px;
+    width: 400px;
+    height: 600px;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     border-radius: 3px;

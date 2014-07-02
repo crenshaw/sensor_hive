@@ -24,10 +24,14 @@ chrome.app.runtime.onLaunched.addListener(function() {
     // Create the window
     chrome.app.window.create('window.html', {
 	'bounds' : {
-	    'width' : 600,
-	    'height' : 440
+	    'width' : 700,
+	    'height' : 790
 	}
     });   
 
 });
+
+/**
+   TODO: Define what to do when the app is closed.
+ */
 

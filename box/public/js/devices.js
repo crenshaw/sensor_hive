@@ -29,9 +29,8 @@ bt.devices = function() {
 
     // Create connection options.
     var options = {"persistent": false, 
-		   "bufferSize": 75,
 		   "name": "dht22",
-		   "bitrate": 115200,
+		   "bitrate": 9600,
 		   "receiveTimeout": 10000,
 		   "sendTimeout": 10000,
 		   "ctsFlowControl": true};
@@ -40,9 +39,7 @@ bt.devices = function() {
     // *** LOCAL DEVICES REGISTRY ***
     //  data acquisition units are registered locally according
     //  to their path.  Thus, the format is, {path: daq object}.
-    locals = {}
-
-
+    locals = {};
 
     // ************************************************************************
 
@@ -76,9 +73,8 @@ bt.devices = function() {
     // same methods.
     daq.prototype.refresh = refresh;
     daq.prototype.disconnect = disconnect;
-    
+
     /**
-     *
      * refresh()
      *
      * Invoked on a daq object, this method pings the physical device
@@ -92,17 +88,11 @@ bt.devices = function() {
 
 	var id = this.ci.connectionId;
 
-	chrome.serial.send(id, data, function(sendInfo){
-		console.log(sendInfo);
-	    });
+	chrome.serial.send(id, data, function(sendInfo) {
+	    console.log(sendInfo);
+	    onSend(id); 
+	});
 
-	/*
-	chrome.serial.send(id, data, function(sendInfo){
-	    chrome.serial.flush(id, function(result) {
-		console.log(result);
-		console.log(sendInfo);
-	    })});
-	*/
     };
 
     /**
@@ -127,20 +117,38 @@ bt.devices = function() {
     /**
      * makeMessage()
      *
-     * Convert the provided message, m, to a well-formed ArrayBuffer
-     * to send to the daq.
-     */    
+     * Converts a string, m, to UTF-8 encoding in a Uint8Array;
+     * returns the array buffer. 
+     */
     function makeMessage(m) {
 
-	var data = new ArrayBuffer(m.length*2); 
-	var dv = new Uint16Array(data);
-	
-	for(var i = 0; i < m.length; i++)
-	    {
-		dv[i] = m.charCodeAt(i);
-	    }
+	var encodedString = unescape(encodeURIComponent(m));
+	var bytes = new Uint8Array(encodedString.length);
 
-	return data;
+	for (var i = 0; i < encodedString.length; ++i) {
+	    bytes[i] = encodedString.charCodeAt(i);
+	}
+
+	console.log("Made message: " + bytes);
+
+	return bytes.buffer;
+    };
+
+    /**
+     * onSend()
+     *
+     * Invoked universally, this method flushes the serial buffer
+     * represented by 'id' after sending any information.
+     *
+     */
+    function onSend(id) {
+	
+	console.log("Invoking onSend() on" + id);
+	
+	chrome.serial.flush(id, function(result) {
+	    console.log(result);
+	});
+
     }
     
     // ************************************************************************
@@ -159,8 +167,8 @@ bt.devices = function() {
 
 	// Use the google chrome serial API to setup listeners for
 	// receiving serial data or errors.
-	chrome.serial.onReceive.addListener(bt.data.parse);
-	chrome.serial.onReceiveError.addListener(function(info){console.log(info);});
+	chrome.serial.onReceive.addListener(bt.response.scan);
+	chrome.serial.onReceiveError.addListener(function(info){console.log("Receive error:");  console.log(info);});
     }
 
 
@@ -241,6 +249,9 @@ bt.devices = function() {
 	    if(d != undefined) {
 		bt.ui.error("The device is already connected.");
 	    }
+	    else if(pathArray[0] == undefined) {
+		bt.ui.error("Please select a device to connect.");
+	    }
 	    else {
 		bt.devices.connect(pathArray[0]);
 	    }
@@ -306,21 +317,32 @@ bt.devices = function() {
 		// Register the device with the local registry.
 		locals[ path ] = d;
 		
-		// Send an initial message to the device.
-		chrome.serial.send(ci.connectionId, data, function(sendInfo){console.log(sendInfo);});
-	    }
+		// Flush the line from any garbage that was previously in the buffer.
+		chrome.serial.flush(ci.connectionId, function(result) {
 
-	// TODO: Need to close the connection so that the device isn't
-	// locked on the machine.  Closing CHROME (not just the chrome
-	// app) altogether makes this possible, but there should be 
-	// a graceful way.
+		    // Once flushing is complete...
+		    console.log("Cleaning up buffer...");
+		    console.log(result);
+
+		    // TODO: Indicate that the device is connected.
+		    
+		    // Get the device's controls.
+		    chrome.serial.getControlSignals(ci.connectionId, function(signals) {
+			    console.log(signals);
+
+			    // Send an initial message to the device.
+			    chrome.serial.send(ci.connectionId, data, function(sendInfo) {
+				console.log(sendInfo);
+			    });
+			});
+		});
+	    }
 	});
 
     } // end bt.devices.connect
 
 
 } // end bt.devices module
-
 
 // Invoke module.
 bt.devices();

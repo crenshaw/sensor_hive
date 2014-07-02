@@ -29,7 +29,7 @@ DHT dht(DHTPIN, DHTTYPE);
 void setup(void)
 {
   dht.begin();
-  Serial.begin(115200);
+  Serial.begin(9600);
 }
 
 void loop(void)
@@ -43,15 +43,22 @@ void loop(void)
       // Read command loop
       while((c = Serial.read ()) != '!')
       {
-        command += String(c);
+        // A value of -1 indicates that no data is available, so just throw out the byte.
+        // Otherwise, save it so that we can repeat back the command (for debugging purposes).
+        if(c != -1) 
+        {
+          command += String(c);
+        }
       }
-
+      
+      command += "!";
+       
       int h = (int)dht.readHumidity();
       int t = (int)dht.readTemperature();
 
       // Send data (temperature,humidity) according to the miniSDI-12 format.
       Serial.println(command);
-      Serial.println("001,1,<time>,+" + String(t) + ".0" + ",+" + String(h) + ".0:");
+      Serial.println("*,001,1,<time>,+" + String(t) + ".0" + ",+" + String(h) + ".0:");
      
       }
 }
