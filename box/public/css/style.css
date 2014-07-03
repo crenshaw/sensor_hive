@@ -6,6 +6,7 @@
 body {
     padding: 1em;
     font-family: 'Lato', san-serif;
+    font-size: 102%;
 }
 
 p {
@@ -19,6 +20,12 @@ h1 {
 
 ul {
     list-style: none;
+    margin-left: 0.75em;
+}
+
+li span {
+    position: relative;
+    left: -5px;
 }
 
 /*
@@ -26,6 +33,10 @@ ul {
  */
 
 /* DIVS */
+
+div.window {
+    padding-top: 3px;
+}
 
 div.subsection {
     float: left;
@@ -50,6 +61,10 @@ ul.menu li {
     margin-top: 0.5em;
     margin-bottom: 0;
     margin-right: 37px;
+}
+
+li.connected {
+    list-style-type: disc;
 }
 
 /* ---------------------------------------------------------- */
@@ -88,18 +103,18 @@ p.menuitem:hover span {
 }
 
 /* local_device class */
-p.local_device {
+span.local_device {
     color: gray;
     cursor: default;
 }
 
-p.local_device:hover {
-    background-color: black;
+span.selected {
+    background-color: #ff0066;
     color: white;
 }
 
-p.selected {
-    background-color: #ff0066;
+span.local_device:hover {
+    background-color: black;
     color: white;
 }
 
@@ -144,7 +159,7 @@ p#save {
 /* DIVS */
 
 div#local_devices {
-    width: 220px;
+    width: 280px;
     height: 200px;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
@@ -156,7 +171,7 @@ div#local_devices {
 
 div#data_window {
     width: 400px;
-    height: 600px;
+    height: 500px;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     border-radius: 3px;

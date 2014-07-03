@@ -25,7 +25,7 @@ bt.ui = function() {
     // ************************************************************************
     // Variables local to this module.
     // ************************************************************************
-
+    var lastDeviceSelected;
 
     // ************************************************************************
     // Methods local to this module.
@@ -48,7 +48,7 @@ bt.ui = function() {
 	}
 
 	else if(action === 'save') {
-	    console.log('Clicked save button');
+
 	}
 
     }
@@ -69,13 +69,19 @@ bt.ui = function() {
 	// Grab all of the devices that are currently "selected" so that
 	// we can invoke the action on these devices.
 	var objects = document.getElementsByClassName('selected');
-
+	
 	// Did somebody forget to select a device?
 	// If so, the code cannot continue.
 	if(objects === undefined) {
 	    bt.ui.error("To " + id + "You must select a device from 'Local Serial Devices'");
 	}
 
+	// Right now, we can only do 1 device at a time.  Make sure the
+	// user has only selected 1 device.
+	else if (objects.length > 1) {
+	    bt.ui.error("Please choose only one device.");
+	}
+	   
 	else {
 	    
 	    var devices = []
@@ -102,6 +108,16 @@ bt.ui = function() {
      * the "selected device's" configuration.
      */
     var selectDevice = function(e) {
+
+	lastDeviceSelected = e.target;
+
+	// Grab the local devices window and deselect any other device
+	// that may be "selected"
+	var list = document.getElementById('local_devices_list').getElementsByTagName('span');
+
+	for(var i = 0; i < list.length; i++) {
+	    list[i].classList.remove("selected");
+	}
 
 	e.target.classList.toggle("selected");
 
@@ -130,8 +146,33 @@ bt.ui = function() {
 	// Grab the data menubar and add an event handler to it.
 	menu = document.getElementById('data_menu');
 	menu.onclick = dataMenu;
-    }
+    };
 
+    /**
+     * indicate()
+     *
+     * Indicate the device with pathname, 'path', is connected
+     * to the box.
+     *
+     * @param path The pathname associated with the device.
+     */
+    bt.ui.indicate = function(path) {
+
+	// Grab the local devices window and deselect any other device
+	// that may be "selected"
+	var list = document.getElementById('local_devices_list').getElementsByTagName('span');
+
+	// Iterate over all the devices in the list.
+	for(var i = 0; i < list.length; i++) {
+	    
+	    // Is this the device just connected?
+	    if(list[i].innerText === path) {
+		var p = list[i].parentNode;
+		p.classList.add("connected");
+	    }
+	}		
+    }
+    
     /**
      * log()
      *
@@ -156,7 +197,7 @@ bt.ui = function() {
 	
 	// Add the new <li> element to the list.
 	dw.appendChild(node);
-    }
+    };
 
     /**
      * error()
@@ -166,6 +207,30 @@ bt.ui = function() {
      * @param m The message to display.
      */
     bt.ui.error = function(m) {
+	
+	// Grab the div for errors and add the provided message.
+	var err = document.getElementById('errors');
+	
+	var p= document.createElement("P");
+	var contents = document.createTextNode(m);
+	p.appendChild(contents);
+	err.appendChild(p);
+	
+    };
+
+    /**
+     * info()
+     * 
+     * Display an info message, m, to the user.
+     *
+     * @param m The message to display.
+     *
+     * TODO: Should info messages be a different color or
+     * have an icon or something?
+     *
+     * TODO: make info() and error() less copy-paste.
+     */
+    bt.ui.info = function(m) {
 	
 	// Grab the div for errors and add the provided message.
 	var err = document.getElementById('errors');
@@ -209,7 +274,7 @@ bt.ui = function() {
 		
 		// Create an empty <li><p class = "local_device"> element 
 		var node = document.createElement("LI");
-		var p = document.createElement("P");
+		var p = document.createElement("SPAN");
 		p.classList.add("local_device");
 		node.appendChild(p);
 

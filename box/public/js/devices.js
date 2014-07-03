@@ -137,7 +137,7 @@ bt.devices = function() {
     function receive(info) {
 
 	var data = "";
-		
+
 	// Given an ArrayBuffer of data, construct a string and parse
 	// the data.
 	var dv = new DataView(info.data);
@@ -147,24 +147,26 @@ bt.devices = function() {
 	// it out.
 	var data = ab2str(info.data);
 
-	// Log raw data.
-	console.log(data);
-
 	this.response += data;
-	
-	var ind;
 
-	if((ind = data.indexOf(13)) != -1) {
-	   
-	    // Chop unfinished at the '\n'.  
+	// The Arduino println() function "prints data to the serial
+	// port as human-readable ASCII text followed by a carriage
+	// return character (ASCII 13, or '\r') and a newline
+	// character (ASCII 10, or '\n')."
+	var nl = this.response.indexOf('\n');
+
+	// Is there a terminal character in the response yet?
+	if(nl != -1) {
+	    
+	    // Chop unfinished at the terminator.  
 	    // Everything before that is a finished response
 	    // that needs to be parsed.
-	    var finished = this.response.substring(0, ind + 1);
-
+	    var finished = this.response.substring(0, nl - 1);
+	    
 	    // The remainder is the new unfinished response
-	    this.response = this.response.substring(ind + 1);
-
-	    // For now, just log the raw stuff.
+	    this.response = this.response.substring(nl + 1);
+	    	    
+	    // For now, just log the raw response.
 	    bt.ui.log(finished);	    
 	}
     };
@@ -434,7 +436,9 @@ bt.devices = function() {
 
 
 	// Create a message and place it in an ArrayBuffer.
-	var data = str2ab('01R!');
+	var data = str2ab('0R1!');
+
+	bt.ui.info("Connecting...  Takes about 10 seconds.");
 
 	// Connect to the device supplied by this function's
 	// parameter, 'device'.  Once the connection is completed,
@@ -462,12 +466,9 @@ bt.devices = function() {
 		// Flush the line from any garbage that was previously in the buffer.
 		chrome.serial.flush(ci.connectionId, function(result) {
 
-		    // Once flushing is complete...
-		    console.log("Cleaning up buffer...");
-		    console.log(result);
+		    // Indicate that the recently connected pathname is connected.
+		    bt.ui.indicate(path);
 
-		    // TODO: Indicate that the device is connected.
-		    
 		    // Send an initial message to the device.
 		    chrome.serial.send(ci.connectionId, data, function(sendInfo) {
 			console.log(sendInfo);
