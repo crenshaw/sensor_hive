@@ -88,6 +88,7 @@ bt.response = function() {
 	return decodeURIComponent(escape(encodedString));
     };
 
+
     /**
      * scan()
      *

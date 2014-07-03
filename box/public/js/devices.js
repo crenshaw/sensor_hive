@@ -67,12 +67,20 @@ bt.devices = function() {
 	this.path = path;
 	this.ci = ci;
 	this.name = name;
+
+
+	// The default response for a newly created daq is the empty
+	// string, as it is assumed that it hasn't replied to any
+	// commands yet.
+	this.response = "";
     };
 
     // Update the prototype for all devices of type daq who share the
     // same methods.
     daq.prototype.refresh = refresh;
     daq.prototype.disconnect = disconnect;
+    daq.prototype.receive = receive;
+
 
     /**
      * refresh()
@@ -84,7 +92,7 @@ bt.devices = function() {
     function refresh(){
 
 	// Create a message and place it in an ArrayBuffer.
-	var data = makeMessage('0R1!');
+	var data = str2ab('0R1!');
 
 	var id = this.ci.connectionId;
 
@@ -95,11 +103,12 @@ bt.devices = function() {
 
     };
 
+
     /**
      * disconnect()
      * 
-     * Close the serial connection associated with a given daq.  Remove it
-     * from the local registry.
+     * Invoked on a daq object, close the serial connection associated
+     * with a given daq.  Remove it from the local registry.
      *
      */
     function disconnect() {
@@ -115,12 +124,85 @@ bt.devices = function() {
     };
 
     /**
-     * makeMessage()
+     * recieve()
+     *
+     * receive data as it is received by Chrome over the serial line
+     * from a particular DAQ. As data is received asynchronously, we
+     * must handle the case that only parts of a single data report
+     * may be received by a single call to this function.  Thus,
+     * receive() keeps track of unparsed data received from a
+     * particular DAQ until it sees a <CR><LF>.
+     *
+     */
+    function receive(info) {
+
+	var data = "";
+		
+	// Given an ArrayBuffer of data, construct a string and parse
+	// the data.
+	var dv = new DataView(info.data);
+
+	// Make a string out of the data that was most recently received.
+	// The data is cloistered in an ArrayBuffer, have ab2str() get
+	// it out.
+	var data = ab2str(info.data);
+
+	// Log raw data.
+	console.log(data);
+
+	this.response += data;
+	
+	var ind;
+
+	if((ind = data.indexOf(13)) != -1) {
+	   
+	    // Chop unfinished at the '\n'.  
+	    // Everything before that is a finished response
+	    // that needs to be parsed.
+	    var finished = this.response.substring(0, ind + 1);
+
+	    // The remainder is the new unfinished response
+	    this.response = this.response.substring(ind + 1);
+
+	    // For now, just log the raw stuff.
+	    bt.ui.log(finished);	    
+	}
+    };
+
+    /* ************************************************************** 
+     * 
+     * Local Utility Functions.
+     */
+
+    /**
+     * ab2str()
+     *
+     * Convert a UTF-8 encoded ArrayBuffer to a string.
+     *
+     * Based on:
+     * http://updates.html5rocks.com/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
+     *
+     * @param buf The ArrayBuffer to convert.
+     *
+     */
+    function ab2str(buf) {
+	var bufView = new Uint8Array(buf);
+	var encodedString = String.fromCharCode.apply(null, bufView);
+	return decodeURIComponent(escape(encodedString));
+    };
+
+    /**
+     * str2ab()
      *
      * Converts a string, m, to UTF-8 encoding in a Uint8Array;
      * returns the array buffer. 
+     *
+     * Based on:
+     * http://updates.html5rocks.com/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
+     *
+     * @param m The string to convert.
      */
-    function makeMessage(m) {
+    function str2ab(m) {
 
 	var encodedString = unescape(encodeURIComponent(m));
 	var bytes = new Uint8Array(encodedString.length);
@@ -129,10 +211,9 @@ bt.devices = function() {
 	    bytes[i] = encodedString.charCodeAt(i);
 	}
 
-	console.log("Made message: " + bytes);
-
 	return bytes.buffer;
     };
+
 
     /**
      * onSend()
@@ -167,7 +248,7 @@ bt.devices = function() {
 
 	// Use the google chrome serial API to setup listeners for
 	// receiving serial data or errors.
-	chrome.serial.onReceive.addListener(bt.response.scan);
+	chrome.serial.onReceive.addListener(bt.devices.receive);
 	chrome.serial.onReceiveError.addListener(function(info){console.log("Receive error:");  console.log(info);});
     }
 
@@ -210,15 +291,76 @@ bt.devices = function() {
      * Given a path, return undefined or the locally registered
      * device associated with the path
      *
-     * @param path A pathname representing a local device.
+     * Given an id, return undefined or the locally registered
+     * device associated with the id.
+     *
+     * @param info A pathname representing a local device or an
+     * integer identifer representing the local connection id.
      *
      * @returns the daq object locally registered with the path.
      */
-    bt.devices.lookup = function(path)
+    bt.devices.lookup = function(info)
     {
-	return locals[path];
+
+	// Is the parameter a string?  Then lookup the pathname.
+	if(typeof(info) === "string") {
+	    return locals[info];
+	}
+
+	// Is the parameter a number?  Then lookup the connection id.
+	else if(typeof(info) === "number") {
+	    
+	    // Iterate over all of the keys in locals.  That is,
+	    // examine each daq that has been locally registered.
+	    for(var key in locals){
+		
+		// Get the connectionId of the current object in locals.
+		var d = locals[key].ci.connectionId;
+		if( d === info)  {
+		    return locals[key];
+		}
+	    }
+
+	    // If this point is reached, no matching id was found.
+	    return undefined;
+	}
+
+	// I don't recognize this type of parameter.  Sorry, Willis.
+	else {
+	    return undefined;
+	}
+
     }
-    
+
+    /**
+     * receive()
+     * 
+     * The publicly-available receive() function.  It determines the
+     * connectionId from which the serial data was received and
+     * invokes the appropriate daq's receive() function.
+     *
+     * @param info The serial info received by the onReceive event
+     * handler.
+     */
+    bt.devices.receive = function(info) {
+	
+	// Determine which connection id is sending this data.
+	var id = info.connectionId;
+		
+	// Perform a lookup.
+	var d = bt.devices.lookup(id);
+
+	// If an entry was found, receive the data.  Otherwise, log an
+	// error that a foreign device is attempting to talk to us.
+	// And we are shy folk.
+	if(d != undefined) {
+	    d.receive(info);
+	}
+	else {
+	    bt.ui.error("Received data from unregistered connection.");
+	}
+
+     }    
 
     /**
      * configure()
@@ -292,7 +434,7 @@ bt.devices = function() {
 
 
 	// Create a message and place it in an ArrayBuffer.
-	var data = makeMessage('01R!');
+	var data = str2ab('01R!');
 
 	// Connect to the device supplied by this function's
 	// parameter, 'device'.  Once the connection is completed,
@@ -326,15 +468,11 @@ bt.devices = function() {
 
 		    // TODO: Indicate that the device is connected.
 		    
-		    // Get the device's controls.
-		    chrome.serial.getControlSignals(ci.connectionId, function(signals) {
-			    console.log(signals);
-
-			    // Send an initial message to the device.
-			    chrome.serial.send(ci.connectionId, data, function(sendInfo) {
-				console.log(sendInfo);
-			    });
-			});
+		    // Send an initial message to the device.
+		    chrome.serial.send(ci.connectionId, data, function(sendInfo) {
+			console.log(sendInfo);
+			
+		    });
 		});
 	    }
 	});
