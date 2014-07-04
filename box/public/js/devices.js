@@ -118,6 +118,12 @@ bt.devices = function() {
 	var d = this;
 
 	chrome.serial.disconnect(this.ci.connectionId, function(result){
+	
+	    // Indicate that the device is disconnected.
+	    bt.ui.indicate(d.path,'disconnected');	
+	    bt.ui.info(d.path + ' is disconnected');
+   
+	    // Delete if from the registry.
 	    delete locals[d.path];
 	});
 
@@ -226,9 +232,10 @@ bt.devices = function() {
      */
     function onSend(id) {
 	
-	console.log("Invoking onSend() on" + id);
+	console.log("Invoking onSend() on " + id);
 	
 	chrome.serial.flush(id, function(result) {
+	    console.log("Flushing connection");
 	    console.log(result);
 	});
 
@@ -254,7 +261,6 @@ bt.devices = function() {
 	chrome.serial.onReceiveError.addListener(function(info){console.log("Receive error:");  console.log(info);});
     }
 
-
     /**
      * scan()
      *
@@ -279,8 +285,10 @@ bt.devices = function() {
 
 		// If the path contains tty.Adafruit, then
 		// I am interested in it.
-		if(array[i].path.indexOf("/tty.Adafruit") > -1)
+		if(array[i].path.indexOf("/tty.Adafruit") > -1) {
 		    pruned[j] = array[i]; 
+		    j++;
+		}
 	    }
 
 	    bt.ui.displayLocals(pruned);
@@ -385,16 +393,22 @@ bt.devices = function() {
     bt.devices.configure = function(pathArray, action) {
 
 	var d = bt.devices.lookup(pathArray[0]);
+	
+	// Enforce that at least one device was selected.
+	if(pathArray[0] == undefined) {
+	    bt.ui.error("Please select a device.");
+	    return;
+	}
 
+	
+	// Determine the action selected and invoke the appropriate
+	// function.
 	if(action === 'connect') {
 
 	    // Determine if the device is already connected.  Let's not connect
 	    // a single device more than once.
 	    if(d != undefined) {
 		bt.ui.error("The device is already connected.");
-	    }
-	    else if(pathArray[0] == undefined) {
-		bt.ui.error("Please select a device to connect.");
 	    }
 	    else {
 		bt.devices.connect(pathArray[0]);
@@ -467,7 +481,8 @@ bt.devices = function() {
 		chrome.serial.flush(ci.connectionId, function(result) {
 
 		    // Indicate that the recently connected pathname is connected.
-		    bt.ui.indicate(path);
+		    bt.ui.indicate(path,'connected');
+		    bt.ui.info(path + ' is connected');
 
 		    // Send an initial message to the device.
 		    chrome.serial.send(ci.connectionId, data, function(sendInfo) {

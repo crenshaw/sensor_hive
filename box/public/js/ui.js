@@ -123,6 +123,48 @@ bt.ui = function() {
 
     };
 
+    /**
+     * addNode()
+     * 
+     * Create a DOM node for the given selector, 'sel', with the given
+     * 'text' and optional class, 'c'.  Add the newly created node as
+     * a child to the given selector.
+     *
+     * The DOM node shall be:
+     *
+     * <LI><P CLASS='c'>text</P></LI>
+     * 
+     * Seems super specific, but it works for all windows in the user
+     * interface.
+     */
+    var addNode = function(sel, text, c) {
+
+	// Grab the unique selector
+	var s = document.getElementById(sel);
+
+	if(s == undefined) {
+	    console.log("Cannot get " + sel); 
+	}
+
+	// Create an empty <li> element 
+	var node = document.createElement("LI");
+	var p = document.createElement("P");
+	node.appendChild(p);
+	
+	// Give it some contents.
+	var contents = document.createTextNode(text);
+	p.appendChild(contents);	
+
+	// Give it a class, if one was supplied.
+	if(c != undefined) {
+	    p.classList.add(c);
+	}
+
+	// Add the new <li> element to the list.
+	s.appendChild(node);
+
+    }
+
     // ************************************************************************
     // Methods provided by this module, visible to others via 
     // the bt namespace.
@@ -151,12 +193,13 @@ bt.ui = function() {
     /**
      * indicate()
      *
-     * Indicate the device with pathname, 'path', is connected
-     * to the box.
+     * Indicate the device with pathname, 'path', is connected or 
+     * disconnected.
      *
      * @param path The pathname associated with the device.
+     * @param state The string 'disconnected' or 'connected'.
      */
-    bt.ui.indicate = function(path) {
+    bt.ui.indicate = function(path, state) {
 
 	// Grab the local devices window and deselect any other device
 	// that may be "selected"
@@ -168,7 +211,11 @@ bt.ui = function() {
 	    // Is this the device just connected?
 	    if(list[i].innerText === path) {
 		var p = list[i].parentNode;
-		p.classList.add("connected");
+
+		if(state === 'connected')
+		    p.classList.add('connected');
+		else if (state === 'disconnected')
+		    p.classList.remove('connected');
 	    }
 	}		
     }
@@ -181,23 +228,9 @@ bt.ui = function() {
      * @param datum The data to log.
      */
     bt.ui.log = function(datum) {
-	
-	// Grab the data list.
-	var dw = document.getElementById('data_list');
-
-	// Create an empty <li> element 
-	var node = document.createElement("LI");
-	var p = document.createElement("P");
-	//p.classList.add("local_device");
-	node.appendChild(p);
-	
-	// Give it some contents.
-	var contents = document.createTextNode(datum);
-	p.appendChild(contents);	
-	
-	// Add the new <li> element to the list.
-	dw.appendChild(node);
+	addNode('data_list', datum);
     };
+
 
     /**
      * error()
@@ -207,15 +240,7 @@ bt.ui = function() {
      * @param m The message to display.
      */
     bt.ui.error = function(m) {
-	
-	// Grab the div for errors and add the provided message.
-	var err = document.getElementById('errors');
-	
-	var p= document.createElement("P");
-	var contents = document.createTextNode(m);
-	p.appendChild(contents);
-	err.appendChild(p);
-	
+	addNode('alerts_list', m, 'error');	
     };
 
     /**
@@ -231,15 +256,7 @@ bt.ui = function() {
      * TODO: make info() and error() less copy-paste.
      */
     bt.ui.info = function(m) {
-	
-	// Grab the div for errors and add the provided message.
-	var err = document.getElementById('errors');
-	
-	var p= document.createElement("P");
-	var contents = document.createTextNode(m);
-	p.appendChild(contents);
-	err.appendChild(p);
-	
+	addNode('alerts_list', m, 'info');	
     };
     
     /**
