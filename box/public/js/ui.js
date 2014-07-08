@@ -27,10 +27,80 @@ bt.ui = function() {
     // ************************************************************************
     var lastDeviceSelected;
 
+
+    // *** INFORMATION WINDOWS REGISTRY *** 
+    //
+    // Information windows are registered according to their unique
+    // HTML identifier.  Thus, the format is, {identifier: info
+    // object}.
+    var infoWindows = {}
+
+    // ************************************************************************
+
+    // *** INFO OBJECT DEFINITION ***
+
+    /**
+     * info()
+     *
+     * The info object is the software representation of each
+     * information window in the user inferface.  This is the
+     * constructor for the object.  
+     *
+     * An information window is represented by its id and its
+     * handle to the DOM.
+     *
+     * To initialize an instance of the object requires:
+     *
+     * @param id The HTML identifier associated with the information
+     * window on the user interface.  The id is used to get the handle
+     * and initialize it for the object.
+     *
+     *
+     */
+    function info(id) {
+	this.id = id;
+
+	var handle = document.getElementById(id);
+	this.handle = handle;
+    };
+
+    // Update the prototype for all objects of type info.  They share
+    // the same methods.
+    info.prototype.clear = clear;
+
+    /**
+     * clear()
+     *
+     * Invoked on an info object, this method clears all of the information
+     * in the window.
+     *
+     */
+    function clear() {
+	this.handle.innerHTML = "";
+    }
+
     // ************************************************************************
     // Methods local to this module.
     // ************************************************************************
 
+    /**
+     * alertsMenu
+     *
+     * When the user clicks the alerts menubar, this function deploys the 
+     * corresponding behaviour according to the button that was clicked.
+     */
+    var alertsMenu = function(e) {
+
+	// Get the id of the target that was clicked and deploy
+	// the corresponding action.
+	var target = e.target;
+	var action = target.id
+
+	if (action === 'trash') {
+	    bt.ui.clear(target);
+	}
+    }
+    
     /**
      * dataMenu
      *
@@ -41,14 +111,18 @@ bt.ui = function() {
 
 	// Get the id of the target that was clicked and deploy
 	// the corresponding action.
-	var action = e.target.id
+	var target = e.target;
+	var action = target.id
 
 	if (action === 'trash') {
-	    bt.ui.clear();
+	    bt.ui.clear(target);
 	}
 
 	else if(action === 'save') {
-
+	    var data = '001,1,<time>,+23.0,+55.0:'; 
+	    
+		// bt.ui.getData();
+	    bt.data.save(data);
 	}
 
     }
@@ -188,6 +262,23 @@ bt.ui = function() {
 	// Grab the data menubar and add an event handler to it.
 	menu = document.getElementById('data_menu');
 	menu.onclick = dataMenu;
+
+	// Grab the alerts menubar and add an event handler to it.
+	menu = document.getElementById('alerts_menu');
+	menu.onclick = alertsMenu;
+
+	// Create an object for each information window.
+	
+	// First, get all of the elements of class 'info'
+	var iws = document.getElementsByClassName('info');
+	
+	// Then, for each element...
+	for(var i = 0; i < iws.length; i++) {
+	    var id = iws[i].id;     // Get the id
+	    var io = new info(id)   // Make a new info object.
+	    infoWindows[id] = io;   // Register it.
+	}
+	
     };
 
     /**
@@ -253,7 +344,6 @@ bt.ui = function() {
      * TODO: Should info messages be a different color or
      * have an icon or something?
      *
-     * TODO: make info() and error() less copy-paste.
      */
     bt.ui.info = function(m) {
 	addNode('alerts_list', m, 'info');	
@@ -262,15 +352,25 @@ bt.ui = function() {
     /**
      * clear
      *
-     * Clear the data window.
-     *
-     * TODO: For cleaner code, I need to create a window object that
-     * has methods such as clear() or log().  Stay tuned.
+     * Given a target trashcan button that was clicked, clear the
+     * appropriate data window.
      *
      */
-    bt.ui.clear = function() {
-	var win = document.getElementById('data_list');
-	win.innerHTML = "";
+    bt.ui.clear = function(target) {
+
+	// The classes of the target indicate the associated
+	// info window.  Get the classes of the target.  The
+	// one that is found in the infoWindows registry
+	// should be the one that is cleared.
+	var c = target.className.split(' ');
+
+	for(var i = 0; i < c.length; i ++) {
+	    
+	    var o = infoWindows[c[i]];
+	    if(o != undefined) {
+		o.clear();
+	    }
+	}
     }
        
     /**

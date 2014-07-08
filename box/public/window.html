@@ -9,10 +9,14 @@
     <div id = "wrap">
       <h1>SENSE</h1>    
 
+	<!-- For each info window and menu, notice that the class of the p element
+	     matches the id of the associated info window.  This reduces DOM
+	     traversal.
+	 -->
 
       <div class = "subsection" id = "menus">
 	<h3>Local Serial Devices:</h3>
-	<div class = "window" id = "local_devices">
+	<div class = "info" id = "local_devices">
 	  <ul id = "local_devices_list">
 	  </ul>
 	</div>
@@ -24,28 +28,35 @@
    <li ><p class = "menuitem" id = "delete"><span>delete</span></p></li>
    <li> <p class = "menuitem" id = "register"><span>register</span></p></li>
 -->
-	    <li> <p class = "menuitem" id = "connect"><span>connect</span></p></li>
-	    <li> <p class = "menuitem" id = "disconnect"><span>disconnect</span></p></li> 
-	    <li> <p class = "menuitem" id = "refresh"><span>get 1 report</span></p></li>
+	    <li> <p class = "menuitem local_devices" id = "connect"><span>connect</span></p></li>
+	    <li> <p class = "menuitem local_devices" id = "disconnect"><span>disconnect</span></p></li> 
+	    <li> <p class = "menuitem local_devices" id = "refresh"><span>get 1 report</span></p></li>
+	    <li> <p class = "menuitem local_devices" id = "configure"><span>configure experiment</span></p></li>
+	    <li> <p class = "menuitem local_devices" id = "go"><span>start experiment</span></p></li>
 	  </ul>
 	</div>
 
 	<h3>System Log:</h3>
-	<div class = "window" id = "alerts"> 
+	<div class = "info" id = "alerts"> 
 	  <ul id = "alerts_list"></ul>
+	</div>
+	<div class = "menubar" >
+	  <ul class = "menu" id = "alerts_menu">
+	    <li> <p class = "menuitem alerts" id = "trash"><span>clear</span></p></li>
+	  </ul>
 	</div>
 
       </div>  <!-- end left subsection -->
 
       <div class = "subsection" id = "data">
 	<h3>Data:</h3>
-	<div class = "window" id = "data_window"> 
+	<div class = "info" id = "data_window"> 
 	  <ul id = "data_list"></ul>
 	</div>
 	<div class = "menubar" >
 	  <ul class = "menu" id = "data_menu">
-	    <li> <p class = "menuitem" id = "trash"><span>clear</span></p></li>
-	    <li> <p class = "menuitem" id = "save"><span>save</span></p></li>	    
+	    <li> <p class = "menuitem data_window" id = "trash"><span>clear</span></p></li>
+	    <li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">save</a></span></p></li>	    
 	  </ul>
 	  </div>
       </div>

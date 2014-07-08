@@ -167,6 +167,32 @@ bt.data = function() {
 	request.onerror = onerror;
     };
 
+
+    /**
+     * save()
+     *
+     * Given the data, 'data', download it locally as a .csv file.
+     *
+     */
+    bt.data.save = function(data) {
+
+
+	// Encode the data.
+	console.log(data);
+
+	/*
+	  Super janky, but it works.
+
+	var link = document.getElementById('save_link');
+	console.log(link);
+	link.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(data);
+	var evt = document.createEvent("HTMLEvents");
+	evt.initEvent('click', true, true ); // event type,bubbling,cancelable
+	return !link.dispatchEvent(evt);
+	*/
+	
+    }
+
 } // end bt.data module
 
 

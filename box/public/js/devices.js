@@ -28,15 +28,16 @@ bt.devices = function() {
     // ************************************************************************
 
     // Create connection options.
-    var options = {"persistent": false, 
+    var options = {"persistent": false,
 		   "name": "dht22",
 		   "bitrate": 9600,
-		   "receiveTimeout": 10000,
-		   "sendTimeout": 10000,
-		   "ctsFlowControl": true};
+		   "ctsFlowControl": false};
    
+    // Timeout doesn't mean what you think it means.  Timeout seems to mean, "if
+    // I didn't receive in x ms, then forget it."
 
     // *** LOCAL DEVICES REGISTRY ***
+    //
     //  data acquisition units are registered locally according
     //  to their path.  Thus, the format is, {path: daq object}.
     locals = {};
@@ -153,6 +154,8 @@ bt.devices = function() {
 	// it out.
 	var data = ab2str(info.data);
 
+	console.log(data);
+
 	this.response += data;
 
 	// The Arduino println() function "prints data to the serial
@@ -237,6 +240,7 @@ bt.devices = function() {
 	chrome.serial.flush(id, function(result) {
 	    console.log("Flushing connection");
 	    console.log(result);
+	  
 	});
 
     }
@@ -283,9 +287,15 @@ bt.devices = function() {
 
 	    for(var i = 0; i < array.length; i++) {
 
-		// If the path contains tty.Adafruit, then
-		// I am interested in it.
-		if(array[i].path.indexOf("/tty.Adafruit") > -1) {
+		var path = array[i].path;
+
+		// If the path contains tty.Adafruit or tty.usbmodem
+		// (Mac) or COM3 (Windows), then I am interested in
+		// listing it for the user.
+		if((path.indexOf("/tty.Adafruit") > -1)  ||
+		   (path.indexOf("/tty.usbmodem") > -1)  || 
+		   (path.indexOf("COM3") > -1))               {
+
 		    pruned[j] = array[i]; 
 		    j++;
 		}
@@ -353,7 +363,9 @@ bt.devices = function() {
      * handler.
      */
     bt.devices.receive = function(info) {
-	
+
+	console.log("bt.devices.receive()");
+
 	// Determine which connection id is sending this data.
 	var id = info.connectionId;
 		
@@ -392,7 +404,6 @@ bt.devices = function() {
      */
     bt.devices.configure = function(pathArray, action) {
 
-	var d = bt.devices.lookup(pathArray[0]);
 	
 	// Enforce that at least one device was selected.
 	if(pathArray[0] == undefined) {
@@ -400,7 +411,8 @@ bt.devices = function() {
 	    return;
 	}
 
-	
+	var d = bt.devices.lookup(pathArray[0]);
+
 	// Determine the action selected and invoke the appropriate
 	// function.
 	if(action === 'connect') {
@@ -478,7 +490,7 @@ bt.devices = function() {
 		locals[ path ] = d;
 		
 		// Flush the line from any garbage that was previously in the buffer.
-		chrome.serial.flush(ci.connectionId, function(result) {
+		//chrome.serial.flush(ci.connectionId, function(result) {
 
 		    // Indicate that the recently connected pathname is connected.
 		    bt.ui.indicate(path,'connected');
@@ -489,7 +501,7 @@ bt.devices = function() {
 			console.log(sendInfo);
 			
 		    });
-		});
+		//});
 	    }
 	});
 

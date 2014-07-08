@@ -36,7 +36,7 @@ li span {
 
 /* DIVS */
 
-div.window {
+div.info {
     padding-top: 3px;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
@@ -163,6 +163,13 @@ p#save {
     background-image:url('../icons/save.png');
 }
 
+p#configure {
+    background-image:url('../icons/configure.png');
+}
+
+p#go {
+    background-image:url('../icons/go.png');
+}
 
 /* DIVS */
 

@@ -41,7 +41,7 @@ void loop(void)
       char c;
       
       // Read command loop
-      while((c = Serial.read ()) != '!')
+      while((c = Serial.read()) != '!')
       {
         // A value of -1 indicates that no data is available, so just throw out the byte.
         // Otherwise, save it so that we can repeat back the command (for debugging purposes).
