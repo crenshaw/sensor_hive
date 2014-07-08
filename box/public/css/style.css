@@ -9,6 +9,10 @@ body {
     font-size: 90%;
 }
 
+input {
+    width: 30px;
+}
+
 p {
     display: inline;
     margin-left: 0.6em;
@@ -38,6 +42,8 @@ li span {
 
 div.info {
     padding-top: 3px;
+    padding-right: 5px;
+    padding-left: 5px;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     border-radius: 3px;
@@ -71,8 +77,8 @@ ul.menu li {
     margin-right: 37px;
 }
 
-li.connected {
-    list-style-type: disc;
+li.registered {
+    list-style-type: circle;
 }
 
 /* ---------------------------------------------------------- */
@@ -110,6 +116,16 @@ p.menuitem:hover span {
     background-color: #f5f5f5;
 }
 
+p.error {
+    font-style: italic;
+    font-size: 85%
+}
+
+p.info {
+    color: gray;
+    font-size: 85%
+}
+
 /* local_device class */
 span.local_device {
     color: gray;
@@ -135,8 +151,8 @@ p#add {
     background-image:url('../icons/add.png');
 }
 
-p#delete {
-    background-image:url('../icons/delete.png');
+p#remove {
+    background-image:url('../icons/remove.png');
 }
 
 p#connect {
@@ -163,8 +179,8 @@ p#save {
     background-image:url('../icons/save.png');
 }
 
-p#configure {
-    background-image:url('../icons/configure.png');
+p#setup {
+    background-image:url('../icons/setup.png');
 }
 
 p#go {
@@ -173,18 +189,15 @@ p#go {
 
 /* DIVS */
 
+div#local_devices, div#alerts {
+    width: 273px;
+}
+
 div#local_devices {
-    width: 250px;
     height: 200px;
 }
 
-div#data_window {
-    width: 420px;
-    height: 500px;
-}
-
 div#alerts {
-    width: 250px;
     height: 181px;
 }
 
@@ -194,6 +207,35 @@ div#alerts p {
     margin-bottom: 0px;
 }
 
+div#data_window {
+    width: 420px;
+    height: 500px;
+}
+
+div#setup_experiment {
+    height: 0;
+    opacity: 0;
+    -webkit-transition-property: all;
+    -webkit-transition-duration: 400ms;
+    -webkit-transition-timing-function: ease-in;
+    -webkit-transition-delay: 0s;
+    /* Standard syntax */
+    transition-property: all;
+    transition-duration: 400ms;
+    transition-timing-function: ease-in;
+    transition-delay: 0s;
+}
+
+/* ULS */
+
 ul#local_devices_list {
     padding-left: 1em;
+}
+
+ul#local_devices_list li.connected {
+    list-style-type: disc;
+}
+
+ul#alerts_list p {
+    border-bottom: 1px solid silver;
 }

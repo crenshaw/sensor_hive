@@ -20,19 +20,49 @@
 	  <ul id = "local_devices_list">
 	  </ul>
 	</div>
+
+	<div class = "info" id = "setup_experiment">
+	  
+	  <form>
+	    Period: <input type="text" name="period">
+
+	    <select>
+	      <option value="seconds">seconds</option>
+	      <option value="minutes">minutes</option>
+	      <option value="hours">hours</option>
+	    </select>
+
+	    <br>
+
+	    Duration: <input type="text" name="duration">
+
+	    <select>
+	      <option value="seconds">seconds</option>
+	      <option value="minutes">minutes</option>
+	      <option value="hours">hours</option>
+	    </select>
+
+	    cancel button and done button.
+
+	  </form>
+	  
+	</div>
+
 	<div class = "menubar" >
 	  <ul class = "menu" id = "local_devices_menu">
 
 <!-- Comment out buttons that haven't been implemented yet
-   <li ><p class = "menuitem" id = "add"><span>add</span></p></li> 
-   <li ><p class = "menuitem" id = "delete"><span>delete</span></p></li>
+
    <li> <p class = "menuitem" id = "register"><span>register</span></p></li>
 -->
-	    <li> <p class = "menuitem local_devices" id = "connect"><span>connect</span></p></li>
-	    <li> <p class = "menuitem local_devices" id = "disconnect"><span>disconnect</span></p></li> 
+            <li ><p class = "menuitem local_devices" id = "add"><span>add device to local registry</span></p></li> 
+	    <li> <p class = "menuitem local_devices" id = "setup"><span>configure experiment</span></p></li>
+	    <li> <p class = "menuitem local_devices" id = "connect"><span>connect device</span></p></li>
+	    <li> <p class = "menuitem local_devices" id = "disconnect"><span>disconnect device</span></p></li> 
 	    <li> <p class = "menuitem local_devices" id = "refresh"><span>get 1 report</span></p></li>
-	    <li> <p class = "menuitem local_devices" id = "configure"><span>configure experiment</span></p></li>
+
 	    <li> <p class = "menuitem local_devices" id = "go"><span>start experiment</span></p></li>
+            <li ><p class = "menuitem local_devices" id = "remove"><span>remove device from local registry</span></p></li>
 	  </ul>
 	</div>
 

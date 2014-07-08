@@ -59,17 +59,36 @@ bt.devices = function() {
      * @param path A full pathname representing the serial connection of
      * the local device
      *
-     * @param ci Connection info created when the connection was made.
+     * @param connected A boolean value indicating whether the device is
+     * connected to the box.
+     *
+     * @param ci The optional connection info created.  Required if
+     * the connection has already been made.  For example, a daq may
+     * be created for an unconnected device.  In such a case, this
+     * parameter is not required.
      *
      * @param name An optional diminuitive, human-readable name for
      * the device.
      */
-    function daq(path, ci, name) {
+    function daq(path, connected, ci, name) {
 	this.path = path;
+	this.connected = connected;  // True/False, is the device
+				   // connected?
 	this.ci = ci;
 	this.name = name;
 
+	// The default period for a daq is 2 seconds.  The 'period'
+	// represents what the period of the daq is *currently*.
+	this.period = 2;
 
+	// The default period and total duration for an experiment is
+	// 0 seconds.  The 'experiment_period' of a daq represents
+	// what the desired period for this experiment is.  This value
+	// may differ from the 'period' since the experiment may not
+	// have been run and the daq have not been configured yet.
+	this.experiment_period = 0;
+	this.experiment_duration = 0;
+	
 	// The default response for a newly created daq is the empty
 	// string, as it is assumed that it hasn't replied to any
 	// commands yet.
@@ -81,7 +100,8 @@ bt.devices = function() {
     daq.prototype.refresh = refresh;
     daq.prototype.disconnect = disconnect;
     daq.prototype.receive = receive;
-
+    daq.prototype.setup = setup;
+    daq.prototype.remove = remove;
 
     /**
      * refresh()
@@ -104,15 +124,19 @@ bt.devices = function() {
 
     };
 
-
     /**
      * disconnect()
      * 
      * Invoked on a daq object, close the serial connection associated
-     * with a given daq.  Remove it from the local registry.
+     * with a given daq.  If 'clean' is true, disconnect the device
+     * "cleanly" by removing if from the local registry.
+     *
+     * @param clean A boolean value.  If true, disconnect the device
+     * and ALSO remove it from the locally registry.  Otherwise, just
+     * disconnect the device.
      *
      */
-    function disconnect() {
+    function disconnect(clean) {
 	
 	// Retain a handle to the daq object that disconnect was invoked
 	// upon.  'this' gets lost to the callback function...
@@ -123,9 +147,16 @@ bt.devices = function() {
 	    // Indicate that the device is disconnected.
 	    bt.ui.indicate(d.path,'disconnected');	
 	    bt.ui.info(d.path + ' is disconnected');
-   
-	    // Delete if from the registry.
-	    delete locals[d.path];
+
+	    if(clean) {
+	    	// Delete it from the local registry.
+		d.remove();
+	    }
+	    else {
+		// Reflect the disconnected state in the object.
+		d.connected = false;
+		d.ci = undefined;
+	    }
 	});
 
     };
@@ -179,6 +210,43 @@ bt.devices = function() {
 	    bt.ui.log(finished);	    
 	}
     };
+
+    /**
+     * setup()
+     *
+     * Invoked on a daq object, this method allows one to set 
+     * the period and duration of an experiment.
+     *
+     * @param period The desired period for the daq.
+     * @param duration The desired duration for the experiment.
+     *
+     */
+    function setup(period, duration) {
+	
+	this.experiment_period = period;
+	this.experiment_duration = duration;
+	
+	// TODO: Move this UI junk to ui.js!
+	var d = document.getElementById('setup_experiment');
+	console.log(d);
+	d.style.opacity = 1;
+	d.style.height = '67px';
+
+    }
+
+    /** 
+     * remove()
+     *
+     * Invoked on a daq object, this method removes the daq from
+     * the local registry
+     */
+    function remove() {
+
+	var path = this.path;
+	delete locals[path];
+	bt.ui.info("The device is no longer locally registered");
+	bt.ui.indicate(path,'removed');
+    }
 
     /* ************************************************************** 
      * 
@@ -364,8 +432,6 @@ bt.devices = function() {
      */
     bt.devices.receive = function(info) {
 
-	console.log("bt.devices.receive()");
-
 	// Determine which connection id is sending this data.
 	var id = info.connectionId;
 		
@@ -379,7 +445,7 @@ bt.devices = function() {
 	    d.receive(info);
 	}
 	else {
-	    bt.ui.error("Received data from unregistered connection.");
+	    bt.ui.error("Received data from unregistered connection.  This can happen if you have two instances of the app running.");
 	}
 
      }    
@@ -404,7 +470,6 @@ bt.devices = function() {
      */
     bt.devices.configure = function(pathArray, action) {
 
-	
 	// Enforce that at least one device was selected.
 	if(pathArray[0] == undefined) {
 	    bt.ui.error("Please select a device.");
@@ -412,33 +477,91 @@ bt.devices = function() {
 	}
 
 	var d = bt.devices.lookup(pathArray[0]);
+	var path = pathArray[0];
 
+	// ********************************************************
 	// Determine the action selected and invoke the appropriate
 	// function.
-	if(action === 'connect') {
 
+	
+	// ADD: Add a device to the local registry.
+	if(action === 'add') {
+	    
+	    // If d wasn't found, then it hasn't yet been added
+	    // to the local registry.  Add it. Otherwise, tell
+	    // the user it has already been registered.
+	    if(d === undefined) {
+		
+		// Create a software representation of the data acquisition unit
+		//that has just been registered.
+		var d = new daq(path, false);
+
+		// Register the device with the local registry.
+		locals[ path ] = d;
+
+		// Indicate to the user that the device has been registered.
+		bt.ui.indicate(path,'registered');
+		bt.ui.info("The device has been locally registered.");
+
+	    }
+	    else {
+		bt.ui.error("The device is already locally registered.");
+	    }
+	}
+
+	// CONNECT: Connect a device to the box.  A device does not
+	// have to be added to the local registry before being
+	// connected.  
+	//
+	// TODO: This might be confusing...  May have to
+	// enfore ADD-then-CONNECT for more consistent functionality.
+	else if(action === 'connect') {
+
+	    // If the device hasn't been registered yet, connect.
+	    if(d === undefined) {
+		bt.devices.connect(pathArray[0]);
+	    }
+	    
 	    // Determine if the device is already connected.  Let's not connect
 	    // a single device more than once.
-	    if(d != undefined) {
+	    else if(d.connected) {
 		bt.ui.error("The device is already connected.");
 	    }
 	    else {
 		bt.devices.connect(pathArray[0]);
 	    }
 	}
-	
-	else if(action === 'refresh') {
 
-	    if (d === undefined)
-		{
-		    bt.ui.error("The device is not locally connected.");
-		}
-	    else
-	    {
-		d.refresh();
+	// SETUP: Associate a device with simple experiment settings including
+	// period and duration.
+	else if(action === 'setup') {
+	    
+	    if(d === undefined) {
+
+		// You gotta register and *then* setup.
+				    
+		// Create a software representation of the data acquisition unit
+		//that has just been selected.
+		var n = new daq(path, false);
+		
+		// Register the new device with the local registry.
+		locals[ path ] = n;
+		
+		// Indicate to the user that the device has been registered.
+		bt.ui.indicate(path,'registered');
+		bt.ui.info("The device has been locally registered.");
+
+		n.setup();
+
+	    }
+	    else {
+		d.setup();
 	    }
 	}
 
+	// DISCONNECT: Disconnect a locally registered device from the
+	// box.  After this action, the device remains locally
+	// registered.
 	else if(action === 'disconnect')
 	    {
 		// Determine if the device is already connected.  Let's
@@ -447,9 +570,52 @@ bt.devices = function() {
 		    bt.ui.error("The device is already disconnected.");
 		}
 		else {
-		    d.disconnect();
+		    d.disconnect(false);
 		}
 	    }
+	
+	// GO: Start the experiment.  This action requires that some
+	// experiment was set up for the device.
+	else if(action === 'go') {
+
+	    console.log("go");
+	}
+
+	// REFRESH: As the locally registered and connected device for
+	// 1 data report.
+	else if(action === 'refresh') {
+
+	    if (d === undefined) {
+		    bt.ui.error("The device is not locally connected.");
+		}
+	    else {
+		d.refresh();
+	    }
+	}
+
+	// REMOVE: Remove the device from the local registry.
+	else if(action === 'remove') {
+
+	    // If the device is not currently registered, we 
+	    // don't need to unregister it.
+	    if(d === undefined) {
+		    bt.ui.error("The device is not locally registered.");
+	    }
+		
+	    // If the device is currently connected, we need to
+	    // disconnect cleanly, i.e., disconnect it and remove
+	    // it from the local registry.
+	    else if(d.connected){
+		d.disconnect(true);
+	    }
+	    // Otherwise, just remove if from the registry.
+	    else {
+		d.remove();
+	    }
+	}
+
+	console.log(locals);
+	    
     };
 
     /**
@@ -482,12 +648,28 @@ bt.devices = function() {
 	    
 	    else {
 
-		// Create a software representation of the data acquisition unit
-		//that has just been connected to over the serial line.
-		var d = new daq(path, ci);
-		
-		// Register the device with the local registry.
-		locals[ path ] = d;
+		// It may be that we are trying to connect a device
+		// that hasn't been locally registered.
+		var d = locals[path];
+
+		// If the device hasn't been locally registered yet,
+		// create an associated object for it and register it.
+		if(d === undefined) {
+
+		    // Create a software representation of the data acquisition unit
+		    //that has just been connected to over the serial line.
+		    var n = new daq(path, true, ci);
+		    
+		    // Register the new device with the local registry.
+		    locals[ path ] = n;
+		}
+
+		// Otherwise, just set the registered device's
+		// connectivity information.
+		else {
+		    d.connected = true;
+		    d.ci = ci;
+		}
 		
 		// Flush the line from any garbage that was previously in the buffer.
 		//chrome.serial.flush(ci.connectionId, function(result) {

@@ -67,6 +67,7 @@ bt.ui = function() {
     // Update the prototype for all objects of type info.  They share
     // the same methods.
     info.prototype.clear = clear;
+    info.prototype.scroll = scroll;
 
     /**
      * clear()
@@ -77,6 +78,11 @@ bt.ui = function() {
      */
     function clear() {
 	this.handle.innerHTML = "";
+    }
+
+    
+    function scroll() {
+	this.handle.scrollTop = this.handle.scrollHeight;
     }
 
     // ************************************************************************
@@ -285,10 +291,12 @@ bt.ui = function() {
      * indicate()
      *
      * Indicate the device with pathname, 'path', is connected or 
-     * disconnected.
+     * disconnected, registered or removed from the registry.
      *
-     * @param path The pathname associated with the device.
-     * @param state The string 'disconnected' or 'connected'.
+     * @param path The pathname associated with the device.  
+     *
+     * @param state The string 'disconnected', 'connected',
+     * 'registered', or 'removed'.
      */
     bt.ui.indicate = function(path, state) {
 
@@ -307,6 +315,10 @@ bt.ui = function() {
 		    p.classList.add('connected');
 		else if (state === 'disconnected')
 		    p.classList.remove('connected');
+		else if(state === 'registered')
+		    p.classList.add('registered');
+		else if(state === 'removed')
+		    p.classList.remove('registered');
 	    }
 	}		
     }
@@ -320,6 +332,7 @@ bt.ui = function() {
      */
     bt.ui.log = function(datum) {
 	addNode('data_list', datum);
+	infoWindows['data'].scroll();
     };
 
 
@@ -332,6 +345,7 @@ bt.ui = function() {
      */
     bt.ui.error = function(m) {
 	addNode('alerts_list', m, 'error');	
+	infoWindows['alerts'].scroll();
     };
 
     /**
@@ -347,6 +361,7 @@ bt.ui = function() {
      */
     bt.ui.info = function(m) {
 	addNode('alerts_list', m, 'info');	
+	infoWindows['alerts'].scroll();
     };
     
     /**
