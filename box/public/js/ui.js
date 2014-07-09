@@ -90,6 +90,84 @@ bt.ui = function() {
     // ************************************************************************
 
     /**
+     * toggleSetup()
+     *
+     * Show or hide the experiment setup menu.
+     *
+     * TODO: Create css classes to implement this instead of
+     * using code to alter style!
+     */
+    var toggleSetup = function() {
+		
+	var d = document.getElementById('setup_experiment');
+	var b = document.getElementById('setup');
+	console.log(d);
+	
+	// If it's hidden, show it.
+	if(d.style.opacity == 0) {
+	    d.style.border = '1px solid silver';
+	    d.style.opacity = 1;
+	    d.style.height = '70px';
+	    b.style.border = '2px solid #ff0066';
+	    
+	}
+	else {
+	    d.style.opacity = 0;
+	    d.style.height = 0;	    
+	    b.style.border = '2px solid gray';
+	}
+    };
+
+    /**
+     * dispatchSetup()
+     *
+     * Obtain the user-entered information for the experiment and
+     * prepare to call setup() for the proper device.
+     *
+     */
+    var dispatchSetup = function() {
+	
+	// Get period.
+	var period = parseInt(document.getElementById('period').value);
+
+	// Get duration.
+	var duration = parseInt(document.getElementById('duration').value);
+
+
+	// Good data?
+	// TODO: Input checking really shouldn't be done by the user interface
+	// code.  Please clean this up.
+	if(period === undefined || period === 0 || period === "" || period === NaN)
+	    bt.ui.error("The period must be an integer value greater than 0");
+
+	else if(duration === undefined || duration === 0 || duration === "" || duration === NaN)
+	    bt.ui.error("The duration must be an integer value greater than 0");
+
+	else if(duration < period)
+	    bt.ui.error("The duration must be greater than the period.");
+
+
+	else {
+	    
+	    // Get device and call setup on the proper device.
+	    var d = bt.devices.lookup(lastDeviceSelected);
+
+	    // It is possible one is trying to configure a device
+	    // that hasn't been locally registered yet.  Just
+	    // register it and then configure it.
+	    if(d === undefined)
+	    {
+		d = bt.devices.register(lastDeviceSelected, false);
+	    }
+		
+	    d.setup(period, duration);
+	    bt.ui.info("The experiment has been configured for 1 sample every " + period + " seconds for " + duration + " seconds.");
+	    toggleSetup();
+	}
+    };
+
+
+    /**
      * alertsMenu
      *
      * When the user clicks the alerts menubar, this function deploys the 
@@ -161,6 +239,12 @@ bt.ui = function() {
 	else if (objects.length > 1) {
 	    bt.ui.error("Please choose only one device.");
 	}
+
+	// Right now, we must select at least 1 device.  Make sure the
+	// user has selected exactly 1 device.
+	else if (objects.length != 1) {
+	    bt.ui.error("Please select a device.");
+	}
 	   
 	else {
 	    
@@ -172,10 +256,16 @@ bt.ui = function() {
 	    for(var i = 0; i < objects.length; i++) {
 		devices[i] = objects[i].textContent;
 	    }	    
-	    
-	    // Invoke the configure function using the behaviour
-	    // as a parameter.
-	    bt.devices.configure(devices, action);
+
+	    if(action === 'setup') {
+		toggleSetup();
+	    }
+		
+	    else {	
+		// Invoke the configure function using the behaviour
+		// as a parameter.
+		bt.devices.configure(devices, action);
+	    }
 	}
     };
 
@@ -185,11 +275,11 @@ bt.ui = function() {
      * When a device in the "local devices list" is clicked, toggle
      * its class between "selected" and "unselected".  Alter its class
      * accordingly.  Other functions may use this information to alter
-     * the "selected device's" configuration.
+     * the "selected device's" configuration.  
      */
     var selectDevice = function(e) {
 
-	lastDeviceSelected = e.target;
+	lastDeviceSelected = e.target.textContent;
 
 	// Grab the local devices window and deselect any other device
 	// that may be "selected"
@@ -284,6 +374,13 @@ bt.ui = function() {
 	    var io = new info(id)   // Make a new info object.
 	    infoWindows[id] = io;   // Register it.
 	}
+
+	// Setup the buttons in the setup_experiment div.
+	var button = document.getElementById('cancel');
+	button.onclick = toggleSetup;
+
+	button = document.getElementById('done');
+	button.onclick = dispatchSetup;
 	
     };
 

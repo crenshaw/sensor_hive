@@ -88,6 +88,7 @@ bt.devices = function() {
 	// have been run and the daq have not been configured yet.
 	this.experiment_period = 0;
 	this.experiment_duration = 0;
+	this.experiment_samples = 0;
 	
 	// The default response for a newly created daq is the empty
 	// string, as it is assumed that it hasn't replied to any
@@ -220,18 +221,20 @@ bt.devices = function() {
      * @param period The desired period for the daq.
      * @param duration The desired duration for the experiment.
      *
+     * TODO: Need to incorporate units into this.
+     *
      */
     function setup(period, duration) {
 	
 	this.experiment_period = period;
 	this.experiment_duration = duration;
 	
-	// TODO: Move this UI junk to ui.js!
-	var d = document.getElementById('setup_experiment');
-	console.log(d);
-	d.style.opacity = 1;
-	d.style.height = '67px';
-
+	// calculate number of samples needed.  Right now, we've got
+	// seconds as the hard-coded units of measure.  Take the ceiling
+	// of the duration divided by the period.  This way, it will
+	// be at least 1.
+	this.experiment_samples = Math.ceil(duration / period);
+	
     }
 
     /** 
@@ -492,16 +495,9 @@ bt.devices = function() {
 	    // the user it has already been registered.
 	    if(d === undefined) {
 		
-		// Create a software representation of the data acquisition unit
-		//that has just been registered.
-		var d = new daq(path, false);
-
-		// Register the device with the local registry.
-		locals[ path ] = d;
-
-		// Indicate to the user that the device has been registered.
-		bt.ui.indicate(path,'registered');
-		bt.ui.info("The device has been locally registered.");
+		// Create a software representation of the data
+		//acquisition unit, i.e., register it.
+		var d = bt.devices.register(path, false);
 
 	    }
 	    else {
@@ -538,18 +534,8 @@ bt.devices = function() {
 	    
 	    if(d === undefined) {
 
-		// You gotta register and *then* setup.
-				    
-		// Create a software representation of the data acquisition unit
-		//that has just been selected.
-		var n = new daq(path, false);
-		
-		// Register the new device with the local registry.
-		locals[ path ] = n;
-		
-		// Indicate to the user that the device has been registered.
-		bt.ui.indicate(path,'registered');
-		bt.ui.info("The device has been locally registered.");
+		// You gotta register and *then* setup.	
+		var n = bt.devices.register(path, false);
 
 		n.setup();
 
@@ -577,15 +563,21 @@ bt.devices = function() {
 	// GO: Start the experiment.  This action requires that some
 	// experiment was set up for the device.
 	else if(action === 'go') {
+	    
+	    if(d.experiment_samples === 0)
+		{
+		    bt.ui.error("No experiment has been configured for this device.");
+		}
+	    else {
 
-	    console.log("go");
+	    }
 	}
 
 	// REFRESH: As the locally registered and connected device for
 	// 1 data report.
 	else if(action === 'refresh') {
 
-	    if (d === undefined) {
+	    if (d.connected === false) {
 		    bt.ui.error("The device is not locally connected.");
 		}
 	    else {
@@ -658,10 +650,7 @@ bt.devices = function() {
 
 		    // Create a software representation of the data acquisition unit
 		    //that has just been connected to over the serial line.
-		    var n = new daq(path, true, ci);
-		    
-		    // Register the new device with the local registry.
-		    locals[ path ] = n;
+		    var n = bt.devices.register(path, true, ci);
 		}
 
 		// Otherwise, just set the registered device's
@@ -689,6 +678,41 @@ bt.devices = function() {
 
     } // end bt.devices.connect
 
+    /**
+     *
+     * register
+     *
+     * Locally register a device.  In other words, create a local
+     * object, the software representation of the device in the
+     * physical world.
+     *
+     * @param path The pathname representing the local device to be
+     * registered.
+     *
+     * @param connected A boolean value.  It is true if the device has
+     * already been connected and false otherwise.
+     *
+     * @param ci If connected, the connection information for the
+     * device.
+     *
+     * @returns The newly created daq object for the device just
+     * registered.
+     */
+    bt.devices.register = function(path, connected, ci) {    
+	
+	// Create a software representation of the data acquisition unit
+	//that has just been registered.
+	var d = new daq(path, connected, ci);
+	
+	// Register the device with the local registry.
+	locals[ path ] = d;
+	
+	// Indicate to the user that the device has been registered.
+	bt.ui.indicate(path,'registered');
+	bt.ui.info("The device has been locally registered.");
+
+	return d;
+    }
 
 } // end bt.devices module
 
