@@ -367,6 +367,11 @@ bt.devices = function() {
 	// If the type of the response is data, just log it to the
 	// window.
 	if(this.ro.isData()) {
+	    if(this.running && r.indexOf(':') > -1) {
+		this.running = false;
+		bt.ui.info('The experiment is complete.');
+	    }
+
 	    bt.ui.log(r);
 	}
 
@@ -708,9 +713,9 @@ bt.devices = function() {
 		bt.ui.error("An experiment is already running.  Please wait.");
 	    }
 	    else {
-		bt.ui.log("Starting the experiment...");
 		d.running = true;
 		d.go();
+		bt.ui.info("Starting the experiment...");
 	    }
 	}
 
