@@ -436,6 +436,8 @@ bt.ui = function() {
     bt.ui.log = function(datum) {
 	addNode('data_list', datum, 'data');
 	infoWindows['data'].scroll();
+	
+	return;
     };
 
 
@@ -449,6 +451,8 @@ bt.ui = function() {
     bt.ui.error = function(m) {
 	addNode('alerts_list', m, 'error');	
 	infoWindows['alerts'].scroll();
+
+	return;
     };
 
     /**
@@ -465,6 +469,8 @@ bt.ui = function() {
     bt.ui.info = function(m) {
 	addNode('alerts_list', m, 'info');	
 	infoWindows['alerts'].scroll();
+
+	return;
     };
     
     /**
@@ -489,6 +495,8 @@ bt.ui = function() {
 		o.clear();
 	    }
 	}
+
+	return;
     }
        
     /**

@@ -92,11 +92,21 @@ bt.devices = function() {
 	
 	this.experiment_measurements = 0;
 	this.experiment_collected = 0;
-	
+
+	// Is an experiment running right now?
+	this.running = false;
+
 	// The default response for a newly created daq is the empty
 	// string, as it is assumed that it hasn't replied to any
 	// commands yet.
 	this.response = "";
+
+	// The response object is the parsed version of the response.
+	// To save on memory performance, each daq has a single
+	// response object since only one response is examined at a
+	// time.  After decided how to react to the response, the
+	// object is cleared and reused.  For now, it is undefined.
+	this.ro = new bt.miniSDI12.response();
 
 	// The last command issued to this daq.
 	this.lastCommand = "";
@@ -111,6 +121,8 @@ bt.devices = function() {
     daq.prototype.setup = setup;
     daq.prototype.remove = remove;
     daq.prototype.go = go;
+    daq.prototype.processResponse = processResponse;
+
 
     /**
      * refresh()
@@ -244,9 +256,17 @@ bt.devices = function() {
 	    // recreate the problem if I just place a call to
 	    // bt.ui.log() in one of the existing commented-out
 	    // places.
+	    //
+	    // It also seems like I can't put any code after
+	    // the call to bt.ui.log().  Hm.  
+
+	    // Process the timestamped response.
+	    this.processResponse(t)
 
 	    //bt.ui.log(finished);
-	    bt.ui.log(t);
+
+	    // **** bt.ui.log(t);
+	    
 	}
     };
 
@@ -272,7 +292,8 @@ bt.devices = function() {
 	// of the duration divided by the period.  This way, it will
 	// be at least 1.
 	this.experiment_measurements = Math.ceil(duration / period);
-	
+
+	return;
     }
 
     /** 
@@ -323,10 +344,42 @@ bt.devices = function() {
      * maintain()
      *
      * Invoked on a daq object, this method maintains an experiment,
-     * continuing to issue commands over the course of an
+     * continuing to issue commands over the course of an entire
      * experiment.  
      */ 
     function maintain() {
+
+
+
+    }
+
+    /**
+     * processResponse()
+     *
+     * Invoked on a daq object, this method parses the response sent
+     * by the daq and determines next step.
+     */ 
+    function processResponse(r) {
+
+	// Parse the current response.
+	bt.miniSDI12.parse(r, this.ro);
+
+	// If the type of the response is data, just log it to the
+	// window.
+	if(this.ro.isData()) {
+	    bt.ui.log(r);
+	}
+
+	// Otherwise, if the type of the response is a 'Configure
+	// Period' response, send the next command for the experiment.
+	else {
+
+	    // Otherwise, issue the most basic R command possible.
+	    var c = bt.miniSDI12.makeCommand('R',0,this.experiment_measurements)
+	    console.log("Sending...");
+	    console.log(c);
+	    this.send(c);
+	}
 
     }
 
@@ -648,11 +701,15 @@ bt.devices = function() {
 	// experiment was set up for the device.
 	else if(action === 'go') {
 	    		
-	    if(d === undefined || d.experiment_measurements === 0)
-		{
-		    bt.ui.error("No experiment has been configured for this device.");
-		}
+	    if(d === undefined || d.experiment_measurements === 0) {
+		bt.ui.error("No experiment has been configured for this device.");
+	    }
+	    else if(d.running === true) {
+		bt.ui.error("An experiment is already running.  Please wait.");
+	    }
 	    else {
+		bt.ui.log("Starting the experiment...");
+		d.running = true;
 		d.go();
 	    }
 	}

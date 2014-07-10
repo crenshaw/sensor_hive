@@ -27,6 +27,12 @@ bt.miniSDI12 = function() {
     // ************************************************************************
     var ct = "!"  // The command terminator
 
+    // Identify the position of these common tokens in responses.
+    var ID = 0;
+    var ADDRESS = 1;
+    var PERIOD = 2;
+    var TIME = 2;
+    var VALUES = 3;
 
     // *** RESPONSE OBJECT DEFINITION ***
 
@@ -37,70 +43,62 @@ bt.miniSDI12 = function() {
      * local serial device according to the miniSDI-12 protocol.  This
      * is the constructor for the object.
      *
-     * A well-formed data response object has these key-value pairs.
+     * A well-formed data response object has some of these key-value
+     * pairs, depending on its type.  For a full description, see the
+     * miniSDI-12 protocol documentation.
      *
-     * 0) type: 'data' 
-     * 1) preamble: '*'
-     * 2) iii: A three-digit unique DAQ identifier. 
-     * 3) a: An integer value [0..9] representing a DAQ or a sensor address.
-     * 4) timestamp: An integer value expressing the number of seconds since
-     *               Jan 1, 1970 that this response was received.
-     * 5) measurement(s): An array of measurements in the data response.
-     * 6) terminator: An indication, true or false, that the response 
-     *                terminator has been received.
-     * 
-     * or:
-     * 
-     * 0) type: 'ack'
-     * 1) preamble: '*'
-     * 2) iii: A three-digit unique DAQ identifier. 
-     * 3) a: An integer value [0..9] representing a DAQ or sensor address.
-     * 4) terminator: An indication, true or false, that the response
-     *                terminator has been received.
+     * 0) type: A, P, or R (for now).
+     * 1) iii: A three-digit unique DAQ identifier. 
+     * 2) a: An integer value [0..9] representing a DAQ or a sensor address.
+     * 3) time: An integer value expressing the number of seconds since
+     *          Jan 1, 1970 that this response was received.
+     * 4) values: An array of measurements in the data response.
+     * 5) period: The period at which the daq is configured.
      *
      * When a Response object is created, its type is simply "unknown".
      * 
      */
-    function response() {
+
+    // Note that the constructor must be public since modules
+    // outside this one use it.
+    bt.miniSDI12.response = function() {
 	this.type = "unknown";
-    }
+    };
 
+
+    // Update the prototype for all devices of type response who share
+    // the same methods.
+    bt.miniSDI12.response.prototype.isData = isData;
+        
+
+    /** 
+     * isData()
+     *
+     * Is this a response to an R command?  In other words, does
+     * it contain data?
+     *
+     */
+    function isData() {
+	return this.type === 'R';	
+    };
+
+    /**
+     * clearFields()
+     *
+     * Clear all possible fields to this object.  Reset all fields
+     * to 'undefined' except 'type' which is set to 'unknown'.
+     */
+    function clearFields() {
+	
+	this.type = "unknown";
+	this.iii = undefined;
+	this.a = undefined;
+	this.time = undefined;
+	this.values = undefined;
+	this.period = undefined;
+    }
     
-    function parse(m) {
-
-	
-	// Create a new response object.
-	var r = new Response();
-
-	// HALF-BAKED parsing idea.
-
-	// Is there any unfinished business?  If the length is 0, then
-	// we need to find the preamble in the most-recently received
-	// data.
-	var ind = 0;
-	
-	if ((ind = data.indexOf('*')) != -1)
-	    {
-
-		// Set the preamble on the unfinished response.
-		r.preamble = '*';
-
-		bt.ui.log("Start of new business...");
-		
-		// Timestamp the start of new business.
-		
-		// What time is it?
-		var d = new Date();
-		var n = d.getTime();
-
-		data = n + ",";
-
-		// Set the timestamp on the unfinished response.
-		r.timestamp = n;
-	    }
-
-    }
-
+    
     // ************************************************************************
     // Methods provided by this module, visible to others via 
     // the bt.miniSDI12 namespace.
@@ -123,6 +121,41 @@ bt.miniSDI12 = function() {
 	var n = d.getTime() + "";	
 	return r.replace("<time>", n);
     };
+
+
+    /**
+     * parse()
+     *
+     * Given a string response from a miniSDI-12 device, parse
+     * the string and populate the given reponse object 
+     *
+     */
+    bt.miniSDI12.parse = function(r, o) {
+    
+	// Split the string on the commas and see how many
+	// tokens we have.
+	var tokens = r.split(',');
+
+	console.log(tokens);
+	
+	// If there are 3 tokens, it is a configure period response.
+	if (tokens.length === 3) {
+	    o.type = 'P';
+	    o.period = tokens[PERIOD];
+	    o.id = tokens[ID];
+	}
+
+	else if (tokens.length === 4) {
+	    o.type = 'R';
+	    o.time = tokens[TIME];
+	    o.values = tokens[VALUES];
+	}
+
+	console.log(o);
+
+	return;
+    }
+
 
     /**
      * makeCommand()
