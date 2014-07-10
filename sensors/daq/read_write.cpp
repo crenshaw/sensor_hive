@@ -50,11 +50,13 @@ boolean readNewCmd(int* sensor, char* command, int* number){
             break;
         }
     }
-    
+    //Only letters were received, bad cmd.
     if (cmdPtr == inputEnd){
         return false;
     }
-      
+    //I can rewirte thsi to make it a little more smooth
+    //put the parints inside the noCmd if statement
+    //return false right there if they come back neg 1.
     
     //parse the ints to the left of cmdPtr
     //returns -1 if error

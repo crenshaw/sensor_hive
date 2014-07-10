@@ -1,12 +1,11 @@
 
-#include "daqFuncs.h"
 #include "read_write.h"
 #include "Adafruit_MAX31855.h"
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <avr/wdt.h>
 
-//#define DEBUG1
+//#define DEBUG
 //#define WD               // turn watch dog timer on off
 #define DIGCLK  3         // Digital Clk output pin 3
 #define THERMBUS  4       // Thermal data Databus digital input pin 4
@@ -49,7 +48,7 @@ void loop()
              Serial.print("Com: ");
              Serial.println(command);
              Serial.print("Number: ");
-             Serial.println(num);
+             Serial.println(number);
              #endif
          }  
     }
