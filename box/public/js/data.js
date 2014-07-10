@@ -182,14 +182,14 @@ bt.data = function() {
 
 	/*
 	  Super janky, but it works.
-
+	*/
 	var link = document.getElementById('save_link');
 	console.log(link);
 	link.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(data);
 	var evt = document.createEvent("HTMLEvents");
 	evt.initEvent('click', true, true ); // event type,bubbling,cancelable
 	return !link.dispatchEvent(evt);
-	*/
+	
 	
     }
 

@@ -88,21 +88,29 @@ bt.devices = function() {
 	// have been run and the daq have not been configured yet.
 	this.experiment_period = 0;
 	this.experiment_duration = 0;
-	this.experiment_samples = 0;
+
+	
+	this.experiment_measurements = 0;
+	this.experiment_collected = 0;
 	
 	// The default response for a newly created daq is the empty
 	// string, as it is assumed that it hasn't replied to any
 	// commands yet.
 	this.response = "";
+
+	// The last command issued to this daq.
+	this.lastCommand = "";
     };
 
     // Update the prototype for all devices of type daq who share the
     // same methods.
     daq.prototype.refresh = refresh;
+    daq.prototype.send = send;
     daq.prototype.disconnect = disconnect;
     daq.prototype.receive = receive;
     daq.prototype.setup = setup;
     daq.prototype.remove = remove;
+    daq.prototype.go = go;
 
     /**
      * refresh()
@@ -112,9 +120,25 @@ bt.devices = function() {
      *
      */
     function refresh(){
+	this.lastCommand = '0R1!';
+	this.send('0R1!');
+    };
+
+
+    /**
+     * send()
+     *
+     * Invoked on a daq object, this method sends the physical device
+     * the supplied command.
+     *
+     * @param c The command to send.
+     */
+    function send(c){
+
+	this.lastCommand = c;
 
 	// Create a message and place it in an ArrayBuffer.
-	var data = str2ab('0R1!');
+	var data = str2ab(c);
 
 	var id = this.ci.connectionId;
 
@@ -208,7 +232,20 @@ bt.devices = function() {
 	    this.response = this.response.substring(nl + 1);
 	    	    
 	    // For now, just log the raw response.
-	    bt.ui.log(finished);	    
+
+	    //bt.ui.log(finished);	 
+	    var t = bt.miniSDI12.timestamp(finished);
+	    	    
+	    // TODO: Stumbled upon a bizarre bug in which two quick
+	    // calls to bt.ui.log see only the first call actually
+	    // working.  Moreover, it seems that code that occurs
+	    // after bt.ui.log() isn't getting called.  Hm.  I can
+	    // recreate the problem if I just place a call to
+	    // bt.ui.log() in one of the existing commented-out
+	    // places.
+
+	    //bt.ui.log(finished);
+	    bt.ui.log(t);
 	}
     };
 
@@ -229,11 +266,11 @@ bt.devices = function() {
 	this.experiment_period = period;
 	this.experiment_duration = duration;
 	
-	// calculate number of samples needed.  Right now, we've got
+	// calculate number of measurements needed.  Right now, we've got
 	// seconds as the hard-coded units of measure.  Take the ceiling
 	// of the duration divided by the period.  This way, it will
 	// be at least 1.
-	this.experiment_samples = Math.ceil(duration / period);
+	this.experiment_measurements = Math.ceil(duration / period);
 	
     }
 
@@ -249,6 +286,47 @@ bt.devices = function() {
 	delete locals[path];
 	bt.ui.info("The device is no longer locally registered");
 	bt.ui.indicate(path,'removed');
+    }
+
+    /**
+     * go()
+     *
+     * Invoked on a daq object, this method begins the pre-configured
+     * experiment for the device.
+     *
+     */
+    function go() {
+
+	console.log(this);
+
+	// Does the current period match the desired period?  If not,
+	// we need to set the period on the device.
+	if(this.period != this.experiment_period) {
+	    
+	    var p = bt.miniSDI12.makeCommand('P', 0, this.experiment_period);
+	    console.log("Sending...");
+	    console.log(p);
+	    this.send(p);	    
+	}
+
+	else {  
+	    // Otherwise, issue the most basic R command possible.
+	    var c = bt.miniSDI12.makeCommand('R',0,this.experiment_duration)
+	    console.log("Sending...");
+	    console.log(c);
+	    this.send(c);
+	}
+    }
+
+    /**
+     * maintain()
+     *
+     * Invoked on a daq object, this method maintains an experiment,
+     * continuing to issue commands over the course of an
+     * experiment.  
+     */ 
+    function maintain() {
+
     }
 
     /* ************************************************************** 
@@ -308,11 +386,11 @@ bt.devices = function() {
 	
 	console.log("Invoking onSend() on " + id);
 	
-	chrome.serial.flush(id, function(result) {
-	    console.log("Flushing connection");
-	    console.log(result);
-	  
-	});
+//	chrome.serial.flush(id, function(result) {
+//	    console.log("Flushing connection");
+//	    console.log(result);
+//	  
+//	});
 
     }
     
@@ -532,6 +610,7 @@ bt.devices = function() {
 	// period and duration.
 	else if(action === 'setup') {
 	    
+	    // If the device hasn't been locally registered...
 	    if(d === undefined) {
 
 		// You gotta register and *then* setup.	
@@ -540,10 +619,13 @@ bt.devices = function() {
 		n.setup();
 
 	    }
+	    
+	    // Otherwise, just set up the experiment.
 	    else {
 		d.setup();
 	    }
 	}
+
 
 	// DISCONNECT: Disconnect a locally registered device from the
 	// box.  After this action, the device remains locally
@@ -560,24 +642,26 @@ bt.devices = function() {
 		}
 	    }
 	
+
 	// GO: Start the experiment.  This action requires that some
 	// experiment was set up for the device.
 	else if(action === 'go') {
-	    
-	    if(d.experiment_samples === 0)
+	    		
+	    if(d === undefined || d.experiment_measurements === 0)
 		{
 		    bt.ui.error("No experiment has been configured for this device.");
 		}
 	    else {
-
+		d.go();
 	    }
 	}
+
 
 	// REFRESH: As the locally registered and connected device for
 	// 1 data report.
 	else if(action === 'refresh') {
 
-	    if (d.connected === false) {
+	    if (d === undefined || d.connected === false) {
 		    bt.ui.error("The device is not locally connected.");
 		}
 	    else {

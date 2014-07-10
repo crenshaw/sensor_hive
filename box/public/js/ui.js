@@ -1,8 +1,7 @@
 /**
- * devices.js
+ * ui.js
  * 
- * Defines the packaged app's functionality for finding, connecting
- * to, and communicating with the supported devices.
+ * Defines the packaged app's functionality for instrumenting the user-interface.
  *
  */
 
@@ -163,6 +162,7 @@ bt.ui = function() {
 	    d.setup(period, duration);
 	    bt.ui.info("The experiment has been configured for 1 sample every " + period + " seconds for " + duration + " seconds.");
 	    toggleSetup();
+	    bt.ui.indicate(d.path,"experiment");
 	}
     };
 
@@ -203,9 +203,10 @@ bt.ui = function() {
 	}
 
 	else if(action === 'save') {
-	    var data = '001,1,<time>,+23.0,+55.0:'; 
-	    
-		// bt.ui.getData();
+	   
+	    // Get the data from the data window and
+	    // save it to a local file. 
+	    var data = bt.ui.getData();
 	    bt.data.save(data);
 	}
 
@@ -388,12 +389,13 @@ bt.ui = function() {
      * indicate()
      *
      * Indicate the device with pathname, 'path', is connected or 
-     * disconnected, registered or removed from the registry.
+     * disconnected, registered or removed from the registry, or
+     * configured with an experiment.
      *
      * @param path The pathname associated with the device.  
      *
      * @param state The string 'disconnected', 'connected',
-     * 'registered', or 'removed'.
+     * 'registered', 'removed', or 'experiment'.
      */
     bt.ui.indicate = function(path, state) {
 
@@ -416,6 +418,8 @@ bt.ui = function() {
 		    p.classList.add('registered');
 		else if(state === 'removed')
 		    p.classList.remove('registered');
+		else if(state === 'experiment')
+		    p.classList.add('experiment');
 	    }
 	}		
     }
@@ -428,7 +432,7 @@ bt.ui = function() {
      * @param datum The data to log.
      */
     bt.ui.log = function(datum) {
-	addNode('data_list', datum);
+	addNode('data_list', datum, 'data');
 	infoWindows['data'].scroll();
     };
 
@@ -516,6 +520,29 @@ bt.ui = function() {
 		
 	    }
 	}
+    };
+
+    /**
+     * getData()
+     *
+     * Slurp all the data currently logged to the data window and
+     * return it as a giant string.
+     */
+    bt.ui.getData = function() {    
+
+	var result = "";
+
+	// Get everything in the DOM of class 'data'.  This is an
+	// array of <p> elements, where each p is a line of data from
+	// the data window.
+	var list = document.getElementsByClassName('data');
+	
+	for(var i = 0; i < list.length; i++) {
+	    result += list[i].textContent + "\n";
+	}
+
+	return result;
+	
     };
 
 } // end bt.ui module

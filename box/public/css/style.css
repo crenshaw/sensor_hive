@@ -255,6 +255,14 @@ ul#local_devices_list li.connected {
     list-style-type: disc;
 }
 
+ul#local_devices_list li.connected.experiment::after {
+    content: " (e)"
+}
+
+ul#local_devices_list li.experiment::after {
+    content: " (e)"
+}
+
 ul#alerts_list p {
     border-bottom: 1px solid silver;
 }
