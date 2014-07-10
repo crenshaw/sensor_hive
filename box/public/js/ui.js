@@ -416,8 +416,10 @@ bt.ui = function() {
 		    p.classList.remove('connected');
 		else if(state === 'registered')
 		    p.classList.add('registered');
-		else if(state === 'removed')
+		else if(state === 'removed') {
 		    p.classList.remove('registered');
+		    p.classList.remove('experiment');
+		}
 		else if(state === 'experiment')
 		    p.classList.add('experiment');
 	    }

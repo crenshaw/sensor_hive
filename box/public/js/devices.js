@@ -118,6 +118,7 @@ bt.devices = function() {
      * Invoked on a daq object, this method pings the physical device
      * to manually get a response.
      *
+     * TODO: Remove hard-coded command!
      */
     function refresh(){
 	this.lastCommand = '0R1!';
@@ -311,7 +312,7 @@ bt.devices = function() {
 
 	else {  
 	    // Otherwise, issue the most basic R command possible.
-	    var c = bt.miniSDI12.makeCommand('R',0,this.experiment_duration)
+	    var c = bt.miniSDI12.makeCommand('R',0,this.experiment_measurements)
 	    console.log("Sending...");
 	    console.log(c);
 	    this.send(c);

@@ -25,7 +25,7 @@ bt.miniSDI12 = function() {
     // ************************************************************************
     // Variables local to this module.
     // ************************************************************************
-    var ct = "!;"  // The command terminator
+    var ct = "!"  // The command terminator
 
 
     // *** RESPONSE OBJECT DEFINITION ***
