@@ -32,7 +32,8 @@ void dataReport(int iii, int a, int time, double value, boolean lastVal){
     Serial.print(',');
     Serial.print(a);
     Serial.print(',');
-    Serial.print("<time>,");
+    Serial.print("<time>");
+    Serial.print(',');
     if (value >= 0){
         Serial.print('+');
     }

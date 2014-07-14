@@ -1,15 +1,15 @@
 
 #include "read_write.h"
 #include "Adafruit_MAX31855.h"
-#include <Wire.h>
-#include "RTClib.h"
+//#include <Wire.h>
+//#include "RTClib.h"
 
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <avr/wdt.h>
 
 
-//#define DEBUG
+#define DEBUGTIME
 //#define WD               // turn watch dog timer on off
 #define DIGCLK  3         // Digital Clk output pin 3
 #define THERMBUS  4       // Thermal data Databus digital input pin 4
@@ -18,6 +18,13 @@
 #define TEMP3  7          // Temp sensor 3 select digital output pin 7
 #define MAXTEMPSENSORS  3 // maximum number of temperature sensors that can be used.
 
+//RTC_DS1307 RTC;
+
+Adafruit_MAX31855 thermocouple[MAXTEMPSENSORS] = 
+   {Adafruit_MAX31855(DIGCLK, TEMP1, THERMBUS), 
+    Adafruit_MAX31855(DIGCLK, TEMP2, THERMBUS),
+    Adafruit_MAX31855(DIGCLK, TEMP3, THERMBUS)};
+
 int sensor = 0;
 char command = 0;
 int number = 0;
@@ -25,13 +32,10 @@ int ID = 002;
 boolean newCmd = false;
 int lastPort = 0;
 int period = 2000;       // Defualt period 2000ms or 2s
+//DateTime now;
 
-RTC_DS1307 rtc;
 
-Adafruit_MAX31855 thermocouple[MAXTEMPSENSORS] = 
-   {Adafruit_MAX31855(DIGCLK, TEMP1, THERMBUS), 
-    Adafruit_MAX31855(DIGCLK, TEMP2, THERMBUS),
-    Adafruit_MAX31855(DIGCLK, TEMP3, THERMBUS)};
+
 
 void setup () 
 {
@@ -42,6 +46,28 @@ void setup ()
 
 void loop()
 {
+//    #ifdef DEBUGTIME
+//    delay(5000);
+//    DateTime now = RTC.now();
+//    Serial.print(" since 1970 = ");
+//    Serial.println(now.unixtime());
+//
+//    Serial.print(now.year(), DEC);
+//    Serial.print('/');
+//    Serial.print(now.month(), DEC);
+//    Serial.print('/');
+//    Serial.print(now.day(), DEC);
+//    Serial.print(' ');
+//    Serial.print(now.hour(), DEC);
+//    Serial.print(':');
+//    Serial.print(now.minute(), DEC);
+//    Serial.print(':');
+//    Serial.print(now.second(), DEC);
+//    Serial.println();
+//    #endif
+    
+    
+   
     if (Serial.available() > 0)
     {
          newCmd = readNewCmd(&sensor,&command,&number);
@@ -117,11 +143,13 @@ void loop()
                             for (int i = 0; i < MAXTEMPSENSORS; i++){
                                 if (thermocouple[i].isUsed()){
                                     if (j == number -1 && i == lastPort){
-                                        dataReport(ID, i, now.unixtime(), thermocouple[i].readCelsius(), true);
+                                        
+                                        dataReport(ID, i+1, 0, thermocouple[i].readCelsius(), true);
                                         noReport = false;
                                     }     
                                     else{
-                                        dataReport(ID, i, now.unixtime(), thermocouple[i].readCelsius());
+                                        
+                                        dataReport(ID, i+1, 0, thermocouple[i].readCelsius());
                                         noReport = false;
                                     }
                                 }
@@ -136,10 +164,12 @@ void loop()
                         for (int j = 0; j < number; j ++)
                         {
                             if (j == number -1){
-                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius(), true);
+                                
+                                dataReport(ID, 1, 0, thermocouple[j].readCelsius(), true);
                             }     
                             else{
-                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius());
+                               
+                                dataReport(ID, 1, 0, thermocouple[j].readCelsius());
                             }
                         }
                         break;  //2
@@ -147,10 +177,12 @@ void loop()
                         for (int j = 0; j < number; j ++)
                         {
                             if (j == number -1){
-                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius(), true);
+                                
+                                dataReport(ID, 2, 0, thermocouple[j].readCelsius(), true);
                             }     
                             else{
-                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius());
+                                
+                                dataReport(ID, 2, 0, thermocouple[j].readCelsius());
                             }
                         }
                         break;
@@ -158,10 +190,12 @@ void loop()
                         for (int j = 0; j < number; j ++)
                         {
                             if (j == number -1){
-                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius(), true);
+                                
+                                dataReport(ID, 3, 0, thermocouple[j].readCelsius(), true);
                             }     
                             else{
-                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius());
+                                
+                                dataReport(ID, 3, 0, thermocouple[j].readCelsius());
                             }
                         }
                         break;
@@ -186,6 +220,12 @@ void loop()
 
 
 void startup1 (void){
+    //set rtc
+   
+//      Serial.println("RTC is NOT running!");
+//      // following line sets the RTC to the date & time this sketch was compiled
+//      RTC.adjust(DateTime(__DATE__, __TIME__));
+    
     //Look for temperature sensors
     for (int i = 0; i < MAXTEMPSENSORS; i++)
     {
