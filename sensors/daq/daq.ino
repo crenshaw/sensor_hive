@@ -1,9 +1,13 @@
 
 #include "read_write.h"
 #include "Adafruit_MAX31855.h"
+#include <Wire.h>
+#include "RTClib.h"
+
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <avr/wdt.h>
+
 
 //#define DEBUG
 //#define WD               // turn watch dog timer on off
@@ -21,6 +25,8 @@ int ID = 002;
 boolean newCmd = false;
 int lastPort = 0;
 int period = 2000;       // Defualt period 2000ms or 2s
+
+RTC_DS1307 rtc;
 
 Adafruit_MAX31855 thermocouple[MAXTEMPSENSORS] = 
    {Adafruit_MAX31855(DIGCLK, TEMP1, THERMBUS), 
@@ -111,11 +117,11 @@ void loop()
                             for (int i = 0; i < MAXTEMPSENSORS; i++){
                                 if (thermocouple[i].isUsed()){
                                     if (j == number -1 && i == lastPort){
-                                        dataReport(ID, i, 0, thermocouple[i].readCelsius(), true);
+                                        dataReport(ID, i, now.unixtime(), thermocouple[i].readCelsius(), true);
                                         noReport = false;
                                     }     
                                     else{
-                                        dataReport(ID, i, 0, thermocouple[i].readCelsius());
+                                        dataReport(ID, i, now.unixtime(), thermocouple[i].readCelsius());
                                         noReport = false;
                                     }
                                 }
@@ -130,10 +136,10 @@ void loop()
                         for (int j = 0; j < number; j ++)
                         {
                             if (j == number -1){
-                                dataReport(ID, j, 0, thermocouple[j].readCelsius(), true);
+                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius(), true);
                             }     
                             else{
-                                dataReport(ID, j, 0, thermocouple[j].readCelsius());
+                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius());
                             }
                         }
                         break;  //2
@@ -141,10 +147,10 @@ void loop()
                         for (int j = 0; j < number; j ++)
                         {
                             if (j == number -1){
-                                dataReport(ID, j, 0, thermocouple[j].readCelsius(), true);
+                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius(), true);
                             }     
                             else{
-                                dataReport(ID, j, 0, thermocouple[j].readCelsius());
+                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius());
                             }
                         }
                         break;
@@ -152,10 +158,10 @@ void loop()
                         for (int j = 0; j < number; j ++)
                         {
                             if (j == number -1){
-                                dataReport(ID, j, 0, thermocouple[j].readCelsius(), true);
+                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius(), true);
                             }     
                             else{
-                                dataReport(ID, j, 0, thermocouple[j].readCelsius());
+                                dataReport(ID, j, now.unixtime(), thermocouple[j].readCelsius());
                             }
                         }
                         break;
