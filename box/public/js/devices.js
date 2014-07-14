@@ -679,6 +679,12 @@ bt.devices = function() {
 
 	    }
 	    
+	    else if(d.running === true) {
+		
+		// Don't setup an experiment while one is already running.
+		bt.ui.error("Cannot configure a new experiment while the device is running an experiment.");
+	    }
+
 	    // Otherwise, just set up the experiment.
 	    else {
 		d.setup();
@@ -708,6 +714,9 @@ bt.devices = function() {
 	    		
 	    if(d === undefined || d.experiment_measurements === 0) {
 		bt.ui.error("No experiment has been configured for this device.");
+	    }
+	    else if(d.connected === false{
+		bt.ui.error("The device is not locally connected.  Please connect the device to start an experiment.");
 	    }
 	    else if(d.running === true) {
 		bt.ui.error("An experiment is already running.  Please wait.");
