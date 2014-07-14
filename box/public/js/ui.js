@@ -132,7 +132,6 @@ bt.ui = function() {
 	// Get duration.
 	var duration = parseInt(document.getElementById('duration').value);
 
-
 	// Good data?
 	// TODO: Input checking really shouldn't be done by the user interface
 	// code.  Please clean this up.
@@ -158,11 +157,19 @@ bt.ui = function() {
 	    {
 		d = bt.devices.register(lastDeviceSelected, false);
 	    }
+
+	    if(d.running === true) {
 		
-	    d.setup(period, duration);
-	    bt.ui.info("The experiment has been configured for 1 sample every " + period + " seconds for " + duration + " seconds.");
-	    toggleSetup();
-	    bt.ui.indicate(d.path,"experiment");
+		// Don't setup an experiment while one is already running.
+		bt.ui.error("Cannot configure a new experiment while the device is running an experiment.");
+	    }
+
+	    else {
+		d.setup(period, duration);
+		bt.ui.info("The experiment has been configured for 1 sample every " + period + " seconds for " + duration + " seconds.");
+		toggleSetup();
+		bt.ui.indicate(d.path,"experiment");
+	    }
 	}
     };
 
