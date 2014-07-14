@@ -1,7 +1,7 @@
 {
   "name": "Sense",
-  "description": "This chrome packaged app connects to an Arduino equipped with bluetooth and a DHT22 temperature and humidity sensor using the miniSDI-12 protocol.",
-  "version": "0.2",
+  "description": "This chrome packaged app connects to an Arduino deployed with multiple sensors and communicating with the miniSDI-12 protocol.",
+  "version": "1.0",
   "manifest_version": 2,
   "permissions":[
       "serial",
