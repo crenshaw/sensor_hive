@@ -1,27 +1,48 @@
 
 #include "read_write.h"
   
-void printReport(int iii){
+void respond(int iii){
 // iii,a<CR><LF>
-    Serial.print(iii);
+    Serial.print("00");
+    Serial.println(iii);
 }  
 
-void printReport(int iii, int a){
+void respond(int iii, int a){
     // iii,a<CR><LF>
+    Serial.print("00");
     Serial.print(iii);
-    Serial.print('-');
+    Serial.print(',');
     Serial.println(a);
 }
 
-void printReport(int iii, int a, double value){
+void respond(int iii, int a, int n){
+    // iii,a<CR><LF>
+    Serial.print("00");
+    Serial.print(iii);
+    Serial.print(',');
+    Serial.print(a);
+    Serial.print(',');
+    Serial.println(n);
+}
+//needs to have time
+void dataReport(int iii, int a, int time, double value, boolean lastVal){
     // iii,a,<time>,<sd.d>:<CR><LF>
+    Serial.print("00");
     Serial.print(iii);
     Serial.print(',');
     Serial.print(a);
     Serial.print(',');
     Serial.print("<time>,");
-    Serial.print(value);
-    Serial.println(":");
+    if (value >= 0){
+        Serial.print('+');
+    }
+    if (lastVal){
+        Serial.print(value);
+        Serial.println(":");
+    }
+    else{
+        Serial.println(value);
+    }
 }
 
 boolean readNewCmd(int* sensor, char* command, int* number){

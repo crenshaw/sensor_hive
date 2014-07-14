@@ -6,9 +6,10 @@
 
 
 
-void printReport(int iii);
-void printReport(int iii, int a);
-void printReport(int iii, int a, double value);
+void respond(int iii);
+void respond(int iii, int a);
+void respond(int iii, int a, int value);
+void dataReport(int iii, int a, int time, double value, boolean lastVal = false);
 boolean readNewCmd(int* sensor, char* command, int* number);
 int parInt (char* head, char* tail);
 boolean isNumber(char number);

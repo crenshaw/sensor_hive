@@ -19,6 +19,7 @@ char command = 0;
 int number = 0;
 int ID = 002;
 boolean newCmd = false;
+int lastPort = 0;
 int period = 2000;       // Defualt period 2000ms or 2s
 
 Adafruit_MAX31855 thermocouple[MAXTEMPSENSORS] = 
@@ -29,7 +30,7 @@ Adafruit_MAX31855 thermocouple[MAXTEMPSENSORS] =
 void setup () 
 {
     Serial.begin(9600);      
-    Serial.println("Chip test: Arduino - lelaSaida");
+    //Serial.println("Chip test: Arduino - lelaSaida");
     startup1();
 }
 
@@ -39,7 +40,7 @@ void loop()
     {
          newCmd = readNewCmd(&sensor,&command,&number);
          if(!newCmd){
-             Serial.println("0");
+             respond(ID,0);
          }
          else{
              #ifdef DEBUG
@@ -60,54 +61,67 @@ void loop()
     
     if (newCmd){
         switch (command){
-            case 0:
+            case 0:              //Acknowledge Active
                 switch(number)
                 {
                     case 0:    //board active
-                        printReport(ID, 0);
+                        respond(ID, 0);
                         break;
                     case 1:    //Sensor 1 active
                         if (thermocouple[0].isUsed())
                         {
-                            printReport(ID, 1);
+                            respond(ID, 1);
                         }
                         else{
-                            printReport(ID);
+                            respond(ID, 0);
                         }
                         break;  //Sensor 2 active
                     case 2:
                         if (thermocouple[1].isUsed())
                         {
-                            printReport(ID, 2);
+                            respond(ID, 2);
                         }
                         else{
-                            printReport(ID);
+                            respond(ID, 0);
                         }
                         break;
                     case 3:    //Sensor 3 active
                         if (thermocouple[2].isUsed())
                         {
-                            printReport(ID, 3);
+                            respond(ID, 3);
                         }
                         else{
-                            printReport(ID);
+                            respond(ID, 0);
                         }
                         break;
                     default:
-                        Serial.println('0');
+                        respond(ID,0);
                 }
                 break;
-            case 'R':
+            
+            
+            case 'R':          //Continous Measurment Routine
                 //Serial.println("Continous Measurment Routine");
                 switch(sensor)
                 {
                     case 0:    //0
                         for (int j = 0; j < number; j ++)
                         {
+                            boolean noReport = true;
                             for (int i = 0; i < MAXTEMPSENSORS; i++){
                                 if (thermocouple[i].isUsed()){
-                                    printReport(ID, i, thermocouple[i].readCelsius());
+                                    if (j == number -1 && i == lastPort){
+                                        dataReport(ID, i, 0, thermocouple[i].readCelsius(), true);
+                                        noReport = false;
+                                    }     
+                                    else{
+                                        dataReport(ID, i, 0, thermocouple[i].readCelsius());
+                                        noReport = false;
+                                    }
                                 }
+                            }
+                            if(noReport){
+                                respond(ID , 0);
                             }
                             delay(period);
                         }
@@ -115,34 +129,49 @@ void loop()
                     case 1:    //1
                         for (int j = 0; j < number; j ++)
                         {
-                            printReport(ID, sensor, thermocouple[0].readCelsius());
-                            delay(period);
+                            if (j == number -1){
+                                dataReport(ID, j, 0, thermocouple[j].readCelsius(), true);
+                            }     
+                            else{
+                                dataReport(ID, j, 0, thermocouple[j].readCelsius());
+                            }
                         }
                         break;  //2
                     case 2:
                         for (int j = 0; j < number; j ++)
                         {
-                            printReport(ID, sensor, thermocouple[1].readCelsius());
-                            delay(period);
+                            if (j == number -1){
+                                dataReport(ID, j, 0, thermocouple[j].readCelsius(), true);
+                            }     
+                            else{
+                                dataReport(ID, j, 0, thermocouple[j].readCelsius());
+                            }
                         }
                         break;
                     case 3:    //3
                         for (int j = 0; j < number; j ++)
                         {
-                            printReport(ID, sensor, thermocouple[2].readCelsius());
-                            delay(period);
+                            if (j == number -1){
+                                dataReport(ID, j, 0, thermocouple[j].readCelsius(), true);
+                            }     
+                            else{
+                                dataReport(ID, j, 0, thermocouple[j].readCelsius());
+                            }
                         }
                         break;
                     default:
-                        Serial.println('0');
+                        respond(ID,0);
                 }
                 break;
-            case 'P':
+            
+            
+            case 'P':          //setPeriod
                 //Serial.println("Period Set Routine");
                 period = number * 1000;
+                respond(ID,0,number);
                 break;
            default:
-               Serial.println("0");
+               respond(ID,0);
         }
         
     }
@@ -154,13 +183,14 @@ void startup1 (void){
     //Look for temperature sensors
     for (int i = 0; i < MAXTEMPSENSORS; i++)
     {
-        #ifdef DEBUG3
+        #ifdef DEBUG30R
         Serial.print("Sensor ");
         Serial.println(i); 
         #endif  
         if(thermocouple[i].readCelsius() > 0)
         {
             thermocouple[i].setUsed(true);
+            lastPort = i;
             #ifdef DEBUG3
             Serial.println("Sensor in use.");
             #endif
