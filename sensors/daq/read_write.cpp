@@ -32,7 +32,8 @@ void dataReport(int iii, int a, int time, double value, boolean lastVal){
     Serial.print(',');
     Serial.print(a);
     Serial.print(',');
-    Serial.print("<time>,");
+    Serial.print("<time>");
+    Serial.print(',');
     if (value >= 0){
         Serial.print('+');
     }
@@ -47,11 +48,19 @@ void dataReport(int iii, int a, int time, double value, boolean lastVal){
 
 boolean readNewCmd(int* sensor, char* command, int* number){
     char buffer[15];
-    int numChars = Serial.readBytesUntil('!', buffer, 15);
+    int numChars = Serial.readBytesUntil(';', buffer, 15);
+    
+    //check if command ends with '!'.
+    if (buffer[numChars -1] != '!'){
+        return false;
+    }
+    
     char* inputHead = &buffer[0];
-    char* inputEnd = &buffer[numChars-1];
+    char* inputEnd = &buffer[numChars-2];
     char* cmdPtr = inputEnd;
     boolean noCmd = false;
+    
+    
 
     //test if rest
     //return set all to -1 and return true to signal reset
@@ -71,7 +80,7 @@ boolean readNewCmd(int* sensor, char* command, int* number){
             break;
         }
     }
-    //Only letters were received, bad cmd.
+    //No numbers right of cmd, bad cmd.
     if (cmdPtr == inputEnd){
         return false;
     }
