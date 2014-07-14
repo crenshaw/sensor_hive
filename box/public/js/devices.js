@@ -77,6 +77,13 @@ bt.devices = function() {
 	this.ci = ci;
 	this.name = name;
 
+	// A device has a set of ports.  Each port may be empty or
+	// may be connected to a sensor.  When a device is added,
+	// it is automatically determined which ports are installed
+	// with a sensor.  As this information is determined, this
+	// object is populated.
+	this.ports = {};
+
 	// The default period for a daq is 2 seconds.  The 'period'
 	// represents what the period of the daq is *currently*.
 	this.period = 2;
@@ -642,12 +649,10 @@ bt.devices = function() {
 	    }
 	}
 
-	// CONNECT: Connect a device to the box.  A device does not
-	// have to be added to the local registry before being
-	// connected.  
+	// ADD: Add a device to the local registry and establish a
+	// serial connection between the selected a device and the
+	// box.
 	//
-	// TODO: This might be confusing...  May have to
-	// enfore ADD-then-CONNECT for more consistent functionality.
 	else if(action === 'connect') {
 
 	    // If the device hasn't been registered yet, connect.

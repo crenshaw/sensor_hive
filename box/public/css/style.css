@@ -156,16 +156,12 @@ span.local_device:hover {
  */
 
 /* For the menubar, set the images for * specific menu elements */
-p#add {
-    background-image:url('../icons/add.png');
-}
-
 p#remove {
     background-image:url('../icons/remove.png');
 }
 
 p#connect {
-    background-image:url('../icons/connect.png');
+    background-image:url('../icons/add.png');
 }
 
 p#disconnect {
