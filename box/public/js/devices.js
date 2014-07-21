@@ -29,12 +29,12 @@ bt.devices = function() {
 
     // Create connection options.
     var options = {"persistent": false,
-		   "name": "dht22",
 		   "bitrate": 9600,
 		   "ctsFlowControl": false};
    
-    // Timeout doesn't mean what you think it means.  Timeout seems to mean, "if
-    // I didn't receive in x ms, then forget it."
+    // Important note related to the Google serial API.  Timeout
+    // doesn't mean what you think it means.  Timeout seems to mean,
+    // "if I didn't receive in x ms, then forget it."
 
     // *** LOCAL DEVICES REGISTRY ***
     //
@@ -95,7 +95,6 @@ bt.devices = function() {
 	// have been run and the daq have not been configured yet.
 	this.experiment_period = 0;
 	this.experiment_duration = 0;
-
 	
 	this.experiment_measurements = 0;
 	this.experiment_collected = 0;
@@ -103,32 +102,19 @@ bt.devices = function() {
 	// Is an experiment running right now?
 	this.running = false;
 
-	// The default response for a newly created daq is the empty
-	// string, as it is assumed that it hasn't replied to any
-	// commands yet.
-	this.response = "";
+	// The protocol object is what is used to send the 
+	// daq commands and receive daq responses for the device.
+	this.protocol = new bt.protocol.miniSDI12(path, ci);
 
-	// The response object is the parsed version of the response.
-	// To save on memory performance, each daq has a single
-	// response object since only one response is examined at a
-	// time.  After decided how to react to the response, the
-	// object is cleared and reused.  For now, it is undefined.
-	this.ro = new bt.miniSDI12.response();
-
-	// The last command issued to this daq.
-	this.lastCommand = "";
     };
 
     // Update the prototype for all devices of type daq who share the
     // same methods.
     daq.prototype.refresh = refresh;
-    daq.prototype.send = send;
     daq.prototype.disconnect = disconnect;
-    daq.prototype.receive = receive;
     daq.prototype.setup = setup;
     daq.prototype.remove = remove;
     daq.prototype.go = go;
-    daq.prototype.processResponse = processResponse;
 
 
     /**
@@ -137,34 +123,21 @@ bt.devices = function() {
      * Invoked on a daq object, this method pings the physical device
      * to manually get a response.
      *
-     * TODO: Remove hard-coded command!
      */
     function refresh(){
-	this.lastCommand = '0R1!';
-	this.send('0R1!');
-    };
 
+	// Send the command to get 1 measurement.
+	var p = this.protocol.getMeasurements(2);
 
-    /**
-     * send()
-     *
-     * Invoked on a daq object, this method sends the physical device
-     * the supplied command.
-     *
-     * @param c The command to send.
-     */
-    function send(c){
+	// Handle the asynchronous result. 
+	p.then(function(response) {
 
-	this.lastCommand = c;
-
-	// Create a message and place it in an ArrayBuffer.
-	var data = str2ab(c);
-
-	var id = this.ci.connectionId;
-
-	chrome.serial.send(id, data, function(sendInfo) {
-	    console.log(sendInfo);
-	    onSend(id); 
+	    if (response.result === "Success") {
+		bt.ui.log(response.raw);
+	    }
+	    
+	}, function(error) {
+	    console.error("Failed", error);
 	});
 
     };
@@ -207,86 +180,15 @@ bt.devices = function() {
     };
 
     /**
-     * recieve()
-     *
-     * receive data as it is received by Chrome over the serial line
-     * from a particular DAQ. As data is received asynchronously, we
-     * must handle the case that only parts of a single data report
-     * may be received by a single call to this function.  Thus,
-     * receive() keeps track of unparsed data received from a
-     * particular DAQ until it sees a <CR><LF>.
-     *
-     */
-    function receive(info) {
-
-	var data = "";
-
-	// Given an ArrayBuffer of data, construct a string and parse
-	// the data.
-	var dv = new DataView(info.data);
-
-	// Make a string out of the data that was most recently received.
-	// The data is cloistered in an ArrayBuffer, have ab2str() get
-	// it out.
-	var data = ab2str(info.data);
-
-	console.log(data);
-
-	this.response += data;
-
-	// The Arduino println() function "prints data to the serial
-	// port as human-readable ASCII text followed by a carriage
-	// return character (ASCII 13, or '\r') and a newline
-	// character (ASCII 10, or '\n')."
-	var nl = this.response.indexOf('\n');
-
-	// Is there a terminal character in the response yet?
-	if(nl != -1) {
-	    
-	    // Chop unfinished at the terminator.  
-	    // Everything before that is a finished response
-	    // that needs to be parsed.
-	    var finished = this.response.substring(0, nl - 1);
-	    
-	    // The remainder is the new unfinished response
-	    this.response = this.response.substring(nl + 1);
-	    	    
-	    // For now, just log the raw response.
-
-	    //bt.ui.log(finished);	 
-	    var t = bt.miniSDI12.timestamp(finished);
-	    	    
-	    // TODO: Stumbled upon a bizarre bug in which two quick
-	    // calls to bt.ui.log see only the first call actually
-	    // working.  Moreover, it seems that code that occurs
-	    // after bt.ui.log() isn't getting called.  Hm.  I can
-	    // recreate the problem if I just place a call to
-	    // bt.ui.log() in one of the existing commented-out
-	    // places.
-	    //
-	    // It also seems like I can't put any code after
-	    // the call to bt.ui.log().  Hm.  
-
-	    // Process the timestamped response.
-	    this.processResponse(t)
-
-	    //bt.ui.log(finished);
-
-	    // **** bt.ui.log(t);
-	    
-	}
-    };
-
-    /**
      * setup()
      *
      * Invoked on a daq object, this method allows one to set 
      * the period and duration of an experiment.
      *
-     * @param period The desired period for the daq.
-     * @param duration The desired duration for the experiment.
+     * @param period The desired period for the daq, expressed in seconds.
      *
-     * TODO: Need to incorporate units into this.
+     * @param duration The desired duration for the experiment,
+     * expressed in seconds.
      *
      */
     function setup(period, duration) {
@@ -360,11 +262,14 @@ bt.devices = function() {
 
     }
 
+
     /**
      * processResponse()
      *
-     * Invoked on a daq object, this method parses the response sent
-     * by the daq and determines next step.
+     * Decide next step after response.
+     *
+     * @param r The response object representing the response sent by
+     * the daq.
      */ 
     function processResponse(r) {
 
@@ -393,53 +298,7 @@ bt.devices = function() {
 	    this.send(c);
 	}
 
-    }
-
-    /* ************************************************************** 
-     * 
-     * Local Utility Functions.
-     */
-
-    /**
-     * ab2str()
-     *
-     * Convert a UTF-8 encoded ArrayBuffer to a string.
-     *
-     * Based on:
-     * http://updates.html5rocks.com/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
-     *
-     * @param buf The ArrayBuffer to convert.
-     *
-     */
-    function ab2str(buf) {
-	var bufView = new Uint8Array(buf);
-	var encodedString = String.fromCharCode.apply(null, bufView);
-	return decodeURIComponent(escape(encodedString));
     };
-
-    /**
-     * str2ab()
-     *
-     * Converts a string, m, to UTF-8 encoding in a Uint8Array;
-     * returns the array buffer. 
-     *
-     * Based on:
-     * http://updates.html5rocks.com/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
-     *
-     * @param m The string to convert.
-     */
-    function str2ab(m) {
-
-	var encodedString = unescape(encodeURIComponent(m));
-	var bytes = new Uint8Array(encodedString.length);
-
-	for (var i = 0; i < encodedString.length; ++i) {
-	    bytes[i] = encodedString.charCodeAt(i);
-	}
-
-	return bytes.buffer;
-    };
-
 
     /**
      * onSend()
@@ -589,7 +448,7 @@ bt.devices = function() {
 	// error that a foreign device is attempting to talk to us.
 	// And we are shy folk.
 	if(d != undefined) {
-	    d.receive(info);
+	    d.protocol.receive(info);
 	}
 	else {
 	    bt.ui.error("Received data from unregistered connection.  This can happen if you have two instances of the app running.");
@@ -775,7 +634,7 @@ bt.devices = function() {
 
 
 	// Create a message and place it in an ArrayBuffer.
-	var data = str2ab('0R1!');
+	var data = '0R1!;';
 
 	bt.ui.info("Connecting...  Takes about 10 seconds.");
 
@@ -805,7 +664,7 @@ bt.devices = function() {
 
 		    // Create a software representation of the data acquisition unit
 		    //that has just been connected to over the serial line.
-		    var n = bt.devices.register(path, true, ci);
+		    d = bt.devices.register(path, true, ci);
 		}
 
 		// Otherwise, just set the registered device's
@@ -814,20 +673,25 @@ bt.devices = function() {
 		    d.connected = true;
 		    d.ci = ci;
 		}
-		
-		// Flush the line from any garbage that was previously in the buffer.
-		//chrome.serial.flush(ci.connectionId, function(result) {
 
-		    // Indicate that the recently connected pathname is connected.
-		    bt.ui.indicate(path,'connected');
-		    bt.ui.info(path + ' is connected');
+	
+		// Send an initial message to the device.
+		var p = d.protocol.acknowledge(0);
 
-		    // Send an initial message to the device.
-		    chrome.serial.send(ci.connectionId, data, function(sendInfo) {
-			console.log(sendInfo);
-			
-		    });
-		//});
+		// Handle the asynchronous result. 
+		p.then(function(response) {
+
+		    if (response.result === "Success") {
+			// Indicate that the recently connected pathname is connected.
+			bt.ui.indicate(path,'connected');
+			bt.ui.info(path + ' is connected');	
+		    }
+
+		}, function(error) {
+		    console.error("Failed", error);
+		});
+	
+
 	    }
 	});
 
@@ -864,7 +728,9 @@ bt.devices = function() {
 	
 	// Indicate to the user that the device has been registered.
 	bt.ui.indicate(path,'registered');
-	bt.ui.info("The device has been locally registered.");
+
+	console.log("register() complete");
+	console.log(d);
 
 	return d;
     }

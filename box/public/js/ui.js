@@ -129,12 +129,31 @@ bt.ui = function() {
 	// Get period.
 	var period = parseInt(document.getElementById('period').value);
 
+	// Get units.
+	var p_units = document.getElementById('period_units').value;
+
 	// Get duration.
 	var duration = parseInt(document.getElementById('duration').value);
 
+	// Get units. 
+	var d_units = document.getElementById('duration_units').value;
+
+
+	// Construct an informative note.
+	var result = "The experiment has been configured for 1 sample every " + period + " " + p_units + " for " + duration + " " + d_units;
+
+	// TODO: Input conversion and checking really shouldn't be
+	// done by the user interface code.  Please clean this up.
+
+	// Based on the units, calculate the value of the period and the
+	// duration in seconds.
+	if (p_units === 'minutes') period = period * 60;
+	else if (p_units === 'hours') period = period * 60 * 60;
+
+	if (d_units === 'minutes') duration = duration * 60;
+	else if (d_units === 'hours') duration = duration * 60 * 60;
+
 	// Good data?
-	// TODO: Input checking really shouldn't be done by the user interface
-	// code.  Please clean this up.
 	if(period === undefined || period === 0 || period === "" || period === NaN)
 	    bt.ui.error("The period must be an integer value greater than 0");
 
@@ -166,7 +185,7 @@ bt.ui = function() {
 
 	    else {
 		d.setup(period, duration);
-		bt.ui.info("The experiment has been configured for 1 sample every " + period + " seconds for " + duration + " seconds.");
+		bt.ui.info(result);
 		toggleSetup();
 		bt.ui.indicate(d.path,"experiment");
 	    }
@@ -341,6 +360,9 @@ bt.ui = function() {
 	// Add the new <li> element to the list.
 	s.appendChild(node);
 
+	console.log("Added node to UI:", node);
+
+	return;
     }
 
     // ************************************************************************
@@ -440,9 +462,16 @@ bt.ui = function() {
      * 
      * @param datum The data to log.
      */
+
+
+    // TODO: Stumbled upon a bizarre bug in which two quick calls to
+    // bt.ui.log see only the first call actually working.  Moreover,
+    // it seems that code that occurs after bt.ui.log() isn't getting
+    // called.  Is it the scrolling that is causing the issue?
+
     bt.ui.log = function(datum) {
 	addNode('data_list', datum, 'data');
-	infoWindows['data'].scroll();
+	//infoWindows['data'].scroll();
 	
 	return;
     };
@@ -457,7 +486,7 @@ bt.ui = function() {
      */
     bt.ui.error = function(m) {
 	addNode('alerts_list', m, 'error');	
-	infoWindows['alerts'].scroll();
+	//infoWindows['alerts'].scroll();
 
 	return;
     };
@@ -475,7 +504,7 @@ bt.ui = function() {
      */
     bt.ui.info = function(m) {
 	addNode('alerts_list', m, 'info');	
-	infoWindows['alerts'].scroll();
+	//infoWindows['alerts'].scroll();
 
 	return;
     };

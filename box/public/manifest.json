@@ -1,5 +1,5 @@
 {
-  "name": "Sense",
+  "name": "Scio",
   "description": "This chrome packaged app connects to an Arduino deployed with multiple sensors and communicating with the miniSDI-12 protocol.",
   "version": "1.0",
   "manifest_version": 2,
