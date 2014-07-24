@@ -76,7 +76,14 @@ bt.ui = function() {
      *
      */
     function clear() {
-	this.handle.innerHTML = "";
+
+	// Get the <ul> child of this node and delete all its
+	// <li> elements.
+	var u = this.handle.children[0];
+
+	console.log(u);
+
+	u.innerHTML = "";
     }
 
     
