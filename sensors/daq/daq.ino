@@ -1,253 +1,143 @@
-
-#include "read_write.h"
-#include "Adafruit_MAX31855.h"
-//#include <Wire.h>
-//#include "RTClib.h"
-
-#include <avr/sleep.h>
-#include <avr/power.h>
-#include <avr/wdt.h>
+// includeds
+#include <Wire.h>                  // i2c communication
+#include "RTClib.h"                // real time clock
+#include "daqImp.h"
+#include "read_write.h"            // used to parse command and send resonds
 
 
-#define DEBUGTIME
-//#define WD               // turn watch dog timer on off
-#define DIGCLK  3         // Digital Clk output pin 3
-#define THERMBUS  4       // Thermal data Databus digital input pin 4
-#define TEMP1  5          // Temp sensor 1 select digital output pin 5
-#define TEMP2  6          // Temp sensor 2 select digital output pin 6
-#define TEMP3  7          // Temp sensor 3 select digital output pin 7
-#define MAXTEMPSENSORS  3 // maximum number of temperature sensors that can be used.
+#define period ICR1                  // rename period compare reg for tmr1 for take measure comd
 
-//RTC_DS1307 RTC;
+// global variables
+//declare real time clock
+RTC_DS1307 RTC;
 
-Adafruit_MAX31855 thermocouple[MAXTEMPSENSORS] = 
-   {Adafruit_MAX31855(DIGCLK, TEMP1, THERMBUS), 
-    Adafruit_MAX31855(DIGCLK, TEMP2, THERMBUS),
-    Adafruit_MAX31855(DIGCLK, TEMP3, THERMBUS)};
-
-int sensor = 0;
-char command = 0;
-int number = 0;
-int ID = 002;
-boolean newCmd = false;
-int lastPort = 0;
-int period = 2000;       // Defualt period 2000ms or 2s
-//DateTime now;
+//declare each temperature sensor
+Adafruit_MAX31855 thermocouple[DAQ_MAXTEMPSENSORS] = 
+   {Adafruit_MAX31855(DAQ_DIGCLK, DAQ_TEMP1, DAQ_THERMBUS), 
+    Adafruit_MAX31855(DAQ_DIGCLK, DAQ_TEMP2, DAQ_THERMBUS),
+    Adafruit_MAX31855(DAQ_DIGCLK, DAQ_TEMP3, DAQ_THERMBUS)};
+    
+//declare an experiment
+Exp experiment; 
+    
+// command variables
+boolean newCmd = false;                // flags a new command has been received
+char command = 0;                      // holds the new command given
+int port = 0;                          // holds the port number
+int numMeasurs = 0;                    // holds the number of measuremnts ot be taken 
+int lastPort = 0;                      // holds the highest port currently beaing used on the daq
 
 
+///////////////////////////////////////////////////////////////////////////////////////////
+//**************************************** Setup ****************************************//
+///////////////////////////////////////////////////////////////////////////////////////////
 
 
-void setup () 
-{
-    Serial.begin(9600);      
-    //Serial.println("Chip test: Arduino - lelaSaida");
-    startup1();
+    
+void setup () {
+    Serial.begin(9600);                                           // beign serial coms
+    Wire.begin();                                                 // begin i2c coms
+    lastPort = sensorCheck(&thermocouple[0], DAQ_MAXTEMPSENSORS);     // runs sensor check function
+    RTC.begin();                                                  // turn on rtc
+    pinMode(DAQ_SQW, INPUT_PULLUP);                                   // gets pin 5 ready to receive saq output
+                                                                  //      needs to be inout_pullup as rtc sqw requires pullup resistor
+    startSquareWave (RTC_I2C_ADDRESS);                            // starts 1hz sqare wave output from rtc
+    period = 2;                                                   // defaults measure cmd period to two second
+    timer1Setup();                                                // setup timer1
+    
 }
 
-void loop()
-{
-//    #ifdef DEBUGTIME
-//    delay(5000);
-//    DateTime now = RTC.now();
-//    Serial.print(" since 1970 = ");
-//    Serial.println(now.unixtime());
-//
-//    Serial.print(now.year(), DEC);
-//    Serial.print('/');
-//    Serial.print(now.month(), DEC);
-//    Serial.print('/');
-//    Serial.print(now.day(), DEC);
-//    Serial.print(' ');
-//    Serial.print(now.hour(), DEC);
-//    Serial.print(':');
-//    Serial.print(now.minute(), DEC);
-//    Serial.print(':');
-//    Serial.print(now.second(), DEC);
-//    Serial.println();
-//    #endif
-    
-    
-   
-    if (Serial.available() > 0)
-    {
-         newCmd = readNewCmd(&sensor,&command,&number);
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//************************************* Main Loop ***************************************//
+///////////////////////////////////////////////////////////////////////////////////////////
+
+void loop(){
+  if (experiment.newMeasure){
+      storeData (&thermocouple[0], &experiment);
+      experiment.newMeasure = false;
+  }
+  if (experiment.isEnd){
+      endExp();
+  }
+  
+  // on incoming serial read a new command
+  if (Serial.available() > 0){
+         newCmd = readNewCmd (&command, &port,  &numMeasurs);
          if(!newCmd){
-             respond(ID,0);
+             //abort response
+             respond(DAQ_ID,0);
          }
-         else{
-             #ifdef DEBUG
-             Serial.print("Sensor: ");
-             Serial.println(sensor);
-             Serial.print("Com: ");
-             Serial.println(command);
-             Serial.print("Number: ");
-             Serial.println(number);
-             #endif
-         }  
-    }
-    
-    if (newCmd && sensor == -1 && command == -1 && number == -1){
-        //Serial.println("run break routine");
-        newCmd = false;
-    }
-    
-    if (newCmd){
-        switch (command){
-            case 0:              //Acknowledge Active
-                switch(number)
-                {
-                    case 0:    //board active
-                        respond(ID, 0);
-                        break;
-                    case 1:    //Sensor 1 active
-                        if (thermocouple[0].isUsed())
-                        {
-                            respond(ID, 1);
-                        }
-                        else{
-                            respond(ID, 0);
-                        }
-                        break;  //Sensor 2 active
-                    case 2:
-                        if (thermocouple[1].isUsed())
-                        {
-                            respond(ID, 2);
-                        }
-                        else{
-                            respond(ID, 0);
-                        }
-                        break;
-                    case 3:    //Sensor 3 active
-                        if (thermocouple[2].isUsed())
-                        {
-                            respond(ID, 3);
-                        }
-                        else{
-                            respond(ID, 0);
-                        }
-                        break;
-                    default:
-                        respond(ID,0);
-                }
-                break;
-            
-            
-            case 'R':          //Continous Measurment Routine
-                //Serial.println("Continous Measurment Routine");
-                switch(sensor)
-                {
-                    case 0:    //0
-                        for (int j = 0; j < number; j ++)
-                        {
-                            boolean noReport = true;
-                            for (int i = 0; i < MAXTEMPSENSORS; i++){
-                                if (thermocouple[i].isUsed()){
-                                    if (j == number -1 && i == lastPort){
-                                        
-                                        dataReport(ID, i+1, 0, thermocouple[i].readCelsius(), true);
-                                        noReport = false;
-                                    }     
-                                    else{
-                                        
-                                        dataReport(ID, i+1, 0, thermocouple[i].readCelsius());
-                                        noReport = false;
-                                    }
-                                }
-                            }
-                            if(noReport){
-                                respond(ID , 0);
-                            }
-                            delay(period);
-                        }
-                        break;
-                    case 1:    //1
-                        for (int j = 0; j < number; j ++)
-                        {
-                            if (j == number -1){
-                                
-                                dataReport(ID, 1, 0, thermocouple[j].readCelsius(), true);
-                            }     
-                            else{
-                               
-                                dataReport(ID, 1, 0, thermocouple[j].readCelsius());
-                            }
-                        }
-                        break;  //2
-                    case 2:
-                        for (int j = 0; j < number; j ++)
-                        {
-                            if (j == number -1){
-                                
-                                dataReport(ID, 2, 0, thermocouple[j].readCelsius(), true);
-                            }     
-                            else{
-                                
-                                dataReport(ID, 2, 0, thermocouple[j].readCelsius());
-                            }
-                        }
-                        break;
-                    case 3:    //3
-                        for (int j = 0; j < number; j ++)
-                        {
-                            if (j == number -1){
-                                
-                                dataReport(ID, 3, 0, thermocouple[j].readCelsius(), true);
-                            }     
-                            else{
-                                
-                                dataReport(ID, 3, 0, thermocouple[j].readCelsius());
-                            }
-                        }
-                        break;
-                    default:
-                        respond(ID,0);
-                }
-                break;
-            
-            
-            case 'P':          //setPeriod
-                //Serial.println("Period Set Routine");
-                period = number * 1000;
-                respond(ID,0,number);
-                break;
-           default:
-               respond(ID,0);
-        }
-        
-    }
+  }
+  //check if a break command  
+  if (newCmd && command == -1 && port == -1 && numMeasurs == -1){
+      experiment.isRunning = false;                //removes experiemnt flag
+      endExp();                                    // turns off timers
+      respond(DAQ_ID,0);
+      newCmd = false;
+  }
+  
+  // process new command
+  if (newCmd){
+      switch (command){
+          case 0:
+              // note: the way parse comand is currently running 
+              // if only one number is return it is returned in numMeasusres
+              //todo: fix this
+              acknowledgeActive (&thermocouple[0], numMeasurs);
+              //todo:wirte funciton for different sensor types
+              break;
+          case 'P':
+              period = numMeasurs;
+              respond(DAQ_ID, 0, numMeasurs);
+              //periodSet (numMeasurs);
+              break;
+          case 'R':
+              //todo: run comtinous measurment
+              break;
+          case 'M':
+              startExp (&experiment, port, numMeasurs) ? respond (DAQ_ID, port, numMeasurs*period, numMeasurs) : respond (DAQ_ID, 0);
+              break;
+          case 'D':
+              //todo: run send data
+              break;
+          default:
+              respond(DAQ_ID, 0);
+      }
+  }
+    //done processing commmand set flag to false
     newCmd = false;
 }
 
 
-void startup1 (void){
-    //set rtc
-   
-//      Serial.println("RTC is NOT running!");
-//      // following line sets the RTC to the date & time this sketch was compiled
-//      RTC.adjust(DateTime(__DATE__, __TIME__));
-    
-    //Look for temperature sensors
-    for (int i = 0; i < MAXTEMPSENSORS; i++)
-    {
-        #ifdef DEBUG30R
-        Serial.print("Sensor ");
-        Serial.println(i); 
-        #endif  
-        if(thermocouple[i].readCelsius() > 0)
-        {
-            thermocouple[i].setUsed(true);
-            lastPort = i;
-            #ifdef DEBUG3
-            Serial.println("Sensor in use.");
-            #endif
-        }
-        else{
-            #ifdef DEBUG3
-            Serial.println("Sensor not in use."); 
-            #endif
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//***************************************** ISR *****************************************//
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
+// inturrupt service routines
+ISR (TAKEMASURE){
+    // increment current experiement
+    experiment.currentMeasurment ++;
+    // read measurments
+    for (int i = 0; i < DAQ_MAXTEMPSENSORS; i++){
+        if (thermocouple[i].isUsed()){
+            thermocouple[i].readCelsius();
         }
     }
-    #ifdef DEBUG3
-    Serial.println("Done");
-    #endif
+    //update time of measurement
+    experiment.time += period;
+    experiment.newMeasure = true;
+    // if that was the last measrument end the experiement
+    if (experiment.currentMeasurment >= experiment.markMeasurment){
+        experiment.isRunning = false;
+        experiment.isEnd = true;
+        //todo: run end experiment
+    }
+
 }
+    
+    
+    
+    

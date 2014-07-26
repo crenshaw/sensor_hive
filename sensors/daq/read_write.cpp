@@ -24,15 +24,27 @@ void respond(int iii, int a, int n){
     Serial.print(',');
     Serial.println(n);
 }
+void respond(int iii, int a, int ttt, int n){
+    // iii,a,ttt,n<CR><LF>
+    Serial.print("00");
+    Serial.print(iii);
+    Serial.print(',');
+    Serial.print(a);
+    Serial.print(',');
+    Serial.print(ttt);
+    Serial.print(',');
+    Serial.println(n);
+}
+
 //needs to have time
-void dataReport(int iii, int a, int time, double value, boolean lastVal){
+void dataReport(int iii, int a, uint32_t time, double value, boolean lastVal){
     // iii,a,<time>,<sd.d>:<CR><LF>
     Serial.print("00");
     Serial.print(iii);
     Serial.print(',');
     Serial.print(a);
     Serial.print(',');
-    Serial.print("<time>");
+    Serial.print(time);
     Serial.print(',');
     if (value >= 0){
         Serial.print('+');
@@ -46,7 +58,7 @@ void dataReport(int iii, int a, int time, double value, boolean lastVal){
     }
 }
 
-boolean readNewCmd(int* sensor, char* command, int* number){
+boolean readNewCmd( char* command, int* sensor, int* number){
     char buffer[15];
     int numChars = Serial.readBytesUntil(';', buffer, 15);
     
@@ -64,7 +76,7 @@ boolean readNewCmd(int* sensor, char* command, int* number){
 
     //test if rest
     //return set all to -1 and return true to signal reset
-    if (numChars == 4 && buffer[0] == ' ' && buffer[1] == ' '
+    if (numChars == 5 && buffer[0] == ' ' && buffer[1] == ' '
                       && buffer[2] == ' ' && buffer[3] == ' '){
         *sensor = -1;
         *command = -1;

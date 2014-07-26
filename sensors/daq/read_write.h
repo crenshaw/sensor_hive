@@ -4,13 +4,14 @@
  #include "WProgram.h"
 #endif
 
-
+//todo: if acknowledge active command make the number be returned in port no numMeasrus
 
 void respond(int iii);
 void respond(int iii, int a);
 void respond(int iii, int a, int value);
-void dataReport(int iii, int a, int time, double value, boolean lastVal = false);
-boolean readNewCmd(int* sensor, char* command, int* number);
+void respond(int iii, int a, int timeTill, int value);
+void dataReport(int iii, int a, uint32_t time, double value, boolean lastVal = false);
+boolean readNewCmd(char* command, int* sensor, int* number);
 int parInt (char* head, char* tail);
 boolean isNumber(char number);
 boolean isLetter(char letter);
