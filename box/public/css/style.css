@@ -198,12 +198,8 @@ div#local_devices, div#alerts, div#setup_experiment {
     width: 292px;
 }
 
-div#local_devices {
-    height: 200px;
-}
-
-div#alerts {
-    height: 181px;
+div#exp_window, div#local_devices {
+    height: 100px;
 }
 
 div#alerts p {
@@ -212,9 +208,12 @@ div#alerts p {
     margin-bottom: 0px;
 }
 
-div#data_window {
+div#data_window, div#exp_window, div#setup_experiment {
     width: 420px;
-    height: 500px;
+}
+
+div#data_window, div#alerts {
+    height: 360px;
 }
 
 div#setup_experiment {

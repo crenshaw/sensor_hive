@@ -72,10 +72,10 @@ bt.devices = function() {
      */
     function daq(path, connected, ci, name) {
 	this.path = path;
-	this.connected = connected;  // True/False, is the device
-				   // connected?
+	this.connected = connected;  
 	this.ci = ci;
 	this.name = name;
+
 
 	// A device has a set of ports.  Each port may be empty or
 	// may be connected to a sensor.  When a device is added,
@@ -87,6 +87,9 @@ bt.devices = function() {
 	// The default period for a daq is 2 seconds.  The 'period'
 	// represents what the period of the daq is *currently*.
 	this.period = 2;
+
+	// There is currently no experiment registered for this daq.
+	this.experiment = false;
 
 	// The default period and total duration for an experiment is
 	// 0 seconds.  The 'experiment_period' of a daq represents
@@ -102,19 +105,23 @@ bt.devices = function() {
 	// Is an experiment running right now?
 	this.running = false;
 
+
+
 	// The protocol object is what is used to send the 
 	// daq commands and receive daq responses for the device.
 	this.protocol = new bt.protocol.miniSDI12(path, ci);
-
     };
 
     // Update the prototype for all devices of type daq who share the
     // same methods.
     daq.prototype.refresh = refresh;
     daq.prototype.disconnect = disconnect;
+    daq.prototype.set = set;
+    daq.prototype.unset = unset;
     daq.prototype.setup = setup;
     daq.prototype.remove = remove;
     daq.prototype.go = go;
+    daq.prototype.query = query;
 
 
     /**
@@ -127,7 +134,7 @@ bt.devices = function() {
     function refresh(){
 
 	// Send the command to get 1 measurement.
-	var p = this.protocol.getMeasurements(2);
+	var p = this.protocol.getMeasurements(1);
 
 	// Handle the asynchronous result. 
 	p.then(function(response) {
@@ -157,7 +164,7 @@ bt.devices = function() {
     function disconnect(clean) {
 	
 	// Retain a handle to the daq object that disconnect was invoked
-	// upon.  'this' gets lost to the callback function...
+	// upon.  This 'this' gets lost in the callback function...
 	var d = this;
 
 	chrome.serial.disconnect(this.ci.connectionId, function(result){
@@ -168,16 +175,43 @@ bt.devices = function() {
 
 	    if(clean) {
 	    	// Delete it from the local registry.
-		d.remove();
+		locals[d.path] = undefined;
 	    }
 	    else {
 		// Reflect the disconnected state in the object.
-		d.connected = false;
-		d.ci = undefined;
+		d.unset();
 	    }
 	});
 
     };
+
+    /**
+     * set()
+     *
+     * Invoked on a daq object, this method allows one to set 
+     * the connection information for the daq and its underlying protocol.
+     *
+     * @param ci The connection information.
+     *
+     */
+    function set(ci) {
+	this.ci = ci;
+	this.connected = true;
+	this.protocol.ci = ci;
+    }
+
+    /**
+     * unset()
+     *
+     * Invoked on a daq object, this method allows one to clear
+     * the connection information for the daq and its underlying protocol.
+     *
+     */
+    function unset() {
+	this.ci = undefined;
+	this.connected = false;
+	this.protocol.ci = undefined;
+    }
 
     /**
      * setup()
@@ -196,13 +230,35 @@ bt.devices = function() {
 	this.experiment_period = period;
 	this.experiment_duration = duration;
 	
-	// calculate number of measurements needed.  Right now, we've got
-	// seconds as the hard-coded units of measure.  Take the ceiling
+	// calculate number of measurements needed.  Take the ceiling
 	// of the duration divided by the period.  This way, it will
 	// be at least 1.
 	this.experiment_measurements = Math.ceil(duration / period);
 
-	return;
+	// Configure the period for the device, if necessary.  Do it
+	// now so that future operations are more deterministic.
+	
+	// Is the desired period the current one?  If so, done.  Return
+	// an immediately resolved promise and empty success response.
+	if( this.experiment_period === this.period) {
+
+	    return new Promise(function(resolve, reject) {
+		var ro = new bt.protocol.response();
+		ro.type = "NA";
+		ro.result = "Success";
+		resolve(ro);	
+	    });
+	}
+
+	// Otherwise, configure the period on the device.
+	else {
+
+	    // Send an initial message to the device.
+	    var p = this.protocol.configurePeriod(this.experiment_period);
+	    var path = this.path;
+
+	    return p;
+	}
     }
 
     /** 
@@ -222,83 +278,89 @@ bt.devices = function() {
     /**
      * go()
      *
-     * Invoked on a daq object, this method begins the pre-configured
-     * experiment for the device.
+     * Invoked on a daq object, this method begins an experiment for
+     * the device.
+     *
+     * @param logging Indicates the logging style desired for the
+     * experiment.  "pc" indicates logging data on application only
+     * and "daq" indicates logging data on the application and the daq
+     * itself.
      *
      */
-    function go() {
+    function go(logging) {
 
-	console.log(this);
+	console.log("here!");
 
-	// Does the current period match the desired period?  If not,
-	// we need to set the period on the device.
-	if(this.period != this.experiment_period) {
+	// Indicate that an experiment is running on this device.
+	this.running = true;
+
+	// There are two types of experiments; those that log on the daq, and
+	// those that don't.  Start the experiment based on the kind of logging
+	// indicated by the user.
+
+	if (logging === 'pc') {
+
+	    // Get continuous measurements from the daq.
+	    var p = this.protocol.getMeasurements(this.experiment_measurements);
+	    var path = this.path;
+
+	    // Handle the asynchronous result. 
+	    p.then(function(response) {
+
+		this.running = false;		
+
+		if (response.result === "Success") {
+		    bt.ui.log(response.raw);
+		}
 	    
-	    var p = bt.miniSDI12.makeCommand('P', 0, this.experiment_period);
-	    console.log("Sending...");
-	    console.log(p);
-	    this.send(p);	    
+	    }, function(error) {
+		console.error("Failed", error);
+	    });
+	}
+	else if (logging === 'daq') {
+
+	    var p = this.protocol.startMeasurements(this.experiment_measurements);
+	    var path = this.path;
+
+	    // Handle the asynchronous result. 
+	    p.then(function(response) {
+
+		if (response.result === "Success") {
+		    this.running = true;
+		    bt.ui.info('The experiment has started on ' + path + '.');		
+		    // TODO.
+		    // The experiment has begun.  It's time to turn on
+		    // the connectivity manager which will make sure
+		    // that the devices are responding with the
+		    // expected regularity and make sure that they
+		    // stay connected.  This should be done at the
+		    // experiment level, not the device level.
+		}
+	    
+	    }, function(error) {
+		console.error("Failed", error);
+		this.running = false;		
+	    });
+
 	}
 
-	else {  
-	    // Otherwise, issue the most basic R command possible.
-	    var c = bt.miniSDI12.makeCommand('R',0,this.experiment_measurements)
-	    console.log("Sending...");
-	    console.log(c);
-	    this.send(c);
-	}
+	
+	
     }
 
     /**
-     * maintain()
+     * query()
      *
-     * Invoked on a daq object, this method maintains an experiment,
-     * continuing to issue commands over the course of an entire
-     * experiment.  
+     * Invoked on a daq object, this function returns the timestamp at
+     * which the software object last received data from its physical
+     * counterpart.
+     *
+     * @returns The number of seconds since Jan 1, 1970 when a
+     * complete response was received from the physical daq.
      */ 
-    function maintain() {
-
-
-
+    function query() {
+	return this.protocol.lasttime;
     }
-
-
-    /**
-     * processResponse()
-     *
-     * Decide next step after response.
-     *
-     * @param r The response object representing the response sent by
-     * the daq.
-     */ 
-    function processResponse(r) {
-
-	// Parse the current response.
-	bt.miniSDI12.parse(r, this.ro);
-
-	// If the type of the response is data, just log it to the
-	// window.
-	if(this.ro.isData()) {
-	    if(this.running && r.indexOf(':') > -1) {
-		this.running = false;
-		bt.ui.info('The experiment is complete.');
-	    }
-
-	    bt.ui.log(r);
-	}
-
-	// Otherwise, if the type of the response is a 'Configure
-	// Period' response, send the next command for the experiment.
-	else {
-
-	    // Otherwise, issue the most basic R command possible.
-	    var c = bt.miniSDI12.makeCommand('R',0,this.experiment_measurements)
-	    console.log("Sending...");
-	    console.log(c);
-	    this.send(c);
-	}
-
-    };
 
     /**
      * onSend()
@@ -451,7 +513,8 @@ bt.devices = function() {
 	    d.protocol.receive(info);
 	}
 	else {
-	    bt.ui.error("Received data from unregistered connection.  This can happen if you have two instances of the app running.");
+	    // TODO: Fix this error!
+	    bt.ui.error("Received data from unregistered connection.  This can happen if you have two instances of the app running or you accidentally clicked the '+' button twice.  Just click 'x' and reconnect.");
 	}
 
      }    
@@ -515,14 +578,18 @@ bt.devices = function() {
 	else if(action === 'connect') {
 
 	    // If the device hasn't been registered yet, connect.
-	    if(d === undefined) {
+	    if(d === null) {
+	    	bt.ui.error("Currently connecting to device.  Please wait.");
+	    }
+
+	    else if(d === undefined) {
 		bt.devices.connect(pathArray[0]);
 	    }
-	    
+
 	    // Determine if the device is already connected.  Let's not connect
 	    // a single device more than once.
 	    else if(d.connected) {
-		bt.ui.error("The device is already connected.");
+		bt.ui.error("The device is already enabled.");
 	    }
 	    else {
 		bt.devices.connect(pathArray[0]);
@@ -537,9 +604,7 @@ bt.devices = function() {
 	    if(d === undefined) {
 
 		// You gotta register and *then* setup.	
-		var n = bt.devices.register(path, false);
-
-		n.setup();
+		bt.ui.error("The device has not been enabled.  Please enable the device before configuring an experiment");
 
 	    }
 
@@ -564,28 +629,6 @@ bt.devices = function() {
 		    d.disconnect(false);
 		}
 	    }
-	
-
-	// GO: Start the experiment.  This action requires that some
-	// experiment was set up for the device.
-	else if(action === 'go') {
-	    		
-	    if(d === undefined || d.experiment_measurements === 0) {
-		bt.ui.error("No experiment has been configured for this device.");
-	    }
-	    else if(d.connected === false) {
-		bt.ui.error("The device is not locally connected.  Please connect the device to start an experiment.");
-	    }
-	    else if(d.running === true) {
-		bt.ui.error("An experiment is already running.  Please wait.");
-	    }
-	    else {
-		d.running = true;
-		d.go();
-		bt.ui.info("Starting the experiment...");
-	    }
-	}
-
 
 	// REFRESH: As the locally registered and connected device for
 	// 1 data report.
@@ -632,12 +675,21 @@ bt.devices = function() {
      */
     bt.devices.connect = function(path) {
 
-
 	// Create a message and place it in an ArrayBuffer.
-	var data = '0R1!;';
+	// var data = '0R1!;';
 
-	bt.ui.info("Connecting...  Takes about 10 seconds.");
+	// Are we currently attempting to connect to this path?  Check
+	// the registry before proceeding.
+	if (locals[path] === null) {
+	    bt.ui.error("Currently connecting to " + path + ". Please wait.");
+	    return;
+	}
 
+	// Register the path we are about to connect.  Set it's
+	// object to null and provide some information to the user.
+	locals[path] = null;
+	bt.ui.info("Connecting to " + path + "...  Takes about 10 seconds.");
+	
 	// Connect to the device supplied by this function's
 	// parameter, 'device'.  Once the connection is completed,
 	// create a software representation of the local device that
@@ -649,7 +701,8 @@ bt.devices = function() {
 	    // the device represented by 'path' was not available for
 	    // connection.
 	    if (ci === undefined) {
-		bt.ui.error("The device is not available for connection.  Perhaps it must be turned on?");
+		locals[path] = undefined;
+		bt.ui.error(path + " is not available for connection.  Perhaps it must be turned on?");
 	    }
 	    
 	    else {
@@ -658,33 +711,33 @@ bt.devices = function() {
 		// that hasn't been locally registered.
 		var d = locals[path];
 
+		console.log("In connect: ", path, d);
+
 		// If the device hasn't been locally registered yet,
 		// create an associated object for it and register it.
-		if(d === undefined) {
+		if(d === null) {
 
 		    // Create a software representation of the data acquisition unit
 		    //that has just been connected to over the serial line.
-		    d = bt.devices.register(path, true, ci);
+		    d = bt.devices.register(path, false);
 		}
 
-		// Otherwise, just set the registered device's
-		// connectivity information.
-		else {
-		    d.connected = true;
-		    d.ci = ci;
-		}
+		// Set the registered device's connectivity
+		// information.		
+		d.set(ci);
 
-	
 		// Send an initial message to the device.
 		var p = d.protocol.acknowledge(0);
 
 		// Handle the asynchronous result. 
 		p.then(function(response) {
 
+		    console.log("In connect.then");
+
 		    if (response.result === "Success") {
 			// Indicate that the recently connected pathname is connected.
 			bt.ui.indicate(path,'connected');
-			bt.ui.info(path + ' is connected');	
+			bt.ui.info(path + ' is enabled.');	
 		    }
 
 		}, function(error) {

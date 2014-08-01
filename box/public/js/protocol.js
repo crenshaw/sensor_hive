@@ -1,5 +1,5 @@
 /**
- * miniSDI12.js
+ * protocol.js
  * 
  * Defines the packaged app's functionality for constructing commands
  * and parsing responses for local serial devices utilizing the
@@ -11,9 +11,9 @@ var bt = bt || {};
 bt.protocol = {};
 
 /**
- * miniSDI12()
+ * protocol()
  * 
- * Define the data module.
+ * Define the protocol module.
  * 
  */
 bt.protocol = function() {
@@ -49,8 +49,6 @@ bt.protocol = function() {
      * 
      * @param ci The connection info for this device.
      *
-     * TODO: What happens when device is disconnected?  I have to 
-     * update ci in two places?
      */
 
     bt.protocol.miniSDI12 = function(path, ci) {
@@ -70,6 +68,9 @@ bt.protocol = function() {
 	this.last.type = "unknown";
 	this.last.address = -1;
 
+	// The last time this device got a response.
+	this.lasttime = -1;
+
 	// The number of times the device has responded to the last
 	// command.  For many commands, the device only responds once.
 	// In others, there may be many responses to one command.
@@ -82,7 +83,7 @@ bt.protocol = function() {
      *
      * configurePeriod(n)
      * acknowledge(a)
-     * getMeasurements(n)
+     * getMeasurements(n).  
      * start()
      * getData()
      *
@@ -91,7 +92,7 @@ bt.protocol = function() {
     bt.protocol.miniSDI12.prototype.acknowledge = acknowledge;
     bt.protocol.miniSDI12.prototype.configurePeriod = configurePeriod;
     bt.protocol.miniSDI12.prototype.getMeasurements = getMeasurements;
-    bt.protocol.miniSDI12.prototype.start = start;    
+    bt.protocol.miniSDI12.prototype.startMeasurements = startMeasurements;    
 
     bt.protocol.miniSDI12.prototype.send = send;
     bt.protocol.miniSDI12.prototype.parse = parse;
@@ -113,6 +114,8 @@ bt.protocol = function() {
      */ 
     function acknowledge(a) {
 	
+	console.log(this);
+
 	if (typeof(a) === 'number' && a >= 0 && a <=3) {
 	    var command = a + ct;
 	    return this.send(command, a, "A");
@@ -137,16 +140,28 @@ bt.protocol = function() {
 	    var command = "0P" + n + ct;
 	    return this.send(command, 0, "P", n);
 	}
+	
+	else {
+	    return new Promise(function(resolve, reject) {
+		var ro = new bt.protocol.response();
+		ro.type = "NA";
+		ro.result = "Fail";
+		reject(ro);	
+	    });
+	}
     }
 
     /**
-     * start()
+     * startMeasurements()
      *
      * This method issues a command to the underlying miniSDI-12
      * device to start taking measurements.
      *
      */
-    function start(n) {
+    function startMeasurements(n) {
+	
+	var command = "0M" + n + ct;
+	return this.send(command, 0, "M", n);
 	
     }
 
@@ -154,7 +169,8 @@ bt.protocol = function() {
      * getMeasurements()
      * 
      * This method issues a command to the underlying miniSDI-12 device
-     * to get 'n' measurements.
+     * to get 'n' measurements.  The measurements are reported without
+     * explicitly asking for them, i.e. "continuous mode."
      *
      * @param n The number of measurements to get.
      *
@@ -165,7 +181,6 @@ bt.protocol = function() {
 	    var command = "0R" + n + ct;
 	    return this.send(command, 0, "R", n);
 	}
-
     }
 
     /**
@@ -194,6 +209,9 @@ bt.protocol = function() {
 	 *     R - Continuous Measurement
 	 *     M - Start Measurement
 	 *     D - Get Data
+	 *     NA - No response applicable.  This is for when
+	 *          no command needs to be sent to the DAQ, but a successful
+	 *          response object needs to be returned.
 	 *
 	 * 1) iii: A three-digit unique DAQ identifier. 
 	 *
@@ -202,15 +220,21 @@ bt.protocol = function() {
 	 * 3) time: An integer value expressing the number of seconds since
 	 *          Jan 1, 1970 that this response was received.
 	 *
-	 * 4) values: An array of measurements in the data response.
+	 * 4) n: Either a period or a number of measurements, as provided
+	 *       in the P and M responses.
 	 *
-	 * 5) period: The period at which the daq is configured.
+	 * 5) values: An array of measurements in the data response.
 	 *
-	 * 6) terminated: It is true if only one response was expected
+	 * 6) period: The period at which the daq is configured.
+	 *
+	 * 7) terminated: It is true if only one response was expected
 	 *    or if the terminating ':' has been received, false,
 	 *    otherwise.
 	 *
-	 * 7) result: success, error, abort.  The response object's
+	 * 8) completed: It is true if an experiment is complete.  That
+	 *    is, if an R or D response was received with a ':'.
+	 *
+	 * 9) result: success, error, abort.  The response object's
 	 *    result field is set to 1 if the command last sent is
 	 *    consistent with the most recent response received and
 	 *    the response is a positive one. For example:
@@ -241,6 +265,7 @@ bt.protocol = function() {
 
 	// Get the original response.
 	ro.raw = s; 
+	ro.completed = false;
 
 	// Only responses with at least two tokens are valid.
 	if (tokens.length >= 2) {
@@ -251,7 +276,6 @@ bt.protocol = function() {
 	    // the same for every response.
 	    ro.id = tokens[ID];
 	    ro.a = parseInt(tokens[ADDRESS]);
-
 
 	    // If there are only two tokens, then this is either
 	    // 1) An Abort reponse.
@@ -319,22 +343,54 @@ bt.protocol = function() {
 	    // Send Data (D) command.
 	    else if (tokens.length === 4) {
 		
-		// TODO: I'm assuming it's a response to an R command right now.
-		ro.result = "Success";
-		ro.type = 'R';
+		// Determine whether this is a response to an M command.
+		// Get the time.  If it's 
 		ro.time = tokens[TIME];
-		ro.values = tokens[VALUES];
 
-		// Is there a colon at the end of this?
-		if(s.indexOf(':') > -1) {
-		    ro.terminated = true;
-		}
-		else {
-		    ro.terminated = false;
+		// The M command responds with the number of seconds
+		// until the experiment is done, while the R and D
+		// commands respond with the number of seconds since
+		// 1970.  So, if the time is not relatively large, and
+		// the last command type sent was M, then this is
+		// likely an M response.
+		if ( ro.time < 1406666364 && this.last.type === "M") {
+
+		    ro.type = 'M';
+		    ro.n = tokens[N];
+
+		    // Does the n-value match the transmitted n-value?
+		    if (ro.n == this.last.n) {
+			ro.result = "Success";
+			ro.terminated = true;
+		    }
+		    else {
+			ro.result = "Error";
+			ro.terminated = true;
+		    }
 		}
 		
-	    }
+		// This point is reached because an M-response has
+		// been ruled out.  With four tokens, either it's an
+		// R-response or a D-response.  It's not possible to
+		// tell from the response which is which, so use the
+		// last.type as the indication.
+		else {
+		
+		    ro.result = "Success";
+		    ro.type = this.last.type;
+		    ro.time = tokens[TIME];
+		    ro.values = tokens[VALUES];
 
+		    // Is there a colon at the end of this?
+		    if(s.indexOf(':') > -1) {
+			ro.terminated = true;
+			ro.completed = false;
+		    }
+		    else {
+			ro.terminated = false;
+		    }
+		}
+	    }
 	}
 
 	return ro;
@@ -359,12 +415,17 @@ bt.protocol = function() {
 	// Create a message and place it in an ArrayBuffer.
 	var data = str2ab(c);
 	
+	console.log("Sending on connection: ", this);
 	var id = this.ci.connectionId;
-	console.log("Sending on connection: ", id);
-
+	
 	// Every invocation of send() returns a new Promise.
 	return new Promise(function(resolve, reject) {
-	    
+
+	    // TODO: Put reject up here and set it for a reasonable
+	    // amount of time in which to expect a response.  If
+	    // there's timeout?.... I think that works, but I need to
+	    // read some more.
+    
 	    chrome.serial.send(id, data, function(sendInfo) {
 		console.log(sendInfo);
 	    });
@@ -422,13 +483,19 @@ bt.protocol = function() {
 		    // response object.
 		    var ro = this.parse(finished)
 	    	    
-		    // TODO: It may be that we are expecting more than 1
-		    // response from a command.  I need someway to log
-		    // while waiting for the terminating :
+		    // Set the timestamp for "the last time we heard
+		    // from the device."  
+		    this.lasttime = timestamp();
+
+		    // We got a response from the command.  Resolve
+		    // the promise with the response object.
 		    if (ro.terminated == true) {
-		    	// Resolve the promise with the response object.
 			resolve(ro);
 		    }
+
+		    // OR...It may be that we are expecting more than
+		    // 1 response from a command.  Log the
+		    // unterminated response from here.
 		    else {
 			bt.ui.log(ro.raw);
 		    }
@@ -464,87 +531,49 @@ bt.protocol = function() {
      * from a device.  This is the constructor for the object.
      *
      * A well-formed data response object has some of these key-value
-     * pairs, depending on its type.  For a full description, see the
-     * miniSDI-12 protocol documentation.
-     *
-     * 0) type: A, P, or R (for now).
-     * 1) iii: A three-digit unique DAQ identifier. 
-     * 2) a: An integer value [0..9] representing a DAQ or a sensor address.
-     * 3) time: An integer value expressing the number of seconds since
-     *          Jan 1, 1970 that this response was received.
-     * 4) values: An array of measurements in the data response.
-     * 5) period: The period at which the daq is configured.
+     * pairs, depending on its type.  See the description in parse()
+     * or, for a complete description, see the miniSDI-12 protocol
+     * documentation.
      *
      * When a Response object is created, its type is simply "unknown".
      */
+
+    bt.protocol.response = response;
+
     function response() {
 	this.type = "unknown";
-    };
-
-
-    // Update the prototype for all devices of type response who share
-    // the same methods.
-    response.prototype.isData = isData;
-        
-
-    /** 
-     * isData()
-     *
-     * Is this a response to an R command?  In other words, does
-     * it contain data?
-     *
-     */
-    function isData() {
-	return this.type === 'R';	
-    };
-
-    /**
-     * clearFields()
-     *
-     * Clear all possible fields to this object.  Reset all fields
-     * to 'undefined' except 'type' which is set to 'unknown'.
-     */
-    function clearFields() {
-	
-	this.type = "unknown";
-	this.iii = undefined;
-	this.a = undefined;
-	this.time = undefined;
-	this.values = undefined;
-	this.period = undefined;
-    }
-    
+    }    
 
     // ************************************************************************
     // Methods provided by this module, visible to others via 
     // the bt.miniSDI12 namespace.
     // ************************************************************************
 
+    /* ************************************************************** 
+     * 
+     * Local Utility Functions, 
+     *
+     * - timestamp().
+     *
+     * - ab2str() and str2ab() for packing and unpacking data
+     * transmitted on the serial line.
+     *
+     */
+
     /**
      * timestamp()
      *
-     * Timestamp a response.
+     * Create a timestamp.
      *
-     * @param r The response to timestamp.  The response must have the
-     * timestamp placeholder <time>.  If no placeholder exists, the
-     * function will return the supplied response with no alteration.
-     * 
-     * @returns The supplied response, now with a timestamp.
+     * @returns The number of seconds since Jan 1, 1970.
      */
-    function timestamp(r) {
+    function timestamp() {
 
 	var d = new Date();
 	var n = d.getTime() + "";	
-	return r.replace("<time>", n);
-    };
+	return n;
+    }
 
-
-    /* ************************************************************** 
-     * 
-     * Local Utility Functions, ab2str() and str2ab() for packing
-     * and unpacking data transmitted on the serial line.
-     *
-     */
 
     /**
      * ab2str()
@@ -561,7 +590,7 @@ bt.protocol = function() {
 	var bufView = new Uint8Array(buf);
 	var encodedString = String.fromCharCode.apply(null, bufView);
 	return decodeURIComponent(escape(encodedString));
-    };
+    }
 
     /**
      * str2ab()
@@ -584,7 +613,7 @@ bt.protocol = function() {
 	}
 
 	return bytes.buffer;
-    };
+    }
     
 
 

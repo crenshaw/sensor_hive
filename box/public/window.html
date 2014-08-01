@@ -9,15 +9,63 @@
     <div id = "wrap">
       <h1>SCIO</h1>    
 
-	<!-- For each info window and menu, notice that the class of the p element
-	     matches the id of the associated info window.  This reduces DOM
-	     traversal.
-	 -->
+	<!-- For each info window and menu, notice that the class of
+	     the p element matches the id of the associated info
+	     window.  This reduces DOM traversal.  -->
 
       <div class = "subsection" id = "menus">
-	<h3>Local Serial Devices:</h3>
+	<h3>Local Devices:</h3>
 	<div class = "info" id = "local_devices">
 	  <ul id = "local_devices_list">
+	  </ul>
+	</div>
+
+	<div class = "menubar" >
+	  <ul class = "menu" id = "local_devices_menu">
+
+<!-- Comment out buttons that haven't been implemented yet
+
+   <li> <p class = "menuitem" id = "register"><span>register</span></p></li>
+-->
+            <li ><p class = "menuitem local_devices" id = "connect"><span>enable daq</span></p></li> 
+	    <li> <p class = "menuitem local_devices" id = "refresh"><span>test daq</span></p></li>
+            <li ><p class = "menuitem local_devices" id = "remove"><span>disable daq</span></p></li>
+
+	  </ul>
+	</div>
+
+	<h3>System Log:</h3>
+	<div class = "info" id = "alerts"> 
+	  <ul id = "alerts_list"></ul>
+	</div>
+	<div class = "menubar" >
+	  <ul class = "menu" id = "alerts_menu">
+	    <li> <p class = "menuitem alerts" id = "trash"><span>clear</span></p></li>
+	  </ul>
+	</div>
+
+      </div>  <!-- end left subsection -->
+
+      <div class = "subsection" id = "data">
+	<h3>Experiment Configuration:</h3>
+	<div class = "info" id = "exp_window">
+	  <ul id = "exp_list"></ul>
+
+	  <div class = "settings" id = "exp_period">
+	  Period: <p id = "exp_period_setting"></p>
+	  </div>
+	  
+	  <div class = "settings" id = "exp_duration">
+	  Duration: <p id = "exp_duration_setting"></p>
+	  </div>
+
+
+
+	</div>
+	<div class = "menubar" >
+	  <ul class = "menu" id = "exp_menu">
+	    <li> <p class = "menuitem exp_window" id = "setup"><span>configure experiment</span></p></li>
+	    <li> <p class = "menuitem exp_window" id = "go"><span>start experiment</span></p></li>
 	  </ul>
 	</div>
 
@@ -42,44 +90,24 @@
 	      <option value="hours">hours</option>
 	    </select>
 
+	    <br>
+
+	    Data Logging: 
+
+	    <select id = "logging">
+	      <option value="pc">desktop only (short experiment)</option>
+	      <option value="daq">desktop and DAQ (long experiment)</option>
+	    </select>
+
 	    <div class = "buttons">
 	    <button type="button" id="cancel">cancel</button>
 	    <button type="button" id="done">done</button>
 	    </div>
 
+	  </form>
+
 	</div>
-
-
-	<div class = "menubar" >
-	  <ul class = "menu" id = "local_devices_menu">
-
-<!-- Comment out buttons that haven't been implemented yet
-
-   <li> <p class = "menuitem" id = "register"><span>register</span></p></li>
--->
-            <li ><p class = "menuitem local_devices" id = "connect"><span>enable daq</span></p></li> 
-
-	    <li> <p class = "menuitem local_devices" id = "refresh"><span>test daq</span></p></li>
-
-	    <li> <p class = "menuitem local_devices" id = "setup"><span>configure experiment</span></p></li>
-	    <li> <p class = "menuitem local_devices" id = "go"><span>start experiment</span></p></li>
-            <li ><p class = "menuitem local_devices" id = "remove"><span>disable daq</span></p></li>
-	  </ul>
-	</div>
-
-	<h3>System Log:</h3>
-	<div class = "info" id = "alerts"> 
-	  <ul id = "alerts_list"></ul>
-	</div>
-	<div class = "menubar" >
-	  <ul class = "menu" id = "alerts_menu">
-	    <li> <p class = "menuitem alerts" id = "trash"><span>clear</span></p></li>
-	  </ul>
-	</div>
-
-      </div>  <!-- end left subsection -->
-
-      <div class = "subsection" id = "data">
+	    
 	<h3>Data:</h3>
 	<div class = "info" id = "data_window"> 
 	  <ul id = "data_list"></ul>
@@ -95,6 +123,7 @@
 
     </div>
   </body>
+  <script src ="./js/runnable.js"></script>
   <script src ="./js/ui.js"></script>
   <script src ="./js/data.js"></script>
   <script src ="./js/protocol.js"></script>

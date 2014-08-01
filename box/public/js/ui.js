@@ -81,8 +81,6 @@ bt.ui = function() {
 	// <li> elements.
 	var u = this.handle.children[0];
 
-	console.log(u);
-
 	u.innerHTML = "";
     }
 
@@ -100,20 +98,26 @@ bt.ui = function() {
      *
      * Show or hide the experiment setup menu.
      *
-     * TODO: Create css classes to implement this instead of
-     * using code to alter style!
      */
     var toggleSetup = function() {
-		
+	
+
+	// Either we are trying to hide the experiment setup menu or
+	// we are trying to show it.
+	
 	var d = document.getElementById('setup_experiment');
 	var b = document.getElementById('setup');
-	console.log(d);
-	
+
+	/*
+	 * TODO: Create css classes to implement this instead of
+	 * using code to alter style!
+	 */
+
 	// If it's hidden, show it.
 	if(d.style.opacity == 0) {
 	    d.style.border = '1px solid silver';
 	    d.style.opacity = 1;
-	    d.style.height = '70px';
+	    d.style.height = '93px';
 	    b.style.border = '2px solid #ff0066';
 	    
 	}
@@ -133,70 +137,38 @@ bt.ui = function() {
      */
     var dispatchSetup = function() {
 	
-	// Get period.
-	var period = parseInt(document.getElementById('period').value);
+	// Get all the selected devices.
+	var devices = getSelectedDevices();
+	
+	if(devices === undefined) {
+	    bt.ui.error("To configure an experiment, please select at least one device.");
 
-	// Get units.
-	var p_units = document.getElementById('period_units').value;
-
-	// Get duration.
-	var duration = parseInt(document.getElementById('duration').value);
-
-	// Get units. 
-	var d_units = document.getElementById('duration_units').value;
-
-
-	// Construct an informative note.
-	var result = "The experiment has been configured for 1 sample every " + period + " " + p_units + " for " + duration + " " + d_units;
-
-	// TODO: Input conversion and checking really shouldn't be
-	// done by the user interface code.  Please clean this up.
-
-	// Based on the units, calculate the value of the period and the
-	// duration in seconds.
-	if (p_units === 'minutes') period = period * 60;
-	else if (p_units === 'hours') period = period * 60 * 60;
-
-	if (d_units === 'minutes') duration = duration * 60;
-	else if (d_units === 'hours') duration = duration * 60 * 60;
-
-	// Good data?
-	if(period === undefined || period === 0 || period === "" || period === NaN)
-	    bt.ui.error("The period must be an integer value greater than 0");
-
-	else if(duration === undefined || duration === 0 || duration === "" || duration === NaN)
-	    bt.ui.error("The duration must be an integer value greater than 0");
-
-	else if(duration < period)
-	    bt.ui.error("The duration must be greater than the period.");
-
+	}
 
 	else {
+	    // Get type of logging.
+	    var logging = document.getElementById('logging').value;
+
+	    // Get period.
+	    var period = parseInt(document.getElementById('period').value);
 	    
-	    // Get device and call setup on the proper device.
-	    var d = bt.devices.lookup(lastDeviceSelected);
+	    // Get units.
+	    var p_units = document.getElementById('period_units').value;
 
-	    // It is possible one is trying to configure a device
-	    // that hasn't been locally registered yet.  Just
-	    // register it and then configure it.
-	    if(d === undefined)
-	    {
-		d = bt.devices.register(lastDeviceSelected, false);
-	    }
+	    // Get duration.
+	    var duration = parseInt(document.getElementById('duration').value);
 
-	    if(d.running === true) {
-		
-		// Don't setup an experiment while one is already running.
-		bt.ui.error("Cannot configure a new experiment while the device is running an experiment.");
-	    }
+	    // Get units. 
+	    var d_units = document.getElementById('duration_units').value;
 
-	    else {
-		d.setup(period, duration);
-		bt.ui.info(result);
-		toggleSetup();
-		bt.ui.indicate(d.path,"experiment");
-	    }
+	    // Okay, we are ready to make an experiment.  Use
+	    // createExperiment() to make sure the input isn't crappy
+	    // and from there, create an experiment object.  Call
+	    // toggleSetup() when all done, as indicated by final
+	    // parameter.
+	    bt.runnable.createExperiment(logging, devices, period, p_units, duration, d_units, toggleSetup);
 	}
+
     };
 
 
@@ -246,7 +218,41 @@ bt.ui = function() {
     }
 
     /**
-     * delegateMenu
+     * getSelectedDevices() 
+     *
+     * Extract all of the selected devices from the UI.  Return 
+     * an array of device pathnames or 'undefined' if no devices
+     * are selected.
+     *
+     */
+     var getSelectedDevices = function() {
+
+	 // Grab all of the devices that are currently "selected" so that
+	 // we can invoke the action on these devices.
+	 var objects = document.getElementsByClassName('selected');
+	 
+	 if (objects === undefined) {
+	     return undefined;
+	 }
+
+	 else {
+
+	     var devices = []
+	     
+	     // Strip just the devices pathnames from the array of selected
+	     // devices.  In other words, convert each complicated DOM
+	     // object to simply '/dev/ttyACM0'.
+	     for(var i = 0; i < objects.length; i++) {
+		 devices[i] = objects[i].textContent;
+	     }	    
+	     
+	     return devices;
+	 }
+     };
+    
+
+    /**
+     * delegateMenu()
      *
      * When the user clicks on the local devices menubar, this
      * function deploys the corresponding behaviour according to the
@@ -257,44 +263,61 @@ bt.ui = function() {
 	// Get the id of the target that was clicked and deploy
 	// the corresponding action.
 	var action = e.target.id
-
-	// Grab all of the devices that are currently "selected" so that
-	// we can invoke the action on these devices.
-	var objects = document.getElementsByClassName('selected');
+	
+	var devices = getSelectedDevices();
 	
 	// Did somebody forget to select a device?
-	// If so, the code cannot continue.
-	if(objects === undefined) {
-	    bt.ui.error("To " + id + "You must select a device from 'Local Serial Devices'");
+	// If so, one cannot continue.
+	if(devices === undefined) {
+	    bt.ui.error("To " + action + ", please select a device.");
 	}
 
 	// Right now, we can only do 1 device at a time.  Make sure the
 	// user has only selected 1 device.
-	else if (objects.length > 1) {
+	else if (devices.length > 1) {
 	    bt.ui.error("Please choose only one device.");
 	}
 
 	// Right now, we must select at least 1 device.  Make sure the
 	// user has selected exactly 1 device.
-	else if (objects.length != 1) {
+	else if (devices.length != 1) {
 	    bt.ui.error("Please select a device.");
 	}
 	   
 	else {
-	    
-	    var devices = []
-
-	    // Strip just the devices pathnames from the array of selected
-	    // devices.  In other words, convert each complicated DOM
-	    // object to simply '/dev/ttyACM0'.
-	    for(var i = 0; i < objects.length; i++) {
-		devices[i] = objects[i].textContent;
-	    }	    
-
+	   
 	    if(action === 'setup') {
+
+		// Perform a lookup for each device and affirm that it
+		// is connected before allowing the user to configure
+		// the device.
+		for(var i = 0; i < devices.length; i++) {
+		    
+		    var d = bt.devices.lookup(devices[i]);
+		    if (d == undefined || !d.connected ) {
+			var path = devices[i];
+			bt.ui.error(devices[i] + " is not enabled.  Please enable the device before configuring an experiment.");
+			return;
+		    }
+
+		}
+
 		toggleSetup();
 	    }
 		
+	    // The 'go' action is related to the application's experiment object.
+	    else if(action === 'go') {
+		
+		if (bt.runnable.configuration === undefined) {
+		    bt.ui.error("No experiment has been configured.");
+		}
+		else {
+		    bt.runnable.configuration.start();
+		}
+
+	    }
+
+	    // All the other actions are related to the devices.
 	    else {	
 		// Invoke the configure function using the behaviour
 		// as a parameter.
@@ -367,8 +390,6 @@ bt.ui = function() {
 	// Add the new <li> element to the list.
 	s.appendChild(node);
 
-	console.log("Added node to UI:", node);
-
 	return;
     }
 
@@ -384,13 +405,16 @@ bt.ui = function() {
      */
     bt.ui.initialize = function() {
 
+
+	// Part 1 -- Setup Menus.
+
 	// Grab the local devices menubar <ul> and add an event handler to it.
 	var menu = document.getElementById('local_devices_menu');
 	menu.onclick = delegateMenu;
 
-	// Grab the local devices list and add an event handler to it.
-	var list = document.getElementById('local_devices_list');
-	list.onclick = selectDevice;
+	// Grab the experiment menubar and add an event handler to it.
+	menu = document.getElementById('exp_menu');
+	menu.onclick = delegateMenu;
 
 	// Grab the data menubar and add an event handler to it.
 	menu = document.getElementById('data_menu');
@@ -400,7 +424,19 @@ bt.ui = function() {
 	menu = document.getElementById('alerts_menu');
 	menu.onclick = alertsMenu;
 
-	// Create an object for each information window.
+
+
+	// Part 2 -- Setup selection highlighting
+
+	// Grab the local devices list and add an event handler to it.
+	var list = document.getElementById('local_devices_list');
+	list.onclick = selectDevice;
+
+
+
+	// Part 3 -- Create an object for each information window.
+	// This makes it easier to implement 'clear' (i.e., the trash
+	// button) for every window.
 	
 	// First, get all of the elements of class 'info'
 	var iws = document.getElementsByClassName('info');
@@ -412,6 +448,10 @@ bt.ui = function() {
 	    infoWindows[id] = io;   // Register it.
 	}
 
+
+
+	// Part 4 -- Setup Configuration Menu.
+
 	// Setup the buttons in the setup_experiment div.
 	var button = document.getElementById('cancel');
 	button.onclick = toggleSetup;
@@ -420,6 +460,39 @@ bt.ui = function() {
 	button.onclick = dispatchSetup;
 	
     };
+
+    /** 
+     * experiment()
+     *
+     * Log some information about the currently configured
+     * experiment.
+     *
+     */
+    bt.ui.experiment = function(devices, period, p_units, duration, d_units)
+    {
+
+	// Clear the device list that's already there; we only have
+	// one experiment at a time right now.
+	infoWindows['exp_window'].clear();	
+
+	var list = document.getElementById('exp_list');
+
+	// List all the devices in the experiment.	
+	for(var i = 0; i < devices.length; i++) {
+	    addNode('exp_list', devices[i]);	
+	}
+
+	var setting = document.getElementById('exp_period_setting');
+	var msg = period + " " + p_units;
+	setting.innerText = msg;
+
+	setting = document.getElementById('exp_duration_setting');
+	msg = duration + " " + d_units;
+	setting.innerText = msg;
+
+	return;
+	
+    }
 
     /**
      * indicate()
