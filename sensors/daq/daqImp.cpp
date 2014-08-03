@@ -30,10 +30,10 @@ void acknowledgeActive (Adafruit_MAX31855* thermocouple, int port){
             thermocouple[0].isUsed() ? respond (DAQ_ID,1) : respond(DAQ_ID, 0);
             break;  
         case 2:                                  // is port 2 active
-            thermocouple[1].isUsed() ? respond (DAQ_ID,1) : respond(DAQ_ID, 0);
+            thermocouple[1].isUsed() ? respond (DAQ_ID,2) : respond(DAQ_ID, 0);
             break;
         case 3:                                  // is port 3 active
-            thermocouple[2].isUsed() ? respond (DAQ_ID,1) : respond(DAQ_ID, 0);
+            thermocouple[2].isUsed() ? respond (DAQ_ID,3) : respond(DAQ_ID, 0);
             break;
         default:
             respond(DAQ_ID,0);                      // abort response
@@ -51,22 +51,22 @@ boolean startExp (Exp* experiment, int prt, int numMeasures){
         return false;
     }
     else {
-        SREG &= (0 << 7);                                      // turn on global inturrupts to protect memory
+        SREG &= (0 << 7);                                      // turn off global inturrupts to protect memory
         // todo: clear memory
         experiment -> isRunning = true;                        // set experiment running           
         experiment -> ports = prt;                             // set used ports
         experiment -> currentMeasurment = 0;                   // reset current measurment
         experiment -> markMeasurment = numMeasures;            // set target measurments
         experiment -> isEnd = false;                           // not the end it just started
+        experiment -> addTime = 0;
         TCNT1 = 0;        // clear timer1
         SREG |= (1 << 7);                                      // turn on global inturrupts Note: this need to be done before
         RTC_DS1307 RTC;                                        //reading the time since i2c requires inturrupts
-        experiment -> time = RTC.now().unixtime();             // set starting time
+        experiment -> startTime = RTC.now().unixtime();             // set starting time
         // clear the inturrupt flag
         TIFR1  |= (1 << ICF1);
         // set timer interupt on
         TIMSK1 |= (1 << ICIE1);                                // start exp
-        
         #ifdef DEBUG_startExp
         Serial.print("isRunning: ");
         Serial.println(experiment -> isRunning);
@@ -187,7 +187,8 @@ int sensorCheck (Adafruit_MAX31855* thermocouple, int maxTempSensors)
 int sensorCheck (Adafruit_MAX31855* thermocouple, int maxTempSensors){
     int lastPort = 0;
     //set rtc useing time at compile
-    #ifdef RTCSET
+    #ifdef RTCset
+    RTC_DS1307 RTC;
     Serial.println("RTC is NOT running!");
     // following line sets the RTC to the date & time this sketch was compiled
     RTC.adjust(DateTime(__DATE__, __TIME__));

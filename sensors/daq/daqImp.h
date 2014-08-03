@@ -42,10 +42,8 @@ Provides the memory, power, and sleep management functions - yet to be implement
     #define DAQ_TEMP2  7                      // Temp sensor 2 select digital output pin 6
     #define DAQ_TEMP3  8                      // Temp sensor 3 select digital output pin 7
     // Real Time Clock defenitiosn
-    #define RTC_I2C_ADDRESS 0x68          // RTC i2c Adress
+    #define RTC_I2C_ADDRESS 0x68              // RTC i2c Adress
     #define DAQ_SQW 5                         // sqw pinput on pin 5 of arduino board
-    
-    
     //inturrupts
     #define TAKEMASURE TIMER1_CAPT_vect    // renames the inturupt vector
     
@@ -60,7 +58,8 @@ Provides the memory, power, and sleep management functions - yet to be implement
 typedef struct{
     boolean isRunning;
     int ports;
-    uint32_t time;
+    uint32_t startTime;
+    int addTime;
     int currentMeasurment;
     int markMeasurment;
     boolean newMeasure;
