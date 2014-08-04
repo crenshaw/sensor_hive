@@ -147,6 +147,16 @@ bt.runnable = function() {
 	    bt.ui.info('The experiment is complete.');
 	    return;
 	}
+
+	// Otherwise, if this is an experiment in which data is being
+	// logged to the daq, then we need to routinely issue a D
+	// command to get the backed up data off the daq.  
+	if(config.logging === 'daq') {
+	    
+	    for(var i = 0; i < config.daqs.length; i++) {
+		config.daqs[i].get();
+	    }
+	}	
     }
 
 

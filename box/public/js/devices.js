@@ -121,6 +121,7 @@ bt.devices = function() {
     daq.prototype.setup = setup;
     daq.prototype.remove = remove;
     daq.prototype.go = go;
+    daq.prototype.get = get;
     daq.prototype.query = query;
 
 
@@ -331,25 +332,46 @@ bt.devices = function() {
 		if (response.result === "Success") {
 		    this.running = true;
 		    bt.ui.info('The experiment has started on ' + path + '.');		
-		    // TODO.
-		    // The experiment has begun.  It's time to turn on
-		    // the connectivity manager which will make sure
-		    // that the devices are responding with the
-		    // expected regularity and make sure that they
-		    // stay connected.  This should be done at the
-		    // experiment level, not the device level.
+
+		    // The experiment has begun.  
+
+		    // The experiment object to which this device is registered
+		    // will do the work of managing the experiment until it
+		    // is complete.  See runnable.js.
 		}
 	    
 	    }, function(error) {
 		console.error("Failed", error);
 	    });
 
-	}
-
-	
-	
+	}	
     }
 
+    /**
+     * get()
+     *
+     * Invoked on a daq object, this function issues a command to get
+     * all of the backed up data on the device.
+     *
+     */
+    function get() {
+
+	    var p = this.protocol.getLoggedData();
+	    var path = this.path;
+
+	    // Handle the asynchronous result. 
+	    p.then(function(response) {
+
+		if (response.result === "Success") {
+		    this.running = true;
+		    bt.ui.info('Got some data');
+		}
+	    
+	    }, function(error) {
+		console.error("Failed", error);
+	    });
+    }
+    
     /**
      * query()
      *

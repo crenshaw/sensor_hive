@@ -85,7 +85,7 @@ bt.protocol = function() {
      * acknowledge(a)
      * getMeasurements(n).  
      * start()
-     * getData()
+     * getLoggedData()
      *
      */
 
@@ -93,6 +93,7 @@ bt.protocol = function() {
     bt.protocol.miniSDI12.prototype.configurePeriod = configurePeriod;
     bt.protocol.miniSDI12.prototype.getMeasurements = getMeasurements;
     bt.protocol.miniSDI12.prototype.startMeasurements = startMeasurements;    
+    bt.protocol.miniSDI12.prototype.getLoggedData = getLoggedData;
 
     bt.protocol.miniSDI12.prototype.send = send;
     bt.protocol.miniSDI12.prototype.parse = parse;
@@ -179,6 +180,19 @@ bt.protocol = function() {
 	    var command = "0R" + n + ct;
 	    return this.send(command, 0, "R", n);
 	}
+    }
+
+    /** 
+     * getLoggedData()
+     * 
+     * This method issues a command to the underlying miniSDI-12 device
+     * to get all data currently backed up to the device itself.
+     *
+     */
+    function getLoggedData() {
+	
+	var command = "0D0" + ct;
+	return this.send(command, 0, "D");	
     }
 
     /**
@@ -352,6 +366,8 @@ bt.protocol = function() {
 		    ro.type = 'M';
 		    ro.n = tokens[N];
 
+		    console.log(ro.raw);
+
 		    // Does the n-value match the transmitted n-value?
 		    if (ro.n == this.last.n) {
 			ro.result = "Success";
@@ -491,6 +507,8 @@ bt.protocol = function() {
 		    // 1 response from a command.  Log the
 		    // unterminated response from here.
 		    else {
+
+			// TODO: Log only fresh data.
 			bt.ui.log(ro.raw);
 		    }
 		}
