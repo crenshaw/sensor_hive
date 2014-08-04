@@ -25,7 +25,6 @@ Adafruit_MAX31855::Adafruit_MAX31855(int8_t SCLK, int8_t CS, int8_t MISO) {
   sclk = SCLK;
   cs = CS;
   miso = MISO;
-  inUse = false;
 
   //define pin modes
   pinMode(cs, OUTPUT);
@@ -127,3 +126,4 @@ uint32_t Adafruit_MAX31855::spiread32(void) {
   //Serial.println(d, HEX);
   return d;
 }
+

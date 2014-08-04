@@ -1,52 +1,59 @@
 
 #include "read_write.h"
-  
-void respond(int iii){
-// iii,a<CR><LF>
-    Serial.print("00");
-    Serial.println(iii);
-}  
+
 
 void respond(int iii, int a){
     // iii,a<CR><LF>
-    Serial.print("00");
+    Serial.print(F("00"));
     Serial.print(iii);
-    Serial.print(',');
+    Serial.print(F(","));
     Serial.println(a);
 }
 
 void respond(int iii, int a, int n){
-    // iii,a<CR><LF>
-    Serial.print("00");
+    // iii,a,n<CR><LF>
+    Serial.print(F("00"));
     Serial.print(iii);
-    Serial.print(',');
+    Serial.print(F(","));
     Serial.print(a);
-    Serial.print(',');
+    Serial.print(F(","));
     Serial.println(n);
 }
-//needs to have time
-void dataReport(int iii, int a, int time, double value, boolean lastVal){
-    // iii,a,<time>,<sd.d>:<CR><LF>
-    Serial.print("00");
+void respond(int iii, int a, int ttt, int n){
+    // iii,a,ttt,n<CR><LF>
+    Serial.print(F("00"));
     Serial.print(iii);
-    Serial.print(',');
+    Serial.print(F(","));
     Serial.print(a);
-    Serial.print(',');
-    Serial.print("<time>");
-    Serial.print(',');
+    Serial.print(F(","));
+    Serial.print(ttt);
+    Serial.print(F(","));
+    Serial.println(n);
+}
+
+//needs to have time
+void dataReport(int iii, int a, uint32_t time, double value, boolean lastVal){
+    // iii,a,<time>,<sd.d>:<CR><LF>
+    Serial.print(F("00"));
+    Serial.print(iii);
+    Serial.print(F(","));
+    Serial.print(a);
+    Serial.print(F(","));
+    Serial.print(time);
+    Serial.print(F(","));
     if (value >= 0){
-        Serial.print('+');
+        Serial.print(F("+"));
     }
     if (lastVal){
         Serial.print(value);
-        Serial.println(":");
+        Serial.println(F(":"));
     }
     else{
         Serial.println(value);
     }
 }
 
-boolean readNewCmd(int* sensor, char* command, int* number){
+boolean readNewCmd( char* command, int* sensor, int* number){
     char buffer[15];
     int numChars = Serial.readBytesUntil(';', buffer, 15);
     
@@ -64,7 +71,7 @@ boolean readNewCmd(int* sensor, char* command, int* number){
 
     //test if rest
     //return set all to -1 and return true to signal reset
-    if (numChars == 4 && buffer[0] == ' ' && buffer[1] == ' '
+    if (numChars == 5 && buffer[0] == ' ' && buffer[1] == ' '
                       && buffer[2] == ' ' && buffer[3] == ' '){
         *sensor = -1;
         *command = -1;
