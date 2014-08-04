@@ -7,7 +7,6 @@
 
 #define period ICR1                  // rename period compare reg for tmr1 for take measure comd
 
-    
 //declar a daq
 DataAqu daq;
 //declare an experiment
@@ -53,8 +52,8 @@ void loop(){
             endExp();
         }
     }
-//  
-//    // on incoming serial read a new command
+
+    //on incoming serial read a new command
     if (Serial.available() > 0){
            newCmd = readNewCmd (&command, &port,  &numMeasurs);
            if(!newCmd || port > DAQ_MAXTEMPSENSORS ){
@@ -62,8 +61,8 @@ void loop(){
                respond(DAQ_ID,0);
                newCmd = false;
            }
-
     }
+    
     //check if a break command  
     if (newCmd && command == -1 && port == -1 && numMeasurs == -1){
         experiment.isRunning = false;                //removes experiemnt flag
@@ -76,10 +75,7 @@ void loop(){
     if (newCmd){
         switch (command){
             case 0:
-                // note: the way parse comand is currently running 
-                // if only one number is return it is returned in numMeasusres
-                //todo: fix this
-                acknowledgeActive (&daq, numMeasurs);
+                acknowledgeActive (&daq, port);
             break;
             case 'P':
                 if (experiment.isRunning || numMeasurs < 1){
@@ -106,15 +102,22 @@ void loop(){
                 }
             break;
             case 'M':
-                startExp (&experiment, port, numMeasurs) ? respond (DAQ_ID, port, numMeasurs*period, numMeasurs) : respond (DAQ_ID, 0);
+                if (port == 0){
+                    startExp (&experiment, port, numMeasurs) ? respond (DAQ_ID, port, numMeasurs*period, numMeasurs) : respond (DAQ_ID, 0);
+                }
+                else if (daq.activePorts[port-1]){
+                    startExp (&experiment, port, numMeasurs) ? respond (DAQ_ID, port, numMeasurs*period, numMeasurs) : respond (DAQ_ID, 0);
+                }
+                else{
+                    respond(DAQ_ID, 0);
+                }
             break;
             case 'D':
                 if (experiment.ports != port || experiment.currentMeasurment == 0){
-                    respond(DAQ_ID,0);
+                    respond(DAQ_ID, 0);
                     break;
                 }
                 if (port == 0){
-                    //todo: check against experiment.ports
                     for(int i = 0; i < experiment.currentMeasurment; i++){
                         if (daq.activePorts[0]){
                             (i == (experiment.currentMeasurment-1) && (daq.lastPort == 0)) ? dataReport(DAQ_ID, 1, daq.timeStore[i]+experiment.startTime, daq.tempStore0[i], true) : dataReport(DAQ_ID, 1, daq.timeStore[i]+experiment.startTime, daq.tempStore0[i]);
@@ -140,7 +143,7 @@ void loop(){
                 }
             break;
             default:
-                respond(DAQ_ID, 100);
+                respond(DAQ_ID, 0);
         }
     //done processing commmand set flag to false
     newCmd = false;
@@ -156,19 +159,14 @@ void loop(){
 
 // inturrupt service routines
 ISR (TAKEMASURE){
-    // increment current experiement
-    // read measurments
-//    for (int i = 0; i < DAQ_MAXTEMPSENSORS; i++){
-//        if (thermocouple[i].isUsed()){
-//            thermocouple[i].readCelsius();
-//        }
-//    }
-    daq.tempStore0[experiment.currentMeasurment] = (*(daq.thermocouple[0])).readCelsius(); 
-    daq.tempStore1[experiment.currentMeasurment] = (*(daq.thermocouple[1])).readCelsius(); 
-    daq.tempStore2[experiment.currentMeasurment] = (*(daq.thermocouple[2])).readCelsius(); 
+    if (daq.activePorts[0]){daq.tempStore0[experiment.currentMeasurment] = (*(daq.thermocouple[0])).readCelsius();}
+    if (daq.activePorts[1]){daq.tempStore1[experiment.currentMeasurment] = (*(daq.thermocouple[1])).readCelsius();}
+    if (daq.activePorts[2]){daq.tempStore2[experiment.currentMeasurment] = (*(daq.thermocouple[2])).readCelsius();}
+    experiment.addTime += period;
     daq.timeStore[experiment.currentMeasurment] = experiment.addTime;
     experiment.currentMeasurment ++;
-    experiment.addTime += period;
+    
+    
     // if that was the last measrument end the experiement
     if (experiment.currentMeasurment >= experiment.markMeasurment){
         experiment.isEnd = true;

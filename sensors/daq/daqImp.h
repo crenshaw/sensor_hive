@@ -97,5 +97,4 @@ boolean startExp (Exp* experiment, int prt, int numMeasures);
 void storeData (Adafruit_MAX31855* thermocouple, Exp* experiments);
 void endExp (void);
 
-
 #endif
