@@ -171,7 +171,7 @@ bt.devices = function() {
 	
 	    // Indicate that the device is disconnected.
 	    bt.ui.indicate(d.path,'disconnected');	
-	    bt.ui.info(d.path + ' is disconnected');
+	    bt.ui.info(d.path + ' is disabled');
 
 	    if(clean) {
 	    	// Delete it from the local registry.
@@ -182,7 +182,6 @@ bt.devices = function() {
 		d.unset();
 	    }
 	});
-
     };
 
     /**
@@ -623,7 +622,7 @@ bt.devices = function() {
 		// Determine if the device is already connected.  Let's
 		// not disconnect a single device more than once.
 		if(d === undefined) {
-		    bt.ui.error("The device is already disconnected.");
+		    bt.ui.error("The device is already disabled.");
 		}
 		else {
 		    d.disconnect(false);
