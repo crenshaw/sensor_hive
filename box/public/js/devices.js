@@ -288,10 +288,12 @@ bt.devices = function() {
      */
     function go(logging) {
 
-	console.log("here!");
+	// Grab this for the subsequent .then() call.  In the .then() call
+	// 'this' is the Window object.
+	var d = this;
 
 	// Indicate that an experiment is running on this device.
-	this.running = true;
+	d.running = true;
 
 	// There are two types of experiments; those that log on the daq, and
 	// those that don't.  Start the experiment based on the kind of logging
@@ -306,7 +308,9 @@ bt.devices = function() {
 	    // Handle the asynchronous result. 
 	    p.then(function(response) {
 
-		this.running = false;		
+		// The experiment is complete.  Indicate that an
+		// experiment is no longer running on this device.
+		d.running = false;		
 
 		if (response.result === "Success") {
 		    bt.ui.log(response.raw);
@@ -338,7 +342,6 @@ bt.devices = function() {
 	    
 	    }, function(error) {
 		console.error("Failed", error);
-		this.running = false;		
 	    });
 
 	}
@@ -369,8 +372,6 @@ bt.devices = function() {
      *
      */
     function onSend(id) {
-	
-	console.log("Invoking onSend() on " + id);
 	
 //	chrome.serial.flush(id, function(result) {
 //	    console.log("Flushing connection");
@@ -661,8 +662,6 @@ bt.devices = function() {
 		d.remove();
 	    }
 	}
-
-	console.log(locals);
 	    
     };
 
@@ -710,8 +709,6 @@ bt.devices = function() {
 		// that hasn't been locally registered.
 		var d = locals[path];
 
-		console.log("In connect: ", path, d);
-
 		// If the device hasn't been locally registered yet,
 		// create an associated object for it and register it.
 		if(d === null) {
@@ -730,8 +727,6 @@ bt.devices = function() {
 
 		// Handle the asynchronous result. 
 		p.then(function(response) {
-
-		    console.log("In connect.then");
 
 		    if (response.result === "Success") {
 			// Indicate that the recently connected pathname is connected.
@@ -780,9 +775,6 @@ bt.devices = function() {
 	
 	// Indicate to the user that the device has been registered.
 	bt.ui.indicate(path,'registered');
-
-	console.log("register() complete");
-	console.log(d);
 
 	return d;
     }

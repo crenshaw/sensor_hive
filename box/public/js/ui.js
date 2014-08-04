@@ -85,9 +85,21 @@ bt.ui = function() {
     }
 
     
+    /**
+     * scroll()
+     * 
+     * Invoked on an info object, this method keeps the new
+     * information added to the bottom of a window at the bottom of
+     * the window.  That is, scrolling is aligned to the bottom; older
+     * information is hidden as new information is added.
+     * 
+     */
     function scroll() {
 	this.handle.scrollTop = this.handle.scrollHeight;
     }
+
+    // Done defining info() object.
+
 
     // ************************************************************************
     // Methods local to this module.
@@ -542,16 +554,9 @@ bt.ui = function() {
      * 
      * @param datum The data to log.
      */
-
-
-    // TODO: Stumbled upon a bizarre bug in which two quick calls to
-    // bt.ui.log see only the first call actually working.  Moreover,
-    // it seems that code that occurs after bt.ui.log() isn't getting
-    // called.  Is it the scrolling that is causing the issue?
-
     bt.ui.log = function(datum) {
 	addNode('data_list', datum, 'data');
-	//infoWindows['data'].scroll();
+	infoWindows['data_window'].scroll();
 	
 	return;
     };
@@ -566,7 +571,7 @@ bt.ui = function() {
      */
     bt.ui.error = function(m) {
 	addNode('alerts_list', m, 'error');	
-	//infoWindows['alerts'].scroll();
+	infoWindows['alerts'].scroll();
 
 	return;
     };
@@ -584,7 +589,7 @@ bt.ui = function() {
      */
     bt.ui.info = function(m) {
 	addNode('alerts_list', m, 'info');	
-	//infoWindows['alerts'].scroll();
+	infoWindows['alerts'].scroll();
 
 	return;
     };

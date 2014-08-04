@@ -125,11 +125,15 @@ bt.runnable = function() {
 	var isDone = true;
 	var config = bt.runnable.configuration;
 
+	console.log("Monkey");
+	console.log(config.daqs);
+
 	// First thing, first.
 	//
 	// Are the daqs done running?  If so, then the experiment
 	// is done.
 	for(var i = 0; i < config.daqs.length; i++) {
+	    console.log(config.daqs[i]);
 	    if (config.daqs[i].running === true) {
 		isDone = false;
 	    }
@@ -235,7 +239,7 @@ bt.runnable = function() {
 		return;
 	    }
 	    
-	    var daqs = {};
+	    var daqs = new Array();
 
 	    // Are all the devices enabled?
 	    for(var i = 0; i < devices.length; i++) {
@@ -245,9 +249,17 @@ bt.runnable = function() {
 	    	    bt.ui.error("Cannot configure a new experiment for " + devices[i] + ". It has not been enabled.");
 		    return;
 		}	    
-		    
-		daqs[i] = d;
+		 
+		// If the device is enabled, keep track of it in array
+		// of devices associated with the experiment that is
+		// about to be created.
+		else {
+		    daqs[i] = d;
+		}
 	    }
+	    
+	    console.log("About to create experiment");
+	    console.log(daqs[0]);
 
 	    // Determine the success message.
 	    var msg = d.path + ' has a configured period of ' + period + ' ' + p_units + ' with an experiment length of ' + duration + ' ' + d_units + '.';
@@ -283,6 +295,8 @@ bt.runnable = function() {
 		    // experiment.
 		    bt.runnable.configuration = new bt.runnable.experiment(result);
 		    
+		    console.log(bt.runnable.configuration);
+
 		    // Register the experiment with the device.
 		    d.experiment = true;
 

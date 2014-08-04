@@ -113,8 +113,6 @@ bt.protocol = function() {
      * response object representing the device's response.
      */ 
     function acknowledge(a) {
-	
-	console.log(this);
 
 	if (typeof(a) === 'number' && a >= 0 && a <=3) {
 	    var command = a + ct;
@@ -197,8 +195,6 @@ bt.protocol = function() {
 	// Split the string on the commas and see how many
 	// tokens we have.
 	var tokens = s.split(',');
-
-	console.log(this);
 	
 	/*
 	 * 0) type
@@ -269,8 +265,6 @@ bt.protocol = function() {
 
 	// Only responses with at least two tokens are valid.
 	if (tokens.length >= 2) {
-
-	    console.log(tokens.length);
 
 	    // Get the ID and address from the response.  This is
 	    // the same for every response.
