@@ -53,9 +53,25 @@ Provides the memory, power, and sleep management functions - yet to be implement
 //#define BEBUG_sqw
 //#define DEBUG_startExp
 
+// daq struct
+typedef struct DataAqu_TAG{
+    //Real time clock
+    RTC_DS1307 RTC;
+    
+    Adafruit_MAX31855* thermocouple [DAQ_MAXTEMPSENSORS];
+    boolean activePorts [DAQ_MAXTEMPSENSORS];
+    int lastPort;
+    unsigned long periodR;
+    
+    //storeage for M - will be moved to EEPROM 
+    double tempStore0 [15];
+    double tempStore1 [15];
+    double tempStore2 [15];
+    int timeStore [15];
+}DataAqu;
 
 // experiment struct
-typedef struct{
+typedef struct Exp_TAG{
     boolean isRunning;
     int ports;
     uint32_t startTime;
@@ -68,13 +84,16 @@ typedef struct{
 
 // function headers
 //setup functions
+void portSetup(DataAqu* daq);
+void sensorCheck (DataAqu* daq);
 void startSquareWave (int address);
 void timer1Setup (void);
-int sensorCheck (Adafruit_MAX31855* thermocouple, int maxTempSensors);
+
 
 // command functions
 boolean isBreak (char* cmd, int* port, int* numMeas);
-void acknowledgeActive (Adafruit_MAX31855* thermocouple, int port);
+void acknowledgeActive (DataAqu* daq, int port);
+void continuousMeasurment (DataAqu* daq, int port, int numMeasures);
 boolean startExp (Exp* experiment, int prt, int numMeasures);
 void storeData (Adafruit_MAX31855* thermocouple, Exp* experiments);
 void endExp (void);

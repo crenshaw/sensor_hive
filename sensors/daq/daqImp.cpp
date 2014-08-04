@@ -21,33 +21,61 @@ void acknowledgeActive (Adafruit_MAX31855* thermocouple, int port)
     The port that is being checked
 @return void
 **/
-void acknowledgeActive (Adafruit_MAX31855* thermocouple, int port){
-    switch(port){
-        case 0:                                  // board active
-            respond(DAQ_ID, 0);
-            break;
-        case 1:                                  // is port 1 active
-            thermocouple[0].isUsed() ? respond (DAQ_ID,1) : respond(DAQ_ID, 0);
-            break;  
-        case 2:                                  // is port 2 active
-            thermocouple[1].isUsed() ? respond (DAQ_ID,2) : respond(DAQ_ID, 0);
-            break;
-        case 3:                                  // is port 3 active
-            thermocouple[2].isUsed() ? respond (DAQ_ID,3) : respond(DAQ_ID, 0);
-            break;
-        default:
+void acknowledgeActive (DataAqu* daq, int port){
+    if (port > 0 && port <= DAQ_MAXTEMPSENSORS){
+            daq -> activePorts[port-1] ? respond (DAQ_ID,port) : respond(DAQ_ID, 0);
+    }
+    else{
             respond(DAQ_ID,0);                      // abort response
     }
 }
-// can add an overlaoded acknowledge active for another sensor where 
-// Adafruit_MAX31855* thermocouple is replaced with another sensor type
+
+void continuousMeasurment (DataAqu* daq, int port, int numMeasures){
+    if (numMeasures == 0){
+        respond(DAQ_ID, 0);
+        return;
+    }
+    if (port == 0){
+        for (int j = 0; j < numMeasures; j ++){
+            boolean noReport = true;
+            for (int i = 0; i < DAQ_MAXTEMPSENSORS; i++){
+                if (daq -> activePorts[i]){
+                    if (j == numMeasures -1 && i == daq -> lastPort){
+                        dataReport(DAQ_ID, i+1, (daq -> RTC).now().unixtime(), (*(daq -> thermocouple[i])).readCelsius(), true);
+                        noReport = false;
+                    }     
+                    else{
+                        dataReport(DAQ_ID, i+1, (daq -> RTC).now().unixtime(), (*(daq -> thermocouple[i])).readCelsius());
+                        noReport = false;
+                    }
+                }
+            }
+            if(noReport){
+                respond(DAQ_ID , 0);
+            }
+            delay(daq -> periodR);
+        }
+    }
+    else{
+        if (!(daq -> activePorts[port-1])){
+            respond(DAQ_ID, 0);  
+            return;
+        }
+        for (int j = 0; j < numMeasures; j ++){
+            if (j == numMeasures -1){
+                dataReport(DAQ_ID, port, (daq -> RTC).now().unixtime(), (*(daq -> thermocouple[port-1])).readCelsius(), true);
+            }     
+            else{
+                dataReport(DAQ_ID, port, (daq -> RTC).now().unixtime(), (*(daq -> thermocouple[port-1])).readCelsius());
+            }
+            delay(daq -> periodR);
+        }
+    }
+}
 
 
 boolean startExp (Exp* experiment, int prt, int numMeasures){
-    if (prt > DAQ_MAXTEMPSENSORS){
-        return false;
-    }
-    else if (experiment -> isRunning){  
+    if (experiment -> isRunning){
         return false;
     }
     else {
@@ -59,7 +87,7 @@ boolean startExp (Exp* experiment, int prt, int numMeasures){
         experiment -> markMeasurment = numMeasures;            // set target measurments
         experiment -> isEnd = false;                           // not the end it just started
         experiment -> addTime = 0;
-        TCNT1 = 0;        // clear timer1
+        TCNT1 = 0;                                             // clear timer1
         SREG |= (1 << 7);                                      // turn on global inturrupts Note: this need to be done before
         RTC_DS1307 RTC;                                        //reading the time since i2c requires inturrupts
         experiment -> startTime = RTC.now().unixtime();             // set starting time
@@ -122,6 +150,47 @@ void endExp (void){
 //******************************************Setup Functions******************************//
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+void portSetup(DataAqu* daq){
+     //set rtc useing time at compile
+    #ifdef RTCset
+    //Serial.println("RTC is NOT running!");
+    // following line sets the RTC to the date & time this sketch was compiled
+    daq -> RTC.adjust(DateTime(__DATE__, __TIME__));
+    #endif
+    //declare each temperature sensor this needs to be pushed onto the heap
+    daq -> thermocouple[0] = new Adafruit_MAX31855 (DAQ_DIGCLK, DAQ_TEMP1, DAQ_THERMBUS);
+    daq -> thermocouple[1] = new Adafruit_MAX31855 (DAQ_DIGCLK, DAQ_TEMP2, DAQ_THERMBUS);
+    daq -> thermocouple[2] = new Adafruit_MAX31855 (DAQ_DIGCLK, DAQ_TEMP3, DAQ_THERMBUS);
+}
+
+/**
+int sensorCheck (Adafruit_MAX31855* thermocouple, int maxTempSensors)
+    if RTCSET is defined it will set the time of the RTC to the current time at compile.
+    Itterates through temperature sensor ports. If the port is in use sets the inuse flag
+      of that temperature sensor.
+    A temperature sensor is marked as active if a celsius reading above zero is observed.
+@param Adafruit_MAX31855* thermocouple
+    Address of a thermocouple object. Usally a pointer to the beginning of an array
+      of thermocouple objects. 
+@param maxTempSensors
+    The number of temperature sensors that could be connected to the board at one time.
+      Used as an itteration limit.
+@return int
+    Returnes the address of the highest port currently in use by temperature sensors.
+**/
+void sensorCheck (DataAqu* daq){
+    daq -> lastPort = 0;
+    //Look for temperature ports
+    for (int i = 0; i < DAQ_MAXTEMPSENSORS; i++){
+        if((*(daq->thermocouple[i])).readCelsius()){
+            daq -> activePorts[i] = true;
+            daq -> lastPort = i;
+        }
+    }
+}
+
+
+
 /**
 void startSquareWave (int address)
     Communicates using i2c with the RTC. 
@@ -169,54 +238,4 @@ void timer1Setup (void){
     TIMSK1 &= (0 << ICIE1);
 }
 
-/**
-int sensorCheck (Adafruit_MAX31855* thermocouple, int maxTempSensors)
-    if RTCSET is defined it will set the time of the RTC to the current time at compile.
-    Itterates through temperature sensor ports. If the port is in use sets the inuse flag
-      of that temperature sensor.
-    A temperature sensor is marked as active if a celsius reading above zero is observed.
-@param Adafruit_MAX31855* thermocouple
-    Address of a thermocouple object. Usally a pointer to the beginning of an array
-      of thermocouple objects. 
-@param maxTempSensors
-    The number of temperature sensors that could be connected to the board at one time.
-      Used as an itteration limit.
-@return int
-    Returnes the address of the highest port currently in use by temperature sensors.
-**/
-int sensorCheck (Adafruit_MAX31855* thermocouple, int maxTempSensors){
-    int lastPort = 0;
-    //set rtc useing time at compile
-    #ifdef RTCset
-    RTC_DS1307 RTC;
-    Serial.println("RTC is NOT running!");
-    // following line sets the RTC to the date & time this sketch was compiled
-    RTC.adjust(DateTime(__DATE__, __TIME__));
-    #endif
-    
-    //Look for temperature sensors
-    for (int i = 0; i < maxTempSensors; i++){
-        #ifdef DEBUGsensorCheck
-        Serial.print("Port ");
-        Serial.print(i); 
-        #endif  
-        if(thermocouple[i].readCelsius() > 0){
-            thermocouple[i].setUsed(true);
-            lastPort = i;
-            #ifdef DEBUGsensorCheck
-            Serial.println(": Temperature - in use.");
-            #endif
-        }
-        else{
-            #ifdef DEBUGsensorCheck
-            Serial.println(": Temperature -  not in use."); 
-            #endif
-        }
-    }
-    #ifdef DEBUGsensorCheck
-    Serial.print("lastPort: "); 
-    Serial.println(lastPort);
-    #endif
-    //return the highest port used
-    return lastPort;
-}
+
