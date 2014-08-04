@@ -78,7 +78,6 @@ typedef struct Exp_TAG{
     int addTime;
     int currentMeasurment;
     int markMeasurment;
-    boolean newMeasure;
     boolean isEnd;
 }Exp;
 

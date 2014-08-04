@@ -25,10 +25,6 @@ Adafruit_MAX31855::Adafruit_MAX31855(int8_t SCLK, int8_t CS, int8_t MISO) {
   sclk = SCLK;
   cs = CS;
   miso = MISO;
-  inUse = false;
-  double lastMeasureI = 0;
-  double lastMeasureC = 0;
-  double lastMeasureF = 0;
 
   //define pin modes
   pinMode(cs, OUTPUT);
@@ -57,7 +53,6 @@ double Adafruit_MAX31855::readInternal(void) {
   if (v & 0x800) 
     internal *= -1;
   //Serial.print("\tInternal Temp: "); Serial.println(internal);
-  lastMeasureI = internal;
   return internal;
 }
 
@@ -90,7 +85,6 @@ double Adafruit_MAX31855::readCelsius(void) {
 
   // LSB = 0.25 degrees C
   centigrade *= 0.25;
-  lastMeasureC = centigrade;
   return centigrade;
 }
 
@@ -103,7 +97,6 @@ double Adafruit_MAX31855::readFarenheit(void) {
   f *= 9.0;
   f /= 5.0;
   f += 32;
-  lastMeasureF = f;
   return f;
 }
 

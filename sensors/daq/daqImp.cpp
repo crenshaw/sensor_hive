@@ -53,7 +53,9 @@ void continuousMeasurment (DataAqu* daq, int port, int numMeasures){
             if(noReport){
                 respond(DAQ_ID , 0);
             }
-            delay(daq -> periodR);
+            if (numMeasures > 1 && j != numMeasures -1){
+                delay(daq -> periodR);
+            }
         }
     }
     else{
@@ -68,7 +70,9 @@ void continuousMeasurment (DataAqu* daq, int port, int numMeasures){
             else{
                 dataReport(DAQ_ID, port, (daq -> RTC).now().unixtime(), (*(daq -> thermocouple[port-1])).readCelsius());
             }
-            delay(daq -> periodR);
+            if (numMeasures > 1 && j != numMeasures -1){
+                delay(daq -> periodR);
+            }
         }
     }
 }
@@ -113,30 +117,30 @@ boolean startExp (Exp* experiment, int prt, int numMeasures){
 
 
 void storeData (Adafruit_MAX31855* thermocouple, Exp* experiment){
-    switch (experiment -> ports){
-        case 0:
-            for (int i = 0; i < DAQ_MAXTEMPSENSORS; i++){
-                    if (thermocouple[i].isUsed()){
-                        Serial.println(thermocouple[i].readCelsius()); 
-                    }
-            }
-            //todo: store data for all active sports
-            break;
-        case 1:
-            Serial.println(thermocouple[0].readLastC());
-            //todo: store data for port 0
-            break;
-        case 2:
-            Serial.println(thermocouple[1].readLastC());
-            //todo: store data for port 1
-            break;
-        case 3:
-            Serial.println(thermocouple[2].readLastC());
-            //todo: store data for port 2
-            break;
-        default:
-            respond(DAQ_ID,0);
-    }
+//    switch (experiment -> ports){
+//        case 0:
+//            for (int i = 0; i < DAQ_MAXTEMPSENSORS; i++){
+//                    if (thermocouple[i].isUsed()){
+//                        Serial.println(thermocouple[i].readCelsius()); 
+//                    }
+//            }
+//            //todo: store data for all active sports
+//            break;
+//        case 1:
+//            Serial.println(thermocouple[0].readLastC());
+//            //todo: store data for port 0
+//            break;
+//        case 2:
+//            Serial.println(thermocouple[1].readLastC());
+//            //todo: store data for port 1
+//            break;
+//        case 3:
+//            Serial.println(thermocouple[2].readLastC());
+//            //todo: store data for port 2
+//            break;
+//        default:
+//            respond(DAQ_ID,0);
+//    }
 }
 
 void endExp (void){

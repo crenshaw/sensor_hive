@@ -48,11 +48,6 @@ void setup () {
 
 void loop(){
     if(experiment.isRunning){
-        if (experiment.newMeasure){
-            //storeData (&thermocouple[0], &experiment);
-            experiment.newMeasure = false;
-             
-        }
         if (experiment.isEnd){
             experiment.isRunning = false;
             endExp();
@@ -168,14 +163,12 @@ ISR (TAKEMASURE){
 //            thermocouple[i].readCelsius();
 //        }
 //    }
-    experiment.addTime += period;
     daq.tempStore0[experiment.currentMeasurment] = (*(daq.thermocouple[0])).readCelsius(); 
     daq.tempStore1[experiment.currentMeasurment] = (*(daq.thermocouple[1])).readCelsius(); 
     daq.tempStore2[experiment.currentMeasurment] = (*(daq.thermocouple[2])).readCelsius(); 
     daq.timeStore[experiment.currentMeasurment] = experiment.addTime;
     experiment.currentMeasurment ++;
-    //update time of measurement
-    experiment.newMeasure = true;
+    experiment.addTime += period;
     // if that was the last measrument end the experiement
     if (experiment.currentMeasurment >= experiment.markMeasurment){
         experiment.isEnd = true;
