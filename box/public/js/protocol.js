@@ -241,10 +241,7 @@ bt.protocol = function() {
 	 *    or if the terminating ':' has been received, false,
 	 *    otherwise.
 	 *
-	 * 8) completed: It is true if an experiment is complete.  That
-	 *    is, if an R or D response was received with a ':'.
-	 *
-	 * 9) result: success, error, abort.  The response object's
+	 * 8) result: success, error, abort.  The response object's
 	 *    result field is set to 1 if the command last sent is
 	 *    consistent with the most recent response received and
 	 *    the response is a positive one. For example:
@@ -275,7 +272,6 @@ bt.protocol = function() {
 
 	// Get the original response.
 	ro.raw = s; 
-	ro.completed = false;
 
 	// Only responses with at least two tokens are valid.
 	if (tokens.length >= 2) {
@@ -366,8 +362,6 @@ bt.protocol = function() {
 		    ro.type = 'M';
 		    ro.n = tokens[N];
 
-		    console.log(ro.raw);
-
 		    // Does the n-value match the transmitted n-value?
 		    if (ro.n == this.last.n) {
 			ro.result = "Success";
@@ -394,7 +388,6 @@ bt.protocol = function() {
 		    // Is there a colon at the end of this?
 		    if(s.indexOf(':') > -1) {
 			ro.terminated = true;
-			ro.completed = false;
 		    }
 		    else {
 			ro.terminated = false;
@@ -493,23 +486,25 @@ bt.protocol = function() {
 		    // response object.
 		    var ro = this.parse(finished)
 	    	    
-		    // Set the timestamp for "the last time we heard
-		    // from the device."  
-		    this.lasttime = timestamp();
+		    // Set the timestamp for "the last time we heard a
+		    // data report from the device."  It's best to use
+		    // the timestamp provided by the device, I think.
+		    if(ro.time != undefined) {
+			if(ro.time > this.lasttime) {
+			    this.lasttime = ro.time;
+
+			    // Moreover, log this data here, so that only
+			    // the freshest data is logged to the UI.  Some of
+			    // the daq commands may resend the same data, so
+			    // we need to avoid logging it multiple times.
+			    bt.ui.log(ro.raw);
+			}
+		    }
 
 		    // We got a response from the command.  Resolve
 		    // the promise with the response object.
 		    if (ro.terminated == true) {
 			resolve(ro);
-		    }
-
-		    // OR...It may be that we are expecting more than
-		    // 1 response from a command.  Log the
-		    // unterminated response from here.
-		    else {
-
-			// TODO: Log only fresh data.
-			bt.ui.log(ro.raw);
 		    }
 		}
 

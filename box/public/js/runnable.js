@@ -310,8 +310,18 @@ bt.runnable = function() {
 		    // Register the experiment with the device.
 		    d.experiment = true;
 
-		    bt.ui.info(msg);	
-		    bt.ui.experiment(devices, period, p_units, duration, d_units);
+		    bt.ui.info(msg);
+
+		    var loggingMsg;
+
+		    // Decide on the logging setting message that
+		    // will be displayed to the user.
+		    if (logging === 'pc') loggingMsg = "desktop only";
+		    else if (logging === 'daq') loggingMsg = "desktop and DAQ";
+
+		    // Ask the UI module to log the experiment to
+		    // the experiment window.
+		    bt.ui.experiment(devices, period, p_units, duration, d_units,loggingMsg);
 		    bt.ui.indicate(d.path, 'experiment');
 		    
 		    action.call();

@@ -60,6 +60,10 @@ div.info {
     overflow: auto;
 }
 
+div.settings {
+    padding-left: 20px;
+}
+
 div.subsection {
     float: left;
     margin-left: 10px;
@@ -199,7 +203,7 @@ div#local_devices, div#alerts, div#setup_experiment {
 }
 
 div#exp_window, div#local_devices {
-    height: 100px;
+    height: 150px;
 }
 
 div#alerts p {
@@ -208,12 +212,22 @@ div#alerts p {
     margin-bottom: 0px;
 }
 
-div#data_window, div#exp_window, div#setup_experiment {
+div#exp_window {
+    width: 400px;
+}
+
+div#data_window, div#setup_experiment {
     width: 420px;
 }
 
+div#exp_settings {
+    position:relative
+    margin-top: 25px;
+    display: block;
+}
+
 div#data_window, div#alerts {
-    height: 360px;
+    height: 260px;
 }
 
 div#setup_experiment {
@@ -260,4 +274,8 @@ ul#local_devices_list li.experiment::after {
 
 ul#alerts_list p {
     border-bottom: 1px solid silver;
+}
+
+ul#exp_list {
+    display: block;
 }

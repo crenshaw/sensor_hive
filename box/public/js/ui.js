@@ -480,7 +480,7 @@ bt.ui = function() {
      * experiment.
      *
      */
-    bt.ui.experiment = function(devices, period, p_units, duration, d_units)
+    bt.ui.experiment = function(devices, period, p_units, duration, d_units, logging)
     {
 
 	// Clear the device list that's already there; we only have
@@ -500,6 +500,10 @@ bt.ui = function() {
 
 	setting = document.getElementById('exp_duration_setting');
 	msg = duration + " " + d_units;
+	setting.innerText = msg;
+
+	setting = document.getElementById('exp_logging_setting');
+	msg = logging + "";
 	setting.innerText = msg;
 
 	return;

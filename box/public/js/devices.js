@@ -312,10 +312,6 @@ bt.devices = function() {
 		// The experiment is complete.  Indicate that an
 		// experiment is no longer running on this device.
 		d.running = false;		
-
-		if (response.result === "Success") {
-		    bt.ui.log(response.raw);
-		}
 	    
 	    }, function(error) {
 		console.error("Failed", error);
