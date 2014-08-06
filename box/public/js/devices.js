@@ -141,7 +141,10 @@ bt.devices = function() {
 	p.then(function(response) {
 
 	    if (response.result === "Success") {
-		bt.ui.log(response.raw);
+		
+	    }
+	    else {
+		bt.ui.error("Cannot test device");
 	    }
 	    
 	}, function(error) {
@@ -235,30 +238,14 @@ bt.devices = function() {
 	// be at least 1.
 	this.experiment_measurements = Math.ceil(duration / period);
 
-	// Configure the period for the device, if necessary.  Do it
-	// now so that future operations are more deterministic.
+	// Configure the period for the device.  
 	
-	// Is the desired period the current one?  If so, done.  Return
-	// an immediately resolved promise and empty success response.
-	if( this.experiment_period === this.period) {
+	// Send an initial message to the device.
+	var p = this.protocol.configurePeriod(this.experiment_period);
+	var path = this.path;
 
-	    return new Promise(function(resolve, reject) {
-		var ro = new bt.protocol.response();
-		ro.type = "NA";
-		ro.result = "Success";
-		resolve(ro);	
-	    });
-	}
-
-	// Otherwise, configure the period on the device.
-	else {
-
-	    // Send an initial message to the device.
-	    var p = this.protocol.configurePeriod(this.experiment_period);
-	    var path = this.path;
-
-	    return p;
-	}
+	return p;
+	
     }
 
     /** 
@@ -271,7 +258,7 @@ bt.devices = function() {
 
 	var path = this.path;
 	delete locals[path];
-	bt.ui.info("The device is no longer locally registered");
+	bt.ui.info("The device is no longer enabled.");
 	bt.ui.indicate(path,'removed');
     }
 
@@ -320,20 +307,38 @@ bt.devices = function() {
 	else if (logging === 'daq') {
 
 	    var p = this.protocol.startMeasurements(this.experiment_measurements);
-	    var path = this.path;
+	    var d = this;
 
 	    // Handle the asynchronous result. 
 	    p.then(function(response) {
 
 		if (response.result === "Success") {
-		    this.running = true;
-		    bt.ui.info('The experiment has started on ' + path + '.');		
+		    d.running = true;
+
+		    // In the response, the DAQ indicates how long
+		    // until all of the measurements will be done and
+		    // how many measurements shall be taken.  Get this
+		    // information and set it in the device's object.
+		    d.experiment_duration = response.time;
+		    d.experiment_measurements = response.n;
+
+		    // Set a timer.  In d.experiment_duration, the timer will
+		    // go off and mark this device as not running anymore.
+		    var totalTime = d.experiment_duration + 10;
+
+		    d.interval = setTimeout(function() { d.running = false; }, totalTime * 1000);
+
+		    bt.ui.info('The experiment has started on ' + d.path + ' and will be completed in ' + totalTime + ' seconds');		
 
 		    // The experiment has begun.  
 
-		    // The experiment object to which this device is registered
-		    // will do the work of managing the experiment until it
-		    // is complete.  See runnable.js.
+		    // The experiment object to which this device is
+		    // registered will do the work of managing the
+		    // experiment until it is complete.  See
+		    // runnable.js.
+		}
+		else {
+		    bt.ui.error('Something is wrong with experiment configuration on device.');
 		}
 	    
 	    }, function(error) {
@@ -352,20 +357,8 @@ bt.devices = function() {
      */
     function get() {
 
-	    var p = this.protocol.getLoggedData();
-	    var path = this.path;
-
-	    // Handle the asynchronous result. 
-	    p.then(function(response) {
-
-		if (response.result === "Success") {
-		    this.running = true;
-		    bt.ui.info('Got some data');
-		}
-	    
-	    }, function(error) {
-		console.error("Failed", error);
-	    });
+	var p = this.protocol.getLoggedData();	
+	return p;
     }
     
     /**
@@ -532,7 +525,7 @@ bt.devices = function() {
 	}
 	else {
 	    // TODO: Fix this error!
-	    bt.ui.error("Received data from unregistered connection.  This can happen if you have two instances of the app running or you accidentally clicked the '+' button twice.  Just click 'x' and reconnect.");
+	    bt.ui.error("Received data from unregistered connection.  This can happen if you have two instances of the app running or you accidentally clicked the '+' button twice.");
 	}
 
      }    
@@ -585,7 +578,7 @@ bt.devices = function() {
 
 	    }
 	    else {
-		bt.ui.error("The device is already locally registered.");
+		bt.ui.error("The device is already enabled.");
 	    }
 	}
 
@@ -653,7 +646,7 @@ bt.devices = function() {
 	else if(action === 'refresh') {
 
 	    if (d === undefined || d.connected === false) {
-		    bt.ui.error("The device is not locally connected.");
+		    bt.ui.error("The device is not enabled.");
 		}
 	    else {
 		d.refresh();
@@ -666,7 +659,7 @@ bt.devices = function() {
 	    // If the device is not currently registered, we 
 	    // don't need to unregister it.
 	    if(d === undefined) {
-		    bt.ui.error("The device is not locally registered.");
+		    bt.ui.error("The device is not enabled.");
 	    }
 		
 	    // If the device is currently connected, we need to
@@ -750,6 +743,9 @@ bt.devices = function() {
 			// Indicate that the recently connected pathname is connected.
 			bt.ui.indicate(path,'connected');
 			bt.ui.info(path + ' is enabled.');	
+		    }
+		    else {
+			bt.ui.error(path + ' cannot be enabled.');
 		    }
 
 		}, function(error) {

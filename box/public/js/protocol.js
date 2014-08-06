@@ -33,6 +33,7 @@ bt.protocol = function() {
     var PERIOD = 2;
     var TIME = 2;
     var VALUES = 3;
+    var N = 3;
 
     // *** miniSDI12 OBJECT DEFINITION ***
 
@@ -84,7 +85,7 @@ bt.protocol = function() {
      * configurePeriod(n)
      * acknowledge(a)
      * getMeasurements(n).  
-     * start()
+     * startMeasurements()
      * getLoggedData()
      *
      */
@@ -349,7 +350,7 @@ bt.protocol = function() {
 		
 		// Determine whether this is a response to an M command.
 		// Get the time.  If it's 
-		ro.time = tokens[TIME];
+		ro.time = parseInt(tokens[TIME]);
 
 		// The M command responds with the number of seconds
 		// until the experiment is done, while the R and D
@@ -360,10 +361,10 @@ bt.protocol = function() {
 		if ( ro.time < 1406666364 && this.last.type === "M") {
 
 		    ro.type = 'M';
-		    ro.n = tokens[N];
+		    ro.n = parseInt(tokens[N]);
 
 		    // Does the n-value match the transmitted n-value?
-		    if (ro.n == this.last.n) {
+		    if (ro.n === this.last.n) {
 			ro.result = "Success";
 			ro.terminated = true;
 		    }
@@ -415,10 +416,12 @@ bt.protocol = function() {
 	this.last.type = type;
 	this.last.n = n;
 	
+	// Log the raw serial command to the debug serial console.
+	bt.ui.serial(c);
+
 	// Create a message and place it in an ArrayBuffer.
-	var data = str2ab(c);
-	
-	console.log("Sending on connection: ", this);
+	var data = str2ab(c);	
+
 	var id = this.ci.connectionId;
 	
 	// Every invocation of send() returns a new Promise.
@@ -429,9 +432,7 @@ bt.protocol = function() {
 	    // there's timeout?.... I think that works, but I need to
 	    // read some more.
     
-	    chrome.serial.send(id, data, function(sendInfo) {
-		console.log(sendInfo);
-	    });
+	    chrome.serial.send(id, data, function(sendInfo) { });
 	    
 	    /**
 	     * receive()
@@ -457,8 +458,6 @@ bt.protocol = function() {
 		// it out.
 		var data = ab2str(info.data);
 		
-		console.log(data);
-		
 		this.response += data;
 		
 		// The Arduino println() function "prints data to the serial
@@ -477,19 +476,23 @@ bt.protocol = function() {
 		    
 		    this.count++;
 
-		    console.log(this);
-
 		    // The remainder is the new unfinished response
 		    this.response = this.response.substring(nl + 1);
 
 		    // Parse the complete, raw response and create a
 		    // response object.
 		    var ro = this.parse(finished)
-	    	    
+		    
+		    // Log the raw serial response to the debug serial console.
+		    bt.ui.serial(ro.raw);
+
 		    // Set the timestamp for "the last time we heard a
-		    // data report from the device."  It's best to use
-		    // the timestamp provided by the device, I think.
-		    if(ro.time != undefined) {
+		    // data report from the device."  Since the clock
+		    // on the desktop is not synchronized with the
+		    // clock on the device, I think it's best to use
+		    // the timestamp provided by the device.
+		    if(ro.type === "D" || ro.type === "R") {
+			
 			if(ro.time > this.lasttime) {
 			    this.lasttime = ro.time;
 
@@ -497,7 +500,13 @@ bt.protocol = function() {
 			    // the freshest data is logged to the UI.  Some of
 			    // the daq commands may resend the same data, so
 			    // we need to avoid logging it multiple times.
-			    bt.ui.log(ro.raw);
+			    
+			    // Get rid of any colons to avoid user confusion.
+			    var msg = ro.raw.replace(':','');
+
+			    // Then log it.
+			    bt.ui.log(msg);
+
 			}
 		    }
 
@@ -560,27 +569,10 @@ bt.protocol = function() {
      * 
      * Local Utility Functions, 
      *
-     * - timestamp().
-     *
      * - ab2str() and str2ab() for packing and unpacking data
      * transmitted on the serial line.
      *
      */
-
-    /**
-     * timestamp()
-     *
-     * Create a timestamp.
-     *
-     * @returns The number of seconds since Jan 1, 1970.
-     */
-    function timestamp() {
-
-	var d = new Date();
-	var n = d.getTime() + "";	
-	return n;
-    }
-
 
     /**
      * ab2str()

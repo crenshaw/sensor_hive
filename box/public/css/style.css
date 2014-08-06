@@ -134,7 +134,7 @@ p.error {
     font-size: 85%
 }
 
-p.info {
+p.info, p.serial {
     color: gray;
     font-size: 85%
 }
@@ -203,6 +203,10 @@ div#local_devices, div#alerts, div#setup_experiment {
 }
 
 div#exp_window, div#local_devices {
+    height: 110px;
+}
+
+div#serial {
     height: 150px;
 }
 
@@ -227,7 +231,7 @@ div#exp_settings {
 }
 
 div#data_window, div#alerts {
-    height: 260px;
+    height: 200px;
 }
 
 div#setup_experiment {

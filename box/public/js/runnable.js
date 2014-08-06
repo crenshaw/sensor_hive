@@ -81,8 +81,6 @@ bt.runnable = function() {
 	}
 
 	else {
-	    console.log(this);
-
 	    this.running = true;
 	    bt.ui.info("Starting the experiment...");
 
@@ -92,7 +90,7 @@ bt.runnable = function() {
 
 	    // Now that we've hit the 'go' button on all the devices,
 	    // we must responsibly manage the experiment.
-	    this.interval = setInterval(function(){ manage.call(); }, this.period * 1000);
+	    this.interval = setInterval(function(){ manage.call(); }, (this.period+2) * 1000);
 	}	
     }
 
@@ -125,15 +123,11 @@ bt.runnable = function() {
 	var isDone = true;
 	var config = bt.runnable.configuration;
 
-	console.log("Monkey");
-	console.log(config.daqs);
-
 	// First thing, first.
 	//
 	// Are the daqs done running?  If so, then the experiment
 	// is done.
 	for(var i = 0; i < config.daqs.length; i++) {
-	    console.log(config.daqs[i]);
 	    if (config.daqs[i].running === true) {
 		isDone = false;
 	    }
@@ -142,20 +136,68 @@ bt.runnable = function() {
 	// If all the daqs are done running, then clear the manager's
 	// periodic interval.
 	if(isDone) {
-	    config.running = false;
+	    config.running = false; 
 	    clearInterval(config.interval);
-	    bt.ui.info('The experiment is complete.');
-	    return;
+
+	    // If this is not a logging experiment, we're done.
+	    if(config.logging === "pc") {
+
+		bt.ui.info('The experiment is complete.');
+		bt.ui.log();
+		return;
+	    }
+
+	    // If this is an experiement in which data is being logged to the
+	    // daq, it is worthwhile to send one last request for data to 
+	    // ensure that we got all of the measurements to this application.
+	    else {
+
+		// Call get() on the 0th daq, since we only handle 1 device
+		// for an experiment right now.
+		var p = config.daqs[0].get();
+	    
+		// Handle the asynchronous result. 
+		p.then(function(response) {
+
+		    bt.ui.info('The experiment is complete.');
+		    bt.ui.log();
+
+		    if (response.result != "Success") {
+			bt.ui.error("Could not get() final data from device");
+		    }
+		    
+		}, function(error) {
+		    console.error("Failed", error);
+		});
+	    }
 	}
 
-	// Otherwise, if this is an experiment in which data is being
-	// logged to the daq, then we need to routinely issue a D
-	// command to get the backed up data off the daq.  
-	if(config.logging === 'daq') {
+	// If this is an experiment in which data is being logged to
+	// the daq, then we need to routinely issue a D command to get
+	// the backed up data off the daq.
+	else if(config.logging === 'daq') {
 	    
-	    for(var i = 0; i < config.daqs.length; i++) {
-		config.daqs[i].get();
-	    }
+	    // Call get() on the 0th daq, since we only handle 1 device
+	    // for an experiment right now.
+	    var p = config.daqs[0].get();
+	    
+	    // Handle the asynchronous result. 
+	    p.then(function(response) {
+				
+		if (response.result != "Success") {
+
+		    // TODO.  If there's an unsuccessful response from
+		    // a device during the manage() function, more
+		    // work needs to be done to restablish a working
+		    // connection with the device.  Right now, it's
+		    // not enough to just log an error, but this will
+		    // let me know this TODO exists.
+		    bt.ui.error("Manager cannot get data from device.");
+		}
+		
+	    }, function(error) {
+		console.error("Failed", error);
+	    });
 	}	
     }
 
@@ -204,8 +246,6 @@ bt.runnable = function() {
     
 	var p = toSeconds(period, p_units);
 	var d = toSeconds(duration, d_units);
-	
-	console.log(logging);
 
 	if(p === undefined) {
 	    bt.ui.error("The period must be an integer value greater than 0");
@@ -268,9 +308,6 @@ bt.runnable = function() {
 		}
 	    }
 	    
-	    console.log("About to create experiment");
-	    console.log(daqs[0]);
-
 	    // Determine the success message.
 	    var msg = d.path + ' has a configured period of ' + period + ' ' + p_units + ' with an experiment length of ' + duration + ' ' + d_units + '.';
 
@@ -305,8 +342,6 @@ bt.runnable = function() {
 		    // experiment.
 		    bt.runnable.configuration = new bt.runnable.experiment(result);
 		    
-		    console.log(bt.runnable.configuration);
-
 		    // Register the experiment with the device.
 		    d.experiment = true;
 
@@ -323,8 +358,11 @@ bt.runnable = function() {
 		    // the experiment window.
 		    bt.ui.experiment(devices, period, p_units, duration, d_units,loggingMsg);
 		    bt.ui.indicate(d.path, 'experiment');
-		    
-		    action.call();
+		 
+		    action.call();   
+		}
+		else {
+		    bt.ui.error("Experiment configuration failed.");
 		}
 		
 	    }, function(error) {

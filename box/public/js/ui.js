@@ -25,6 +25,7 @@ bt.ui = function() {
     // Variables local to this module.
     // ************************************************************************
     var lastDeviceSelected;
+    var lineno = 0;
 
 
     // *** INFORMATION WINDOWS REGISTRY *** 
@@ -552,16 +553,49 @@ bt.ui = function() {
     }
     
     /**
+     * serial
+     *
+     * For debugging purposes, log the raw serial messages sent to and
+     * received from the DAQ.
+     *
+     */
+    bt.ui.serial = function(txrx) {
+	addNode('serial_list', txrx, 'serial');
+	infoWindows['serial'].scroll();
+
+	return;	
+    }
+
+    /**
      * log()
      *
      * Log the provided data in the Data Window.
      * 
-     * @param datum The data to log.
+     * @param datum The data to log.  If no parameter is provided,
+     * create a line break in the Data Window.
      */
     bt.ui.log = function(datum) {
-	addNode('data_list', datum, 'data');
-	infoWindows['data_window'].scroll();
+
+	if(datum === undefined) {
+
+	    // Grab the unique selector
+	    var s = document.getElementById('data_list');
+
+	    if(s == undefined) {
+		console.log("Cannot get " + sel); 
+	    }
+
+	    // Create an empty <li> element 
+	    var hr = document.createElement("HR");
+	    s.appendChild(hr);
+	}
 	
+	else {
+	    addNode('data_list', lineno + ',' + datum, 'data');
+	    lineno++;
+	    infoWindows['data_window'].scroll();
+	}
+
 	return;
     };
 
