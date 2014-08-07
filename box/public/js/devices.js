@@ -115,11 +115,10 @@ bt.devices = function() {
     // Update the prototype for all devices of type daq who share the
     // same methods.
     daq.prototype.refresh = refresh;
-    daq.prototype.disconnect = disconnect;
+    daq.prototype.disable = disable;
     daq.prototype.set = set;
     daq.prototype.unset = unset;
     daq.prototype.setup = setup;
-    daq.prototype.remove = remove;
     daq.prototype.go = go;
     daq.prototype.get = get;
     daq.prototype.query = query;
@@ -154,18 +153,13 @@ bt.devices = function() {
     };
 
     /**
-     * disconnect()
+     * disable()
      * 
      * Invoked on a daq object, close the serial connection associated
-     * with a given daq.  If 'clean' is true, disconnect the device
-     * "cleanly" by removing if from the local registry.
-     *
-     * @param clean A boolean value.  If true, disconnect the device
-     * and ALSO remove it from the locally registry.  Otherwise, just
-     * disconnect the device.
+     * with a given daq and remove it from the local registry of devices.
      *
      */
-    function disconnect(clean) {
+    function disable() {
 	
 	// Retain a handle to the daq object that disconnect was invoked
 	// upon.  This 'this' gets lost in the callback function...
@@ -173,18 +167,18 @@ bt.devices = function() {
 
 	chrome.serial.disconnect(this.ci.connectionId, function(result){
 	
-	    // Indicate that the device is disconnected.
-	    bt.ui.indicate(d.path,'disconnected');	
+	    // Indicate that the device is disabled.
+	    bt.ui.indicate(d.path,'disabled');	
 	    bt.ui.info(d.path + ' is disabled');
 
-	    if(clean) {
-	    	// Delete it from the local registry.
-		locals[d.path] = undefined;
+	    // Tell the experiment that this guy is leaving the party.
+	    if (d.experiment) {
+		bt.runnable.configuration.remove(d.path);
+		bt.ui.info("A device associated with the current experiment has been disabled.");
 	    }
-	    else {
-		// Reflect the disconnected state in the object.
-		d.unset();
-	    }
+
+	    // Delete it from the local registry.
+	    locals[d.path] = undefined;
 	});
     };
 
@@ -246,20 +240,6 @@ bt.devices = function() {
 
 	return p;
 	
-    }
-
-    /** 
-     * remove()
-     *
-     * Invoked on a daq object, this method removes the daq from
-     * the local registry
-     */
-    function remove() {
-
-	var path = this.path;
-	delete locals[path];
-	bt.ui.info("The device is no longer enabled.");
-	bt.ui.indicate(path,'removed');
     }
 
     /**
@@ -626,18 +606,22 @@ bt.devices = function() {
 	}
 
 
-	// DISCONNECT: Disconnect a locally registered device from the
-	// box.  After this action, the device remains locally
-	// registered.
-	else if(action === 'disconnect')
+	// DISABLE: Disable a locally registered device from the
+	// box. 
+	else if(action === 'disable')
 	    {
 		// Determine if the device is already connected.  Let's
 		// not disconnect a single device more than once.
 		if(d === undefined) {
 		    bt.ui.error("The device is already disabled.");
 		}
+		// Determine if the device is associated with an experiment.
+		// If so, do not delete it.
+		if (d.experiment) {
+		    bt.ui.error("The device is currently configured in an experiment.  It cannot be disabled at this time.");
+		}		   
 		else {
-		    d.disconnect(false);
+		    d.disable();
 		}
 	    }
 
@@ -645,32 +629,21 @@ bt.devices = function() {
 	// 1 data report.
 	else if(action === 'refresh') {
 
+	    // It's not possible to refresh a device that is not enabled.
 	    if (d === undefined || d.connected === false) {
 		    bt.ui.error("The device is not enabled.");
 		}
+	    // It's not possible to refresh a device that is running a pc-style
+	    // experiment where data is logged only to the desktop machine.
+	    else if (d.running === true && 
+		     bt.runnable.configuration.logging === 'pc' && 
+		     bt.runnable.configuration.running === true) {
+		
+		bt.ui.error("The device is currently running an experiment.  Please wait.");
+	    }	
+	    // In all other cases, it is possible to refresh:
 	    else {
 		d.refresh();
-	    }
-	}
-
-	// REMOVE: Remove the device from the local registry.
-	else if(action === 'remove') {
-
-	    // If the device is not currently registered, we 
-	    // don't need to unregister it.
-	    if(d === undefined) {
-		    bt.ui.error("The device is not enabled.");
-	    }
-		
-	    // If the device is currently connected, we need to
-	    // disconnect cleanly, i.e., disconnect it and remove
-	    // it from the local registry.
-	    else if(d.connected){
-		d.disconnect(true);
-	    }
-	    // Otherwise, just remove if from the registry.
-	    else {
-		d.remove();
 	    }
 	}
 	    

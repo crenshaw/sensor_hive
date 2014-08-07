@@ -65,7 +65,6 @@ bt.runnable = function() {
     // Update the prototype for all devices of type experiment who
     // share the same methods.
     bt.runnable.experiment.prototype.start = start;
-
     
     /**
      * start()
@@ -79,7 +78,9 @@ bt.runnable = function() {
 	if(this.running === true) {
 	    bt.ui.error("The experiment is already running.  Please wait.");
 	}
-
+	else if (this.daqs.length === 0) {
+	    bt.ui.error("The experiment no longer has any enabled devices.  You may want to create a new experiment.");
+	}
 	else {
 	    this.running = true;
 	    bt.ui.info("Starting the experiment...");
@@ -321,7 +322,7 @@ bt.runnable = function() {
 		if (response.result === "Success") {
 			
 		    var result = {};
-
+		    
 		    result.logging = logging;
 		    result.daqs = daqs;
 		    result.devices = devices;
@@ -344,6 +345,7 @@ bt.runnable = function() {
 		    
 		    // Register the experiment with the device.
 		    d.experiment = true;
+		    console.log(d);
 
 		    bt.ui.info(msg);
 

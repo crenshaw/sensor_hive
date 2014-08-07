@@ -90,7 +90,7 @@ ul.menu li {
     margin-right: 37px;
 }
 
-li.registered {
+li.disconnected {
     list-style-type: circle;
 }
 
@@ -168,12 +168,12 @@ p#connect {
     background-image:url('../icons/add.png');
 }
 
-p#disconnect {
-    background-image:url('../icons/disconnect.png');
+p#disable {
+    background-image:url('../icons/disable.png');
 }
 
-p#register {
-    background-image:url('../icons/register.png');    
+p#clearexp {
+    background-image:url('../icons/disable.png');
 }
 
 p#refresh {

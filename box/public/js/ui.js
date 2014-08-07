@@ -278,7 +278,26 @@ bt.ui = function() {
 	var action = e.target.id
 	
 	var devices = getSelectedDevices();
-	
+
+	console.log(e.target.id);
+
+	// Clearing an experiment has nothing to do with devices, though
+	// it should not happen while an experiment is running.
+	if (action === 'clearexp') {
+	    if (bt.runnable.configuration != undefined && bt.runnable.configuration.running) {
+		bt.ui.error("Cannot clear experiment settings while an experiment is running.");
+	    }
+	    else {
+		// TODO: Set the .experiment setting of all devices associated with
+		// the experiment as false.  Something like
+		// bt.runnable.configuration.clearDevices();
+
+		// TODO: Set bt.runnable.configuration as undefined.
+		bt.ui.error("Please finish me.");
+	    }
+		
+	}
+
 	// Did somebody forget to select a device?
 	// If so, one cannot continue.
 	if(devices === undefined) {
@@ -461,8 +480,6 @@ bt.ui = function() {
 	    infoWindows[id] = io;   // Register it.
 	}
 
-
-
 	// Part 4 -- Setup Configuration Menu.
 
 	// Setup the buttons in the setup_experiment div.
@@ -514,14 +531,26 @@ bt.ui = function() {
     /**
      * indicate()
      *
-     * Indicate the device with pathname, 'path', is connected or 
-     * disconnected, registered or removed from the registry, or
-     * configured with an experiment.
+     * Indicate the device with pathname, 'path', with the supplied state.  These
+     * are the possible states:
+     *
+     * connected: The DAQ is connected to the application.  A dark, filled circle
+     *            appears to the left of the device.
+     *
+     * disconnected:  The DAQ is registered with the application, but currently
+     *                not connected due to some problem that needs resolution.
+     *                An unfilled circle appears to the left of the device.
+     *
+     * experiment:    The DAQ is configured with an experiment.  An (e) appears
+     *                to the right of the device.
+     *
+     * disabled:      The DAQ is not connected to the application intentionally.
+     *                The device has no decoration.
      *
      * @param path The pathname associated with the device.  
      *
-     * @param state The string 'disconnected', 'connected',
-     * 'registered', 'removed', or 'experiment'.
+     * @param state The string 'disconnected', 'connected', 'registered', 'removed', or 'experiment'.
+     *
      */
     bt.ui.indicate = function(path, state) {
 
@@ -532,19 +561,22 @@ bt.ui = function() {
 	// Iterate over all the devices in the list.
 	for(var i = 0; i < list.length; i++) {
 	    
-	    // Is this the device just connected?
+	    // Is this the device?
 	    if(list[i].innerText === path) {
 		var p = list[i].parentNode;
 
 		if(state === 'connected')
 		    p.classList.add('connected');
-		else if (state === 'disconnected')
+
+		else if (state === 'disconnected') {
 		    p.classList.remove('connected');
-		else if(state === 'registered')
-		    p.classList.add('registered');
-		else if(state === 'removed') {
-		    p.classList.remove('registered');
+		    p.classList.add('disconnected');
+
+		}
+		else if(state === 'disabled') {
+		    p.classList.remove('disconnected');
 		    p.classList.remove('experiment');
+		    p.classList.remove('connected');
 		}
 		else if(state === 'experiment')
 		    p.classList.add('experiment');
