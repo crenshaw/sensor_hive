@@ -371,6 +371,36 @@ bt.devices = function() {
 //	});
 
     }
+
+    // end daq object definition.
+
+
+
+    /**
+     * onReceiveError()
+     *
+     * When a receive error occurs on the chrome.serial API, this
+     * function is invoked to handle the error.
+     *
+     */
+    function onReceiveError(info) {
+	
+	// Get the connectionId of the connection.
+	var id = info.connectionId;
+
+	// Get the error message; it's a string, e.g., "device_lost".
+	var error = info.error;
+
+	// Get the daq object to which this id is associated.
+	var d = bt.devices.lookup(id);
+
+	// If the device has been lost, mark it as lost in both the
+	// object and the UI.
+//	if(error === "device_lost") {
+//
+//	}
+
+    }
     
     // ************************************************************************
     // Methods provided by this module, visible to others via 
@@ -389,8 +419,10 @@ bt.devices = function() {
 	// Use the google chrome serial API to setup listeners for
 	// receiving serial data or errors.
 	chrome.serial.onReceive.addListener(bt.devices.receive);
-	chrome.serial.onReceiveError.addListener(function(info){console.log("Receive error:");  console.log(info);});
+	chrome.serial.onReceiveError.addListener(function(info){ console.log("Receive error:");  console.log(info);});
     }
+
+
 
     /**
      * scan()

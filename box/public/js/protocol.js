@@ -408,6 +408,10 @@ bt.protocol = function() {
      * @param c The command to send.
      *
      * @param type The type of command being sent.
+     *
+     * @returns A promise that will be resolved when the response to
+     * the command is received.  The promise is rejected when the
+     * response times out.
      */
     function send(c, a, type, n){
 
@@ -416,21 +420,47 @@ bt.protocol = function() {
 	this.last.type = type;
 	this.last.n = n;
 	
+	// Keep track of the last period value issued to the device 
+	if(this.last.type === "P") {
+	    this.last.period = n;
+	    console.log("Period", this.last.period);
+	}
+	 
 	// Log the raw serial command to the debug serial console.
 	bt.ui.serial(c);
 
 	// Create a message and place it in an ArrayBuffer.
 	var data = str2ab(c);	
 
-	var id = this.ci.connectionId;
+	// Declare some variables for the closure below.
+	var id = this.ci.connectionId;	
+	var last = this.last;
+	var sendInterval;
 	
+
 	// Every invocation of send() returns a new Promise.
 	return new Promise(function(resolve, reject) {
 
-	    // TODO: Put reject up here and set it for a reasonable
-	    // amount of time in which to expect a response.  If
-	    // there's timeout?.... I think that works, but I need to
-	    // read some more.
+	    // I send a command and I expect a response in a certain
+	    // amount of time.  If I don't get a response, then I need
+	    // to reject this promise.
+	    var duration = 4000;
+
+	    // How long before I expect a response.  For R-style commands
+	    // this is a long time, but otherwise, it's pretty quick.
+	    if (last.type === "R") {
+		duration = last.period * last.n * 1000;
+		console.log("Timeout in " + duration + " seconds.");
+	    }
+
+	    // Set a timer to reject the promise in `duration`
+	    // milliseconds.
+	    sendInterval = setTimeout(function(){
+		console.log("Promise rejected");
+		reject(Error("reponse error")); 
+	    }, 
+				      duration);
+
     
 	    chrome.serial.send(id, data, function(sendInfo) { });
 	    
@@ -513,16 +543,10 @@ bt.protocol = function() {
 		    // We got a response from the command.  Resolve
 		    // the promise with the response object.
 		    if (ro.terminated == true) {
+			console.log(sendInterval);
+			clearTimeout(sendInterval);
 			resolve(ro);
 		    }
-		}
-
-		// TODO: I need a proper error condition for handling
-		// the case where the promise is not fulfilled.  Right
-		// now, let's pretend a really long response is a
-		// reject case.
-		else if (this.response.length > 100) {
-		    reject(Error("reponse error")); 
 		}
 
 	    } // end receive()
