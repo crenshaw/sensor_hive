@@ -1,7 +1,7 @@
 {
   "name": "Scio",
   "description": "This chrome packaged app connects to an Arduino deployed with multiple sensors and communicating with the miniSDI-12 protocol.",
-  "version": "1.0",
+  "version": "1.1",
   "manifest_version": 2,
   "permissions":[
       "serial",
