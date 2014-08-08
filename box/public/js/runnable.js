@@ -65,6 +65,7 @@ bt.runnable = function() {
     // Update the prototype for all devices of type experiment who
     // share the same methods.
     bt.runnable.experiment.prototype.start = start;
+    bt.runnable.experiment.prototype.clear = clear;
     
     /**
      * start()
@@ -78,9 +79,6 @@ bt.runnable = function() {
 	if(this.running === true) {
 	    bt.ui.error("The experiment is already running.  Please wait.");
 	}
-	else if (this.daqs.length === 0) {
-	    bt.ui.error("The experiment no longer has any enabled devices.  You may want to create a new experiment.");
-	}
 	else {
 	    this.running = true;
 	    bt.ui.info("Starting the experiment...");
@@ -93,6 +91,32 @@ bt.runnable = function() {
 	    // we must responsibly manage the experiment.
 	    this.interval = setInterval(function(){ manage.call(); }, (this.period+2) * 1000);
 	}	
+    }
+
+    /** 
+     * clear()
+     *
+     * For each device registered with this experiment, clear the
+     * device; that is indicate on the daq object that it is no longer
+     * associated with this experiment.
+     *
+     */
+    function clear() {
+
+	// Is an experiment already running on the application?
+	if(this.running === true) {
+	    bt.ui.error("The experiment is already running.  Please wait.");
+	}
+	else {
+
+	    // Examine the list of daqs and clear each one.
+	    for(var i = 0; i < this.daqs.length; i++) {
+		
+		this.daqs[i].experiment = false;
+		bt.ui.indicate(this.daqs[i].path, 'clear');
+		
+	    }
+	}
     }
 
     // end definition of experiment()

@@ -279,21 +279,26 @@ bt.ui = function() {
 	
 	var devices = getSelectedDevices();
 
-	console.log(e.target.id);
-
 	// Clearing an experiment has nothing to do with devices, though
 	// it should not happen while an experiment is running.
 	if (action === 'clearexp') {
-	    if (bt.runnable.configuration != undefined && bt.runnable.configuration.running) {
+	    if (bt.runnable.configuration === undefined) {
+		bt.ui.error("Experiment settings are already cleared.");
+	    }
+	    else if (bt.runnable.configuration != undefined && bt.runnable.configuration.running) {
 		bt.ui.error("Cannot clear experiment settings while an experiment is running.");
 	    }
 	    else {
-		// TODO: Set the .experiment setting of all devices associated with
-		// the experiment as false.  Something like
-		// bt.runnable.configuration.clearDevices();
+		// Clear all devices associated with the experiement as not
+		// belonging to the experiment.
+		bt.runnable.configuration.clear();
 
-		// TODO: Set bt.runnable.configuration as undefined.
-		bt.ui.error("Please finish me.");
+		// Git rid of the experiment object and start anew.
+		delete bt.runnable.configuration;
+		bt.runnable.configuration = undefined;
+
+		// Clear the settings on the user interface.
+		bt.ui.experiment();
 	    }
 		
 	}
@@ -496,6 +501,9 @@ bt.ui = function() {
      *
      * Log some information about the currently configured
      * experiment.
+     * 
+     * If the function is called with no parameters, just 
+     * clear the window.
      *
      */
     bt.ui.experiment = function(devices, period, p_units, duration, d_units, logging)
@@ -505,27 +513,44 @@ bt.ui = function() {
 	// one experiment at a time right now.
 	infoWindows['exp_window'].clear();	
 
-	var list = document.getElementById('exp_list');
+	// Get handles to everything we'll need.
+	var p = document.getElementById('exp_period_setting');
+	var d = document.getElementById('exp_duration_setting');
+	var l = document.getElementById('exp_logging_setting');
+	  
+	var msg = "";
 
-	// List all the devices in the experiment.	
-	for(var i = 0; i < devices.length; i++) {
-	    addNode('exp_list', devices[i]);	
-	}
+	// If we are just clearing the settings...
+	if(devices === undefined) {
 
-	var setting = document.getElementById('exp_period_setting');
-	var msg = period + " " + p_units;
-	setting.innerText = msg;
-
-	setting = document.getElementById('exp_duration_setting');
-	msg = duration + " " + d_units;
-	setting.innerText = msg;
-
-	setting = document.getElementById('exp_logging_setting');
-	msg = logging + "";
-	setting.innerText = msg;
-
-	return;
+	    p.innerText = msg;
+	    d.innerText = msg;
+	    l.innerText = msg;
 	
+	}
+	// Otherwise, add some settings information...
+	else {
+	   
+	    var list = document.getElementById('exp_list');
+	    
+	    // List all the devices in the experiment.	
+	    for(var i = 0; i < devices.length; i++) {
+		addNode('exp_list', devices[i]);	
+	    }
+	    
+	    msg = period + " " + p_units;
+	    p.innerText = msg;
+	    
+	    msg = duration + " " + d_units;
+	    d.innerText = msg;
+	    
+	    msg = logging + "";
+	    l.innerText = msg;
+	    
+	    return;
+
+	}
+		
     }
 
     /**
@@ -546,6 +571,9 @@ bt.ui = function() {
      *
      * disabled:      The DAQ is not connected to the application intentionally.
      *                The device has no decoration.
+     * 
+     * clear:         The DAQ is not configured with an experiment.  No (e) appears
+     *                to the right of the device.
      *
      * @param path The pathname associated with the device.  
      *
@@ -578,10 +606,15 @@ bt.ui = function() {
 		    p.classList.remove('experiment');
 		    p.classList.remove('connected');
 		}
-		else if(state === 'experiment')
+		else if(state === 'experiment') {
 		    p.classList.add('experiment');
-	    }
-	}		
+		}
+		else if(state === 'clear') {
+		    p.classList.remove('experiment');
+
+		}
+	    }	
+	}
     }
     
     /**
