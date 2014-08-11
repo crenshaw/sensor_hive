@@ -450,16 +450,13 @@ bt.protocol = function() {
 	    // this is a long time, but otherwise, it's pretty quick.
 	    if (last.type === "R") {
 		duration = last.period * last.n * 1000;
-		console.log("Timeout in " + duration + " seconds.");
 	    }
 
 	    // Set a timer to reject the promise in `duration`
 	    // milliseconds.
 	    sendInterval = setTimeout(function(){
-		console.log("Promise rejected");
 		reject(Error("reponse error")); 
-	    }, 
-				      duration);
+	    }, duration);
 
     
 	    chrome.serial.send(id, data, function(sendInfo) { });
@@ -543,7 +540,6 @@ bt.protocol = function() {
 		    // We got a response from the command.  Resolve
 		    // the promise with the response object.
 		    if (ro.terminated == true) {
-			console.log(sendInterval);
 			clearTimeout(sendInterval);
 			resolve(ro);
 		    }

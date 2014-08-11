@@ -75,7 +75,13 @@ bt.devices = function() {
 	this.connected = connected;  
 	this.ci = ci;
 	this.name = name;
+	
 
+	// A device may attempt to reconnect its serial connection.
+	// If so, indicate this attempt is ongoing with .connecting
+	// as true.  Otherwise, if no attempt to connect is ongoing
+	// this field is false.
+	this.connecting = false;
 
 	// A device has a set of ports.  Each port may be empty or
 	// may be connected to a sensor.  When a device is added,
@@ -105,8 +111,6 @@ bt.devices = function() {
 	// Is an experiment running right now?
 	this.running = false;
 
-
-
 	// The protocol object is what is used to send the 
 	// daq commands and receive daq responses for the device.
 	this.protocol = new bt.protocol.miniSDI12(path, ci);
@@ -120,6 +124,7 @@ bt.devices = function() {
     daq.prototype.unset = unset;
     daq.prototype.setup = setup;
     daq.prototype.go = go;
+    daq.prototype.close = close;
     daq.prototype.get = get;
     daq.prototype.query = query;
 
@@ -153,6 +158,30 @@ bt.devices = function() {
     };
 
     /**
+     * close()
+     *
+     * Invoked on a daq object, close the serial connection associated
+     * with a given daq.  Keep the daq object for future communications.
+     *
+     */
+    function close() {
+
+	// Retain a handle to the daq object that disconnect was invoked
+	// upon.  This 'this' gets lost in the callback function...
+	var d = this;
+
+	chrome.serial.disconnect(this.ci.connectionId, function(result){
+	
+	    // Indicate that the device is disconnected, both at the
+	    // UI and at the object.
+	    bt.ui.indicate(d.path,'disconnected');	
+	    d.unset();
+
+	});
+
+    }
+
+    /**
      * disable()
      * 
      * Invoked on a daq object, close the serial connection associated
@@ -165,21 +194,24 @@ bt.devices = function() {
 	// upon.  This 'this' gets lost in the callback function...
 	var d = this;
 
-	chrome.serial.disconnect(this.ci.connectionId, function(result){
-	
+	// Define what to do upon disabling a device.  
+	function onDisable(result) {
+
 	    // Indicate that the device is disabled.
 	    bt.ui.indicate(d.path,'disabled');	
 	    bt.ui.info(d.path + ' is disabled');
 
-	    // Tell the experiment that this guy is leaving the party.
-	    if (d.experiment) {
-		bt.runnable.configuration.remove(d.path);
-		bt.ui.info("A device associated with the current experiment has been disabled.");
-	    }
-
 	    // Delete it from the local registry.
 	    locals[d.path] = undefined;
-	});
+	}
+
+	// If the device isn't already disconnected, disconnect it.
+	if (d.ci != undefined) {
+	    chrome.serial.disconnect(this.ci.connectionId, onDisable);
+	}
+	else {
+	    onDisable();
+	}
     };
 
     /**
@@ -259,6 +291,7 @@ bt.devices = function() {
 	// Grab this for the subsequent .then() call.  In the .then() call
 	// 'this' is the Window object.
 	var d = this;
+	var path = d.path;
 
 	// Indicate that an experiment is running on this device.
 	d.running = true;
@@ -270,8 +303,8 @@ bt.devices = function() {
 	if (logging === 'pc') {
 
 	    // Get continuous measurements from the daq.
-	    var p = this.protocol.getMeasurements(this.experiment_measurements);
-	    var path = this.path;
+	    console.log(d);
+	    var p = d.protocol.getMeasurements(d.experiment_measurements);
 
 	    // Handle the asynchronous result. 
 	    p.then(function(response) {
@@ -281,13 +314,13 @@ bt.devices = function() {
 		d.running = false;		
 	    
 	    }, function(error) {
-		console.error("Failed", error);
+		bt.ui.error("Something went wrong with the experiment.  Did a device lose power?");
+		d.running = false;
 	    });
 	}
 	else if (logging === 'daq') {
 
-	    var p = this.protocol.startMeasurements(this.experiment_measurements);
-	    var d = this;
+	    var p = d.protocol.startMeasurements(d.experiment_measurements);
 
 	    // Handle the asynchronous result. 
 	    p.then(function(response) {
@@ -299,8 +332,15 @@ bt.devices = function() {
 		    // until all of the measurements will be done and
 		    // how many measurements shall be taken.  Get this
 		    // information and set it in the device's object.
-		    d.experiment_duration = response.time;
-		    d.experiment_measurements = response.n;
+
+		    // TODO: This is causing some sabotage.  Need a better
+		    // way of synchronizing what the object thinks with
+		    // the device's response.
+
+		    // TODO: An abort response is registering as "success" here?
+
+		    // d.experiment_duration = response.time;
+		    // d.experiment_measurements = response.n;
 
 		    // Set a timer.  In d.experiment_duration, the timer will
 		    // go off and mark this device as not running anymore.
@@ -385,6 +425,9 @@ bt.devices = function() {
      */
     function onReceiveError(info) {
 	
+	// Log to the console, for now.
+	console.log(info);
+
 	// Get the connectionId of the connection.
 	var id = info.connectionId;
 
@@ -394,11 +437,12 @@ bt.devices = function() {
 	// Get the daq object to which this id is associated.
 	var d = bt.devices.lookup(id);
 
-	// If the device has been lost, mark it as lost in both the
-	// object and the UI.
-//	if(error === "device_lost") {
-//
-//	}
+	// If the device has been lost, but the object thinks it's
+	// connected, close the connection.
+	if(error === "device_lost" && d.connected === true) {
+	    bt.ui.warning("Lost connection on " + d.path + ".");
+	    d.close();
+	}
 
     }
     
@@ -419,9 +463,8 @@ bt.devices = function() {
 	// Use the google chrome serial API to setup listeners for
 	// receiving serial data or errors.
 	chrome.serial.onReceive.addListener(bt.devices.receive);
-	chrome.serial.onReceiveError.addListener(function(info){ console.log("Receive error:");  console.log(info);});
+	chrome.serial.onReceiveError.addListener(onReceiveError);
     }
-
 
 
     /**
@@ -575,30 +618,12 @@ bt.devices = function() {
 	// Determine the action selected and invoke the appropriate
 	// function.
 
-	
-	// ADD: Add a device to the local registry.
-	if(action === 'add') {
-	    
-	    // If d wasn't found, then it hasn't yet been added
-	    // to the local registry.  Add it. Otherwise, tell
-	    // the user it has already been registered.
-	    if(d === undefined) {
-		
-		// Create a software representation of the data
-		//acquisition unit, i.e., register it.
-		var d = bt.devices.register(path, false);
 
-	    }
-	    else {
-		bt.ui.error("The device is already enabled.");
-	    }
-	}
-
-	// ADD: Add a device to the local registry and establish a
-	// serial connection between the selected a device and the
-	// box.
+	// ENABLE (or CONNECT): Add a device to the local registry and
+	// establish a serial connection between the selected a device
+	// and the box.
 	//
-	else if(action === 'connect') {
+	if(action === 'connect') {
 
 	    // If the device hasn't been registered yet, connect.
 	    if(d === null) {
@@ -607,6 +632,12 @@ bt.devices = function() {
 
 	    else if(d === undefined) {
 		bt.devices.connect(pathArray[0]);
+	    }
+
+	    // Is the device currently attempting to connect? Let's not connect
+	    // a single device more than once.
+	    else if(d.connecting) {
+		bt.ui.error("Currently connecting to device.  Please wait.");
 	    }
 
 	    // Determine if the device is already connected.  Let's not connect
@@ -624,7 +655,7 @@ bt.devices = function() {
 	else if(action === 'setup') {
 	    
 	    // If the device hasn't been locally registered...
-	    if(d === undefined) {
+	    if(d === undefined || d === null) {
 
 		// You gotta register and *then* setup.	
 		bt.ui.error("The device has not been enabled.  Please enable the device before configuring an experiment");
@@ -642,14 +673,23 @@ bt.devices = function() {
 	// box. 
 	else if(action === 'disable')
 	    {
+
+		// Are we busy connecting to a device?
+		if (d === null) {
+		    bt.ui.error("Attempting to connect to the device.  Please wait.");
+		}
 		// Determine if the device is already connected.  Let's
 		// not disconnect a single device more than once.
-		if(d === undefined) {
+		else if(d === undefined) {
 		    bt.ui.error("The device is already disabled.");
+		}
+		// Are we busy re-connecting to a device?
+		else if(d.connecting) {
+		    bt.ui.error("Attempting to connect to the device.  Please wait.");
 		}
 		// Determine if the device is associated with an experiment.
 		// If so, do not delete it.
-		if (d.experiment) {
+		else if (d.experiment) {
 		    bt.ui.error("The device is currently configured in an experiment.  It cannot be disabled at this time.");
 		}		   
 		else {
@@ -662,7 +702,7 @@ bt.devices = function() {
 	else if(action === 'refresh') {
 
 	    // It's not possible to refresh a device that is not enabled.
-	    if (d === undefined || d.connected === false) {
+	    if (d === undefined || d === null || d.connected === false) {
 		    bt.ui.error("The device is not enabled.");
 		}
 	    // It's not possible to refresh a device that is running a pc-style
@@ -689,19 +729,34 @@ bt.devices = function() {
      */
     bt.devices.connect = function(path) {
 
-	// Create a message and place it in an ArrayBuffer.
-	// var data = '0R1!;';
+	// Lookup the device.
+	var d = bt.devices.lookup(path);
 
 	// Are we currently attempting to connect to this path?  Check
-	// the registry before proceeding.
-	if (locals[path] === null) {
+	// the registry before proceeding.  If the device is undefined
+	// this is the first attempt to connect to it.
+	if (d === undefined) {}
+
+	// Otherwise, if the device is null or the .connecting field is
+	// set, then the application is trying to connect.
+	else if (d === null || d.connecting === true) {
 	    bt.ui.error("Currently connecting to " + path + ". Please wait.");
 	    return;
 	}
 
-	// Register the path we are about to connect.  Set it's
-	// object to null and provide some information to the user.
-	locals[path] = null;
+	// Register the path we are about to connect.  It may be that
+	// we are trying to connect to a device for the first time.
+	// If so, set its object to null.  Otherwise, it may be that
+	// we are trying to re-connect to a previously connected
+	// device.  If so, set its .connecting field to true.
+	if (d === undefined) {
+	    locals[path] = null;
+	}
+	else {
+	    d.connecting = true;
+	}
+
+	// Provide some information to the user.
 	bt.ui.info("Connecting to " + path + "...  Takes about 10 seconds.");
 	
 	// Connect to the device supplied by this function's
@@ -715,7 +770,18 @@ bt.devices = function() {
 	    // the device represented by 'path' was not available for
 	    // connection.
 	    if (ci === undefined) {
-		locals[path] = undefined;
+		
+		// If the object wasn't defined before, set it back to be
+		// undefined.
+		if( locals[path] === null) {
+		    locals[path] = undefined;
+		}
+		// If the object was defined before, set its .connecting
+		// field to false.
+		else {
+		    locals[path].connecting = false;
+		}
+		
 		bt.ui.error(path + " is not available for connection.  Perhaps it must be turned on?");
 	    }
 	    
@@ -734,9 +800,16 @@ bt.devices = function() {
 		    d = bt.devices.register(path, false);
 		}
 
+		// Otherwise, indicate that it is no longer attempting
+		// to connect.
+		else {
+		    d.connecting = false;
+		}
+
 		// Set the registered device's connectivity
 		// information.		
 		d.set(ci);
+		console.log(d);
 
 		// Send an initial message to the device.
 		var p = d.protocol.acknowledge(0);

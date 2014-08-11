@@ -556,28 +556,31 @@ bt.ui = function() {
     /**
      * indicate()
      *
-     * Indicate the device with pathname, 'path', with the supplied state.  These
-     * are the possible states:
+     * Indicate the device with pathname, 'path', with the supplied
+     * state.  These are the possible states:
      *
-     * connected: The DAQ is connected to the application.  A dark, filled circle
-     *            appears to the left of the device.
+     * connected: The DAQ is connected to the application.  A dark,
+     *            filled circle appears to the left of the device.
      *
-     * disconnected:  The DAQ is registered with the application, but currently
-     *                not connected due to some problem that needs resolution.
-     *                An unfilled circle appears to the left of the device.
+     * disconnected: The DAQ is registered with the application, but
+     *                currently not connected due to some problem that
+     *                needs resolution.  An unfilled circle appears to
+     *                the left of the device.
      *
-     * experiment:    The DAQ is configured with an experiment.  An (e) appears
-     *                to the right of the device.
+     * experiment: The DAQ is configured with an experiment.  An (e)
+     *                appears to the right of the device.
      *
-     * disabled:      The DAQ is not connected to the application intentionally.
-     *                The device has no decoration.
+     * disabled: The DAQ is not connected to the application
+     *                intentionally.  There is no object for this
+     *                device; the device has no decoration.
      * 
-     * clear:         The DAQ is not configured with an experiment.  No (e) appears
-     *                to the right of the device.
+     * clear: The DAQ is not configured with an experiment.  No (e)
+     *                appears to the right of the device.
      *
      * @param path The pathname associated with the device.  
      *
-     * @param state The string 'disconnected', 'connected', 'registered', 'removed', or 'experiment'.
+     * @param state The string 'disconnected', 'connected',
+     * 'disabled', 'clear', or 'experiment'.
      *
      */
     bt.ui.indicate = function(path, state) {
@@ -678,6 +681,22 @@ bt.ui = function() {
 
 	return;
     };
+
+
+    /**
+     * warning()
+     * 
+     * Display a warning message, m, to the user.
+     *
+     * @param m The message to display.
+     */
+    bt.ui.warning = function(m) {
+	addNode('alerts_list', m, 'warning');	
+	infoWindows['alerts'].scroll();
+
+	return;
+    };
+
 
     /**
      * info()

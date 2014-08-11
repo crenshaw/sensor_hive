@@ -134,6 +134,11 @@ p.error {
     font-size: 85%
 }
 
+p.warning {
+    color: #ff0066;
+    font-size: 85%
+}
+
 p.info, p.serial {
     color: gray;
     font-size: 85%
