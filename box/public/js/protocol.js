@@ -415,6 +415,10 @@ bt.protocol = function() {
      */
     function send(c, a, type, n){
 
+
+	// I can only send if the device is connected....
+	// TODO: Add some checking here.
+
 	this.last.command = c;
 	this.last.address = a;
 	this.last.type = type;
