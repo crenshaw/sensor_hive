@@ -47,11 +47,22 @@ Provides the memory, power, and sleep management functions - yet to be implement
     //inturrupts
     #define TAKEMASURE TIMER1_CAPT_vect    // renames the inturupt vector
     
+    #define DAQ_HEAD_OFFSET  14
+    #define DATA_OFFSET 7
+    // THE MOD NUMBER IS 980 THEN ADD OFFSET TO IT (14) CAN HOLD 140 MEASURMENTS.
+    #define DATA_MAX_ADDRESS  994
+    
+    
+    #define Period ICR1                  // rename period compare reg for tmr1 for take measure comd
+    
 //debug
 //#define RTCset                     // Sets the RTC with complie time
 //#define DEBUG_sensorCheck
 //#define BEBUG_sqw
 //#define DEBUG_startExp
+
+
+
 
 // daq struct
 typedef struct DataAqu_TAG{
@@ -60,41 +71,55 @@ typedef struct DataAqu_TAG{
     
     Adafruit_MAX31855* thermocouple [DAQ_MAXTEMPSENSORS];
     boolean activePorts [DAQ_MAXTEMPSENSORS];
+    int numberActive;
     int lastPort;
+    int period;
     unsigned long periodR;
-    
-    //storeage for M - will be moved to EEPROM 
-    double tempStore0 [15];
-    double tempStore1 [15];
-    double tempStore2 [15];
-    int timeStore [15];
 }DataAqu;
+
+//this struck is 14 bytes
+typedef struct DataHead_TAG{
+    boolean isRunning;            // 1 byte
+    uint8_t port;                 // 1 byte
+    unsigned int headPtr;         // 2 bytes
+    unsigned int tailPtr;         // 2 bytes
+    unsigned long startTime;      // 4 bytes
+    unsigned int periodLgth;      // 2 bytes
+    unsigned int numMeasurments;  // 2 bytes
+}DataHead;
 
 // experiment struct
 typedef struct Exp_TAG{
-    boolean isRunning;
-    int ports;
-    uint32_t startTime;
-    int addTime;
     int currentMeasurment;
-    int markMeasurment;
-    boolean isEnd;
+    DataHead dataHead;
 }Exp;
+
+
+//this struck is 7 bytes in size
+typedef struct Data_TAG{
+    unsigned int periodNum;        //2 bytes
+    uint8_t port;                  //1 byte
+    double data;                   //4 bytes
+}Data;
+
 
 // function headers
 //setup functions
 void portSetup(DataAqu* daq);
 void sensorCheck (DataAqu* daq);
-void startSquareWave (int address);
+void startSquareWave (void);
 void timer1Setup (void);
+boolean expRecover (Exp* exps);
 
 
 // command functions
 boolean isBreak (char* cmd, int* port, int* numMeas);
 void acknowledgeActive (DataAqu* daq, int port);
+void setPeriod (DataAqu* daq, int periodLength);
 void continuousMeasurment (DataAqu* daq, int port, int numMeasures);
 boolean startExp (Exp* experiment, int prt, int numMeasures);
-void storeData (Adafruit_MAX31855* thermocouple, Exp* experiments);
-void endExp (void);
+void storeData (Exp* exps, Data* data);
+void sendData ( );
+void endExp (Exp* exps);
 
 #endif
