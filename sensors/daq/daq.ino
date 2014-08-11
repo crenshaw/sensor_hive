@@ -108,10 +108,10 @@ void loop(){
                 }
             break;
             case 'D':
-//                if (experiment.dataHead.port != port || experiment.currentMeasurment == 0){
-//                    respond(DAQ_ID, 0);
-//                    break;
-//                }
+                if (experiment.dataHead.port != port){
+                    respond(DAQ_ID, 0);
+                    break;
+                }
                 sendData( );
             break;
             default:

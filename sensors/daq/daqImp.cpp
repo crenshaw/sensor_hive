@@ -127,9 +127,11 @@ void storeData (Exp* exps, Data* data){
     dataIn.periodNum = data -> periodNum;
     dataIn.port = data -> port;
     dataIn.data = data -> data;
-    EEPROM.updateBlock((exps -> dataHead.tailPtr), dataIn);
-    exps -> dataHead.tailPtr += DATA_OFFSET;
-    EEPROM.updateBlock(0,exps->dataHead);
+    if (exps -> dataHead.tailPtr < 994){
+        EEPROM.updateBlock((exps -> dataHead.tailPtr), dataIn);
+        exps -> dataHead.tailPtr += DATA_OFFSET;
+        EEPROM.updateBlock(0,exps->dataHead);
+    }
 }
 
 //
