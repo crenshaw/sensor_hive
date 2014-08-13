@@ -148,7 +148,7 @@ bt.devices = function() {
 		
 	    }
 	    else {
-		bt.ui.error("Cannot test device");
+		bt.ui.warning("Could not test device");
 	    }
 	    
 	}, function(error) {
@@ -205,10 +205,12 @@ bt.devices = function() {
 	    locals[d.path] = undefined;
 	}
 
-	// If the device isn't already disconnected, disconnect it.
+	// If the device isn't already disconnected, disconnect it and
+	// then invoke the above-defined onDisable function.
 	if (d.ci != undefined) {
 	    chrome.serial.disconnect(this.ci.connectionId, onDisable);
 	}
+	// Otherwise, just invoke the function.
 	else {
 	    onDisable();
 	}

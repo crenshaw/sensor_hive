@@ -302,6 +302,7 @@ bt.protocol = function() {
 		// are undistinguishable, but mean fairly
 		// the same thing.  Just use one type, for now.
 		else if (ro.a === 0) {
+		    console.log("Abort response!");
 		    ro.type = 'B';
 		    ro.result = "Abort";
 		    ro.terminated = true;
@@ -412,152 +413,167 @@ bt.protocol = function() {
      * @returns A promise that will be resolved when the response to
      * the command is received.  The promise is rejected when the
      * response times out.
+
      */
     function send(c, a, type, n){
-
-
-	// I can only send if the device is connected....
-	// TODO: Add some checking here.
-
-	this.last.command = c;
-	this.last.address = a;
-	this.last.type = type;
-	this.last.n = n;
+ 
+	// I can only send if the device is connected. A device is
+	// connected if its corresponding protocol object (this) has
+	// connection information that is a well-defined object.
+	if(this.ci != undefined) {
+	   
+	    this.last.command = c;
+	    this.last.address = a;
+	    this.last.type = type;
+	    this.last.n = n;
 	
-	// Keep track of the last period value issued to the device 
-	if(this.last.type === "P") {
-	    this.last.period = n;
-	    console.log("Period", this.last.period);
-	}
-	 
-	// Log the raw serial command to the debug serial console.
-	bt.ui.serial(c);
-
-	// Create a message and place it in an ArrayBuffer.
-	var data = str2ab(c);	
-
-	// Declare some variables for the closure below.
-	var id = this.ci.connectionId;	
-	var last = this.last;
-	var sendInterval;
-	
-
-	// Every invocation of send() returns a new Promise.
-	return new Promise(function(resolve, reject) {
-
-	    // I send a command and I expect a response in a certain
-	    // amount of time.  If I don't get a response, then I need
-	    // to reject this promise.
-	    var duration = 4000;
-
-	    // How long before I expect a response.  For R-style commands
-	    // this is a long time, but otherwise, it's pretty quick.
-	    if (last.type === "R") {
-		duration = last.period * last.n * 1000;
+	    // Keep track of the last period value issued to the device 
+	    if(this.last.type === "P") {
+		this.last.period = n;
+		console.log("Period", this.last.period);
 	    }
+	 
+	    // Log the raw serial command to the debug serial console.
+	    bt.ui.serial(c);
 
-	    // Set a timer to reject the promise in `duration`
-	    // milliseconds.
-	    sendInterval = setTimeout(function(){
-		reject(Error("reponse error")); 
-	    }, duration);
+	    // Create a message and place it in an ArrayBuffer.
+	    var data = str2ab(c);	
 
-    
-	    chrome.serial.send(id, data, function(sendInfo) { });
-	    
-	    /**
-	     * receive()
-	     *
-	     * receive data as it is received by Chrome over the serial line
-	     * from a particular DAQ. As data is received asynchronously, we
-	     * must handle the case that only parts of a single data report
-	     * may be received by a single call to this function.  Thus,
-	     * receive() keeps track of unparsed data received from a
-	     * particular DAQ until it sees a <CR><LF>.
-	     *
-	     */
-	    receive = function(info) {
+	    // Declare some variables for the closure below.
+	    var id = this.ci.connectionId;	
+	    var last = this.last;
+	    var sendInterval;
+	    var d = this;
+	
+	    // Every invocation of send() returns a new Promise.
+	    return new Promise(function(resolve, reject) {
 
-		var data = "";
+		// I send a command and I expect a response in a certain
+		// amount of time.  If I don't get a response, then I need
+		// to reject this promise.
+		var duration = 4000;
+
+		// How long before I expect a response.  For R-style commands
+		// this is a long time, but otherwise, it's pretty quick.
+		if (last.type === "R") {
+		    duration = last.period * last.n * 1000;
+		}
+
+		// Set a timer to reject the promise in `duration`
+		// milliseconds.
+		sendInterval = setTimeout(function(){
+		    // d.close();
+		    reject(Error("reponse error")); 
+		}, duration);
+
 		
-		// Given an ArrayBuffer of data, construct a string and parse
-		// the data.
-		var dv = new DataView(info.data);
+		chrome.serial.send(id, data, function(sendInfo) { });
 		
-		// Make a string out of the data that was most recently received.
-		// The data is cloistered in an ArrayBuffer, have ab2str() get
-		// it out.
-		var data = ab2str(info.data);
-		
-		this.response += data;
-		
-		// The Arduino println() function "prints data to the serial
-		// port as human-readable ASCII text followed by a carriage
-		// return character (ASCII 13, or '\r') and a newline
-		// character (ASCII 10, or '\n')."
-		var nl = this.response.indexOf('\n');
-		
-		// Is there a terminal character in the response yet?
-		if(nl != -1) {
+		/**
+		 * receive()
+		 *
+		 * receive data as it is received by Chrome over the serial line
+		 * from a particular DAQ. As data is received asynchronously, we
+		 * must handle the case that only parts of a single data report
+		 * may be received by a single call to this function.  Thus,
+		 * receive() keeps track of unparsed data received from a
+		 * particular DAQ until it sees a <CR><LF>.
+		 *
+		 */
+		receive = function(info) {
+
+		    var data = "";
 		    
-		    // Chop unfinished at the terminator.  
-		    // Everything before that is a finished response
-		    // that needs to be parsed.
-		    var finished = this.response.substring(0, nl - 1);
+		    // Given an ArrayBuffer of data, construct a string and parse
+		    // the data.
+		    var dv = new DataView(info.data);
 		    
-		    this.count++;
-
-		    // The remainder is the new unfinished response
-		    this.response = this.response.substring(nl + 1);
-
-		    // Parse the complete, raw response and create a
-		    // response object.
-		    var ro = this.parse(finished)
+		    // Make a string out of the data that was most recently received.
+		    // The data is cloistered in an ArrayBuffer, have ab2str() get
+		    // it out.
+		    var data = ab2str(info.data);
 		    
-		    // Log the raw serial response to the debug serial console.
-		    bt.ui.serial(ro.raw);
-
-		    // Set the timestamp for "the last time we heard a
-		    // data report from the device."  Since the clock
-		    // on the desktop is not synchronized with the
-		    // clock on the device, I think it's best to use
-		    // the timestamp provided by the device.
-		    if(ro.type === "D" || ro.type === "R") {
+		    this.response += data;
+		    
+		    // The Arduino println() function "prints data to the serial
+		    // port as human-readable ASCII text followed by a carriage
+		    // return character (ASCII 13, or '\r') and a newline
+		    // character (ASCII 10, or '\n')."
+		    var nl = this.response.indexOf('\n');
+		    
+		    // Is there a terminal character in the response yet?
+		    if(nl != -1) {
 			
-			if(ro.time > this.lasttime) {
-			    this.lasttime = ro.time;
+			// Chop unfinished at the terminator.  
+			// Everything before that is a finished response
+			// that needs to be parsed.
+			var finished = this.response.substring(0, nl - 1);
+			
+			this.count++;
 
-			    // Moreover, log this data here, so that only
-			    // the freshest data is logged to the UI.  Some of
-			    // the daq commands may resend the same data, so
-			    // we need to avoid logging it multiple times.
+			// The remainder is the new unfinished response
+			this.response = this.response.substring(nl + 1);
+
+			// Parse the complete, raw response and create a
+			// response object.
+			var ro = this.parse(finished)
+			
+			// Log the raw serial response to the debug serial console.
+			bt.ui.serial(ro.raw);
+
+			// Set the timestamp for "the last time we heard a
+			// data report from the device."  Since the clock
+			// on the desktop is not synchronized with the
+			// clock on the device, I think it's best to use
+			// the timestamp provided by the device.
+			if(ro.type === "D" || ro.type === "R") {
 			    
-			    // Get rid of any colons to avoid user confusion.
-			    var msg = ro.raw.replace(':','');
+			    if(ro.time > this.lasttime) {
+				this.lasttime = ro.time;
 
-			    // Then log it.
-			    bt.ui.log(msg);
+				// Moreover, log this data here, so that only
+				// the freshest data is logged to the UI.  Some of
+				// the daq commands may resend the same data, so
+				// we need to avoid logging it multiple times.
+				
+				// Get rid of any colons to avoid user confusion.
+				var msg = ro.raw.replace(':','');
 
+				// Then log it.
+				bt.ui.log(msg);
+
+			    }
+			}
+
+			// We got a response from the command.  Resolve
+			// the promise with the response object.
+			if (ro.terminated == true) {
+			    clearTimeout(sendInterval);
+			    resolve(ro);
 			}
 		    }
 
-		    // We got a response from the command.  Resolve
-		    // the promise with the response object.
-		    if (ro.terminated == true) {
-			clearTimeout(sendInterval);
-			resolve(ro);
-		    }
-		}
+		} // end receive()
 
-	    } // end receive()
+		// Make this method public so that it may be called by
+		// the central receive function in devices.js that
+		// dispatches information received from each DAQ to the
+		// associated object.
+		bt.protocol.miniSDI12.prototype.receive = receive;
 
-	    // Make this method public so that it may be called by
-	    // the central receive function in devices.js that
-	    // dispatches information received from each DAQ to the
-	    // associated object.
-	    bt.protocol.miniSDI12.prototype.receive = receive;
+	    }); // end return new Promise()
+	}
 
-	}); // end return new Promise()
+
+	// OTHERWISE: If I'm not connected, return a rejected promise.
+	else {
+	    return new Promise(function(resolve, reject) {
+		var ro = new bt.protocol.response();
+		ro.type = "NA";
+		ro.result = "Fail";
+		reject(ro);	
+	    });
+	}
     }
 
 

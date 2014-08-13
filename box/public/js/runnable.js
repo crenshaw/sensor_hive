@@ -24,6 +24,9 @@ bt.runnable = function() {
     // ************************************************************************
     // Variables local to this module.
     // ************************************************************************
+    var NO_DATA = 1;
+    var NO_RESPONSE = 2;
+    
 
     // This application has a single experiment configuration at a given time.
     // The experiment configuration is either 'undefined' or an experiment
@@ -74,7 +77,8 @@ bt.runnable = function() {
     // share the same methods.
     bt.runnable.experiment.prototype.start = start;
     bt.runnable.experiment.prototype.clear = clear;
-    
+    bt.runnable.experiment.prototype.onNoResponse = onNoResponse;
+ 
     /**
      * start()
      *
@@ -137,6 +141,42 @@ bt.runnable = function() {
 		
 	    }
 	}
+    }
+
+    /**
+     * onNoResponse()
+     *
+     * For an experiment with daq-style logging, this function defines
+     * what an experiment should do if a device does not respond
+     * properly to queries for data (D-commands).
+     *
+     * @param err The error number that caused invocation of this
+     * method.
+     *
+     * @param path The pathname representing the troubled device.
+     *
+     * @param response If available, the last response received from
+     * the device.  For example, a device may have simply replied
+     * with an Abort response, which is less devastating than no
+     * response at all.
+     *
+     */
+    function onNoResponse(err, path, response) {
+
+	// If there's no response from the device, attempt to
+	// re-establish a connection to it.  
+	
+	// TODO: Keep making the attempt until the connection is
+	// established or the experiment is over. ??
+
+	// TODO: There is currently a problem.  Commands and responses
+	// do not have a strict alternation, so a connect() command 
+	// is getting the response to some D command.
+	if(err === NO_RESPONSE) {
+	    bt.devices.connect(path);
+	}
+	
+
     }
 
     // end definition of experiment()
@@ -210,11 +250,14 @@ bt.runnable = function() {
 		    bt.ui.log();
 
 		    if (response.result != "Success") {
-			bt.ui.error("Could not get() final data from device");
+			bt.ui.warning("Error 3: Could not get final data from device");
 		    }
 		    
 		}, function(error) {
-		    console.error("Failed", error);
+
+		    bt.ui.warning("Error 4: Could not get final data from device");
+		    bt.ui.info('The experiment is complete.');
+		    bt.ui.log();
 		});
 	    }
 	}
@@ -231,20 +274,19 @@ bt.runnable = function() {
 	    
 	    // Handle the asynchronous result. 
 	    p.then(function(response) {
-				
+		
+		console.log(response);
+
 		if (response.result != "Success") {
 
-		    // TODO.  If there's an unsuccessful response from
-		    // a device during the manage() function, more
-		    // work needs to be done to restablish a working
-		    // connection with the device.  Right now, it's
-		    // not enough to just log an error, but this will
-		    // let me know this TODO exists.
-		    bt.ui.error("Manager cannot get data from device.");
+		    bt.ui.warning("Error 1: Application is not receiving data from device.");
+		    config.onNoResponse(NO_DATA, config.devices[0], response);
 		}
 		
+		
 	    }, function(error) {
-		console.error("Failed", error);
+		bt.ui.warning("Error 2: Application is not receiving data from device.");
+		config.onNoResponse(NO_RESPONSE, config.devices[0]);
 	    });
 	}	
     }
