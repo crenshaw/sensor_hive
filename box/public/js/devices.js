@@ -118,15 +118,23 @@ bt.devices = function() {
 
     // Update the prototype for all devices of type daq who share the
     // same methods.
+
+    // Methods that communicate with the underlying device utilizing
+    // the protocol object associated with this object.
     daq.prototype.refresh = refresh;
-    daq.prototype.disable = disable;
-    daq.prototype.set = set;
-    daq.prototype.unset = unset;
     daq.prototype.setup = setup;
     daq.prototype.go = go;
-    daq.prototype.close = close;
+    daq.prototype.stop = stop;
+
+    // Methods that only alter the state of the object.
+    daq.prototype.set = set;
+    daq.prototype.unset = unset;
     daq.prototype.get = get;
     daq.prototype.query = query;
+
+    // Methods that utilize the chrome.serial API.
+    daq.prototype.close = close;
+    daq.prototype.disable = disable;
 
 
     /**
@@ -155,7 +163,42 @@ bt.devices = function() {
 	    console.error("Failed", error);
 	});
 
-    };
+    }
+
+    /**
+     * stop()
+     *
+     * Invoked on a daq object, this method issues the break command
+     * to the underlying physical device.
+     *
+     */
+    function stop() {
+
+	// Send the break command.
+	var p = this.protocol.stop();
+	var d = this;
+
+	// Handle the asynchronous result. 
+	p.then(function(response) {
+
+	    if (response.result === "Success") {
+		
+		// This device is no longer running an experiment.
+		bt.ui.info("Stopped " + d.path + ".");
+		d.running = false;
+		
+	    }
+	    else {
+		d.running = false;
+		bt.ui.warning("Could not stop " + d.path + " gracefully.");
+	    }
+	    
+	}, function(error) {
+	    console.error("Failed", error);
+	});	
+
+    }
+
 
     /**
      * close()

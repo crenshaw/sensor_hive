@@ -165,8 +165,8 @@ span.local_device:hover {
  */
 
 /* For the menubar, set the images for * specific menu elements */
-p#remove {
-    background-image:url('../icons/remove.png');
+p#clearexp {
+    background-image:url('../icons/disable.png');
 }
 
 p#connect {
@@ -177,16 +177,16 @@ p#disable {
     background-image:url('../icons/disable.png');
 }
 
-p#clearexp {
-    background-image:url('../icons/disable.png');
+p#go {
+    background-image:url('../icons/go.png');
 }
 
 p#refresh {
     background-image:url('../icons/refresh.png');
 }
 
-p#trash {
-    background-image:url('../icons/trash.png');
+p#remove {
+    background-image:url('../icons/remove.png');
 }
 
 p#save {
@@ -197,9 +197,14 @@ p#setup {
     background-image:url('../icons/setup.png');
 }
 
-p#go {
-    background-image:url('../icons/go.png');
+p#stop {
+    background-image:url('../icons/stop.png');
 }
+
+p#trash {
+    background-image:url('../icons/trash.png');
+}
+
 
 /* DIVS */
 

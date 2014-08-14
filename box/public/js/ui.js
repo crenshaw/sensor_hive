@@ -276,9 +276,10 @@ bt.ui = function() {
 	// Get the id of the target that was clicked and deploy
 	// the corresponding action.
 	var action = e.target.id
-	
-	var devices = getSelectedDevices();
 
+	// SECTION 1: EXPERIMENT-RELATED ACTIONS.
+
+	// CLEAR EXPERIMENT SETTINGS
 	// Clearing an experiment has nothing to do with devices, though
 	// it should not happen while an experiment is running.
 	if (action === 'clearexp') {
@@ -301,7 +302,40 @@ bt.ui = function() {
 		bt.ui.experiment();
 	    }
 		
+	    // All done.
+	    return;
 	}
+
+	// STOP 
+	// Stopping an experiment has nothing to do with devices,
+	// though it cannot happen if an experiment doesn't exist or
+	// isn't running.  It also cannot happen if an experiment is
+	// running pc-style logging.
+	else if (action === 'stop') {
+	    if (bt.runnable.configuration === undefined) {
+		bt.ui.error("There is no experiment currently configured.");
+	    }
+	    else if (!bt.runnable.configuration.running) {
+		bt.ui.error("The experiment is already stopped.");
+	    }
+	    else if (bt.runnable.configuration.logging === 'pc') {
+		bt.ui.error("Experiments with desktop-style logging may not be stopped.");
+	    }
+	    else {
+		
+		bt.ui.info("Stopping the experiment...");
+		// Stop the experiment.
+		bt.runnable.configuration.stop();
+	    }
+	    
+	    // All done.
+	    return;
+
+	}
+
+	// SECTION 2: DEVICE-RELATED ACTIONS.
+
+	var devices = getSelectedDevices();
 
 	// Did somebody forget to select a device?
 	// If so, one cannot continue.
@@ -312,6 +346,8 @@ bt.ui = function() {
 	// Right now, we can only do 1 device at a time.  Make sure the
 	// user has only selected 1 device.
 	else if (devices.length > 1) {
+	    console.log("Please choose only one device bug?");
+	    console.log(devices);
 	    bt.ui.error("Please choose only one device.");
 	}
 

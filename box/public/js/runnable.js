@@ -77,6 +77,7 @@ bt.runnable = function() {
     // share the same methods.
     bt.runnable.experiment.prototype.start = start;
     bt.runnable.experiment.prototype.clear = clear;
+    bt.runnable.experiment.prototype.stop = stop;
     bt.runnable.experiment.prototype.onNoResponse = onNoResponse;
  
     /**
@@ -115,6 +116,39 @@ bt.runnable = function() {
 	    
 	}	
     }
+
+    /**
+     * stop()
+     *
+     * Stop the given experiment.  
+     *
+     * Note: I'm agonizing over whether to call this "stop" or
+     * "cancel" as experiments cannot be resumed.
+     *
+     */
+    function stop(){
+
+	// If an experiment isn't already running, there is no 
+	// work to do.
+	if(this.running) {
+
+	    // Examine the list of devices and stop each one.
+	    for(var i = 0; i < this.devices.length; i++) {
+		
+		var d = bt.devices.lookup(this.devices[i]);
+
+		if(d != undefined && d.connected && d.running ) {
+		   
+		    d.stop();
+		}
+	    }
+	}
+	
+	// Just told a bunch of devices to stop.  Now we need
+	// to wait and see if they did.  The manage() method will
+	// automatically take care of this.
+    }
+
 
     /** 
      * clear()
@@ -218,6 +252,8 @@ bt.runnable = function() {
 		isDone = false;
 	    }
 	}
+
+	console.log("manage: isDone?", isDone);
 
 	// If all the devices are done running, then clear the manager's
 	// periodic interval.

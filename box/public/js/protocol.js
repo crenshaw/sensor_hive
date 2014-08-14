@@ -82,11 +82,12 @@ bt.protocol = function() {
      * To utilize a communication protocol for the devices in the SCIO
      * system, the following methods must be implemented.
      *
-     * configurePeriod(n)
-     * acknowledge(a)
+     * configurePeriod(n) 
+     * acknowledge(a) 
      * getMeasurements(n).  
      * startMeasurements()
      * getLoggedData()
+     * stop()
      *
      */
 
@@ -95,6 +96,7 @@ bt.protocol = function() {
     bt.protocol.miniSDI12.prototype.getMeasurements = getMeasurements;
     bt.protocol.miniSDI12.prototype.startMeasurements = startMeasurements;    
     bt.protocol.miniSDI12.prototype.getLoggedData = getLoggedData;
+    bt.protocol.miniSDI12.prototype.stop = stop;
 
     bt.protocol.miniSDI12.prototype.send = send;
     bt.protocol.miniSDI12.prototype.parse = parse;
@@ -103,10 +105,10 @@ bt.protocol = function() {
     /**
      * acknowledge()
      *
-     * This method issues a command to the underlying miniSDI-12 device
-     * to ask for an acknowledgement of a given address, 'a', on the 
-     * device.  On miniSDI-12 devices, 0 is the DAQ and numbers 1..n
-     * represent various ports.
+     * This method issues an `A` command to the underlying miniSDI-12
+     * device to ask for an acknowledgement of a given address, 'a',
+     * on the device.  On miniSDI-12 devices, 0 is the DAQ and numbers
+     * 1..n represent various ports.
      *
      * @param a The address to send an acknowledgement.  The address
      * must be a number between 0 and 3 inclusive.
@@ -125,7 +127,7 @@ bt.protocol = function() {
     /**
      * configurePeriod()
      *
-     * This method issues a command to the underlying miniSDI-12
+     * This method issues a `P` command to the underlying miniSDI-12
      * device to configure its period to 'n', where 'n' is expressed
      * in seconds.
      *
@@ -154,7 +156,7 @@ bt.protocol = function() {
     /**
      * startMeasurements()
      *
-     * This method issues a command to the underlying miniSDI-12
+     * This method issues an `M` command to the underlying miniSDI-12
      * device to start taking measurements.
      *
      */
@@ -168,7 +170,7 @@ bt.protocol = function() {
     /** 
      * getMeasurements()
      * 
-     * This method issues a command to the underlying miniSDI-12 device
+     * This method issues an `R` command to the underlying miniSDI-12 device
      * to get 'n' measurements.  The measurements are reported without
      * explicitly asking for them, i.e. "continuous mode."
      *
@@ -186,7 +188,7 @@ bt.protocol = function() {
     /** 
      * getLoggedData()
      * 
-     * This method issues a command to the underlying miniSDI-12 device
+     * This method issues a `D` command to the underlying miniSDI-12 device
      * to get all data currently backed up to the device itself.
      *
      */
@@ -195,6 +197,22 @@ bt.protocol = function() {
 	var command = "0D0" + ct;
 	return this.send(command, 0, "D");	
     }
+
+
+    /**
+     * stop()
+     * 
+     * This method issues a break command to the underlying miniSDI-12
+     * device to get the device to stop its current M-style
+     * experiment.
+     */
+    function stop() {
+
+	var command = "    " + ct;
+	return this.send(command, 0, "B");
+    }
+     
+
 
     /**
      * parse(s)
@@ -302,10 +320,21 @@ bt.protocol = function() {
 		// are undistinguishable, but mean fairly
 		// the same thing.  Just use one type, for now.
 		else if (ro.a === 0) {
-		    console.log("Abort response!");
+
 		    ro.type = 'B';
-		    ro.result = "Abort";
 		    ro.terminated = true;
+
+		    // If this last command issued was a break command,
+		    // then this is the appropriate, and successful
+		    // response to a break command.
+		    if(ro.last.type === 'B') {
+			ro.result = "Success";
+		    }
+		    // Otherwise, something bad has happened.
+		    else {
+			console.log("Abort response!");
+			ro.result = "Abort";
+		    }
 		}
 		    
 	    }
@@ -430,7 +459,6 @@ bt.protocol = function() {
 	    // Keep track of the last period value issued to the device 
 	    if(this.last.type === "P") {
 		this.last.period = n;
-		console.log("Period", this.last.period);
 	    }
 	 
 	    // Log the raw serial command to the debug serial console.
