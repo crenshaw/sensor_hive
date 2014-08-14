@@ -240,24 +240,51 @@ bt.runnable = function() {
     function manage() {
 
 	var isDone = true;
+	var isBroken = true;
 	var config = bt.runnable.configuration;
 
-	// First thing, first.
-	//
-	// Are the devices done running?  If so, then the experiment
-	// is done.
+	// First thing, first.  Check the health of the devices: their
+	// `.connected` and `.running` status.
+
 	for(var i = 0; i < config.devices.length; i++) {
 	    var d = bt.devices.lookup(config.devices[i]);
+
+	    // Are the devices done running?  If so, then the experiment
+	    // is done.
 	    if (d.running === true) {
 		isDone = false;
 	    }
+
+	    // Are the devices connected?  If they are all disconnected,
+	    // then something bad may have happened.
+	    if (d.connected === true) {
+		isBroken = false;
+	    }
 	}
 
-	console.log("manage: isDone?", isDone);
+
+	// If all the devices are not connected and the experiment is
+	// a pc-style experiment, then quit the experiment.
+	if(isBroken && config.logging === "pc") {
+
+	    // Clear the experiment and devices.  Nobody is running
+	    // anymore.
+	    config.running = false;
+	    config.clear();
+
+	    // Stop re-invoking this manager.
+	    clearInterval(config.interval);
+
+	    // Inform the user.
+	    bt.ui.info('All the devices are disconnected; ending the experiment.');
+	    bt.ui.log();
+	    return;
+	}
+	    
 
 	// If all the devices are done running, then clear the manager's
 	// periodic interval.
-	if(isDone) {
+	else if(isDone) {
 	    config.running = false; 
 	    clearInterval(config.interval);
 
@@ -429,7 +456,11 @@ bt.runnable = function() {
 
 	    // TODO: Figure out how to call setup on an array of devices and chain the
 	    // promises together.
-	    var p = d.setup(period, duration);
+
+
+	    // Call setup on the device using the period and duration
+	    // values expressed in units of seconds.
+	    var p = d.setup(per, dur);
 	    
 	    // Handle the asynchronous result. 
 	    p.then(function(response) {

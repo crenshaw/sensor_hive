@@ -695,25 +695,6 @@ bt.devices = function() {
 	    }
 	}
 
-	// SETUP: Associate a device with simple experiment settings including
-	// period and duration.
-	else if(action === 'setup') {
-	    
-	    // If the device hasn't been locally registered...
-	    if(d === undefined || d === null) {
-
-		// You gotta register and *then* setup.	
-		bt.ui.error("The device has not been enabled.  Please enable the device before configuring an experiment");
-
-	    }
-
-	    // Otherwise, just set up the experiment.
-	    else {
-		d.setup();
-	    }
-	}
-
-
 	// DISABLE: Disable a locally registered device from the
 	// box. 
 	else if(action === 'disable')
