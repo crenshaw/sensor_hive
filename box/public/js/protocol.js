@@ -26,6 +26,7 @@ bt.protocol = function() {
     // Variables local to this module.
     // ************************************************************************
     var commandQueue = new Array();
+    var commandElement = 0;
 
     var ct = "!;"  // The command terminator
 
@@ -436,8 +437,8 @@ bt.protocol = function() {
      * send()
      *
      * This method sends the physical device the supplied command.
-     * The parameters of send help to articulate the nature of the
-     * command.
+     * The optional parameters of send() help to articulate the nature
+     * of the command.
      *
      * For example to send `0D0!;` requires:
      *
@@ -452,7 +453,10 @@ bt.protocol = function() {
      *
      * @param type The type of command being sent.
      *
-     * @param n The n-value used in the command.
+     * @param n The n-value used in the command (optional).
+     *
+     * Alternatively, an invocation of send() with no parameters will
+     * just send the next available command in the command queue.
      *
      * @returns A promise that will be resolved when the response to
      * the command is received.  The promise is rejected when the
@@ -460,30 +464,67 @@ bt.protocol = function() {
 
      */
     function send(c, a, type, n){
- 
-	// I can only send if the device is connected. A device is
-	// connected if its corresponding protocol object (this) has
-	// connection information that is a well-defined object.
-	if(this.ci != undefined) {
-	    
-	    // Add this command to the command queue.
-	    // TODO: Stopped here on Aug 14th, 2014.
+
+	console.log("Send()", c, a, type, n);
+	
+	// Does this function have the expected parameters for sending
+	// a new command?  If so create a new command from the
+	// function parameters and add the new command to the head of
+	// the command queue.
+	if(c != undefined ) {
 	    var cmd = new command(c,a,type,n);
 	    commandQueue.unshift(cmd);
-	    console.log(commandQueue);
-
-	    return sendHelper.call(this, c, a, type, n);
-	    
+	    console.log("Adding", commandQueue);
 	}
 
-	// OTHERWISE: If I'm not connected, return a rejected promise.
-	else {
+	// I can only send to the underlying device if:
+	//
+	// 1) The device is connected. A device is connected if its
+	// corresponding protocol object (this) has connection
+	// information that is a well-defined object.
+	//
+	// AND
+	//
+	// 2) The last command that was transmitted got a response.
+	//
+
+	// If the underlying device is not connected, that's 
+	// bad.  Return a rejected promise.
+	if(this.ci === undefined) {
+	    
 	    return new Promise(function(resolve, reject) {
 		var ro = new bt.protocol.response();
 		ro.type = "NA";
 		ro.result = "Fail";
 		reject(ro);	
 	    });
+	    
+	}
+
+	// OTHERWISE: I'm connected.  Now, affirm that the last command
+	// that was transmitted got a response.  
+	else {
+
+	    // Get a command from the tail of the command queue.
+	    var next = commandQueue.pop();	    
+	    console.log("Removing", commandQueue);
+
+	    // Did we pop what was just pushed?
+	    if(cmd.element === next.element) {
+		return sendHelper.call(this, next);
+	    }
+	    else {
+		bt.ui.warning("Queue is full...I'm stuck!");
+
+		return new Promise(function(resolve, reject) {
+		    var ro = new bt.protocol.response();
+		    ro.type = "NA";
+		    ro.result = "Wait";
+		    reject(ro);	
+		});
+		
+	    }
+
 	}
 
     }
@@ -494,25 +535,25 @@ bt.protocol = function() {
      * This method, not public in the protocol object, transmits a
      * command to an underlying device.
      */
-    function sendHelper(c, a, type, n) {
+    function sendHelper(cmd) {
 
 	console.log(this);
 
-	this.last.command = c;
-	this.last.address = a;
-	this.last.type = type;
-	this.last.n = n;
+	this.last.command = cmd.c;
+	this.last.address = cmd.a;
+	this.last.type = cmd.type;
+	this.last.n = cmd.n;
 	
 	// Keep track of the last period value issued to the device 
 	if(this.last.type === "P") {
-	    this.last.period = n;
+	    this.last.period = cmd.n;
 	}
 	
 	// Log the raw serial command to the debug serial console.
-	bt.ui.serial(c);
+	bt.ui.serial(cmd.c);
 
 	// Create a message and place it in an ArrayBuffer.
-	var data = str2ab(c);	
+	var data = str2ab(cmd.c);	
 
 	// Declare some variables for the closure below.
 	var id = this.ci.connectionId;	
@@ -671,7 +712,11 @@ bt.protocol = function() {
 	this.a = a;
 	this.type = type;
 	this.n = n;
-	
+
+	// Provide a number to this command.
+	this.element = commandElement++;
+
+	// Mark this command as having no response received.
 	this.responseReceived = false;
     };
 

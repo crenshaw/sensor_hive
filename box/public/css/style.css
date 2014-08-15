@@ -209,7 +209,6 @@ p#trash {
 /* DIVS */
 
 div#advanced {
-    display:none;
 }
 
 div#local_devices, div#alerts, div#setup_experiment {
