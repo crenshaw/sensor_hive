@@ -2,10 +2,13 @@
  * background.js
  *
  * The background script defines what the Chrome Packaged App should
- * do when the app is launched.
+ * do when the SCIO app is launched:
  *
- * The app has the following behavior:
- *    TODO: ADD DESCRIPTION.
+ * Open a small window containing four small information areas:
+ * - a list of `Local Devices`
+ * - a `System Log`
+ * - a summary of the current `Experiment Configuration`
+ * - the `Data` collected during any testing or experiments.
  *
  * Initial code based on tutorials here:
  *  https://developer.chrome.com/apps/app_bluetooth
@@ -25,7 +28,7 @@ chrome.app.runtime.onLaunched.addListener(function() {
     chrome.app.window.create('window.html', {
 	'bounds' : {
 	    'width' : 790,
-	    'height' : 900
+	    'height' : 700
 	}
     });   
 
@@ -33,5 +36,6 @@ chrome.app.runtime.onLaunched.addListener(function() {
 
 /**
    TODO: Define what to do when the app is closed.
+   Essentially, I just need to close all the serial ports.
  */
 

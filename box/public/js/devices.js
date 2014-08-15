@@ -359,7 +359,11 @@ bt.devices = function() {
 		d.running = false;		
 	    
 	    }, function(error) {
-		bt.ui.error("Something went wrong with the experiment.  Did a device lose power?");
+
+		// The experiment `completed` because the response
+		// timed out.  While the completion was not
+		// successful, we still want to indicate that an
+		// experiment is no longer running on this device.
 		d.running = false;
 	    });
 	}

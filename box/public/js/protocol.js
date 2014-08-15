@@ -25,6 +25,8 @@ bt.protocol = function() {
     // ************************************************************************
     // Variables local to this module.
     // ************************************************************************
+    var commandQueue = new Array();
+
     var ct = "!;"  // The command terminator
 
     // Identify the position of these common tokens in responses.
@@ -464,6 +466,12 @@ bt.protocol = function() {
 	// connection information that is a well-defined object.
 	if(this.ci != undefined) {
 	    
+	    // Add this command to the command queue.
+	    // TODO: Stopped here on Aug 14th, 2014.
+	    var cmd = new command(c,a,type,n);
+	    commandQueue.unshift(cmd);
+	    console.log(commandQueue);
+
 	    return sendHelper.call(this, c, a, type, n);
 	    
 	}
@@ -630,6 +638,42 @@ bt.protocol = function() {
 
 	}); // end return new Promise()
     }
+
+    // *** COMMAND OBJECT DEFINITION ***
+
+    /**
+     * command()
+     * 
+     * This objects represents commands issued to the miniSDI-12
+     * device.
+     *
+     * To initialize an instance of this object requires:
+     *
+     * @param c The string representing the raw command.
+     *
+     * @param a The address used in the command, likely 0.
+     *
+     * @param type The type of command:
+     *
+     *     B - Break Response
+     *     A - Acknowledge Active
+     *     P - Configure Period
+     *     R - Continuous Measurement
+     *     M - Start Measurement
+     *     D - Get Data
+     *
+     * @param n The n-value used in the command.
+     *
+     */
+    function command(c, a, type, n) {
+	
+	this.c = c;
+	this.a = a;
+	this.type = type;
+	this.n = n;
+	
+	this.responseReceived = false;
+    };
 
 
     // *** RESPONSE OBJECT DEFINITION ***

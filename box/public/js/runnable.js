@@ -26,6 +26,8 @@ bt.runnable = function() {
     // ************************************************************************
     var NO_DATA = 1;
     var NO_RESPONSE = 2;
+
+    var MIN_DAQ_INTERVAL = 12;
     
 
     // This application has a single experiment configuration at a given time.
@@ -107,8 +109,22 @@ bt.runnable = function() {
 		d.go(this.logging);
 
 		// Now that we've hit the 'go' button on all the devices,
-		// we must responsibly manage the experiment.
-		this.interval = setInterval(function(){ manage.call(); }, (this.period+2) * 1000);
+		// we must responsibly manage the experiment. Begin calling
+		// the experiment manager, manage() on regular intervals.
+		
+		// For pc-style logging, the interval for the manager can
+		// be roughly the same period as the experiment's period.
+		var ep = this.period + 2;
+		
+		// For daq-style logging, the interval has a minimum.
+		if(this.logging === "daq") {
+		    if (ep <= MIN_DAQ_INTERVAL) {
+			ep = MIN_DAQ_INTERVAL;
+		    }
+		}
+
+		// Set up the interval
+		this.interval = setInterval(function(){ manage.call(); }, (ep) * 1000);
 	    }
 	    else {
 		bt.ui.error("Cannot start the experiment.  " + d.path + " is disconnected.  Please enable it.");
@@ -276,7 +292,7 @@ bt.runnable = function() {
 	    clearInterval(config.interval);
 
 	    // Inform the user.
-	    bt.ui.info('All the devices are disconnected; ending the experiment.');
+	    bt.ui.warning('All the devices are disconnected; ending the experiment.');
 	    bt.ui.log();
 	    return;
 	}
