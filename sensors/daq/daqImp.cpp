@@ -280,10 +280,9 @@ void timer1Setup (void){
 boolean expRecover (Exp* exps){
     EEPROM.readBlock(0,(exps -> dataHead));
     if(!(exps -> dataHead.isRunning)){
+        exps -> currentMeasurment = exps -> dataHead.numMeasurments;
         return false;
     }
-    // get the current measurment
-    //exps -> currentMeasurment = ((exps -> dataHead.tailPtr) - (exps -> dataHead.headPtr))/7;
     // get the new time
     RTC_DS1307 RTC;
     exps -> currentMeasurment = ((RTC.now().unixtime()) - (exps -> dataHead.startTime)) / exps -> dataHead.periodLgth;
