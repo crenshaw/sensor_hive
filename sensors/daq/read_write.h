@@ -4,7 +4,8 @@
  #include "WProgram.h"
 #endif
 
-
+#ifndef READ_WRITE_H
+#define READ_WRITE_H
 
 //todo: if acknowledge active command make the number be returned in port no numMeasrus
 
@@ -18,4 +19,4 @@ boolean isNumber(char number);
 boolean isLetter(char letter);
 void makeUpper (char* letter);
 
-
+#endif

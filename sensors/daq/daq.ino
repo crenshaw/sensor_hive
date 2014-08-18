@@ -1,13 +1,13 @@
 // includeds
 #include <Wire.h>                  // i2c communication
 #include "RTClib.h"                // real time clock
-#include "daqImp.h"
+//#include "EEPROMex.h"
 #include "read_write.h"            // used to parse command and send resonds
+#include "daqImp.h"
 
 
-#define period ICR1                  // rename period compare reg for tmr1 for take measure comd
 
-    
+
 //declar a daq
 DataAqu daq;
 //declare an experiment
@@ -17,7 +17,8 @@ Exp experiment;
 boolean newCmd = false;                // flags a new command has been received
 char command = 0;                      // holds the new command given
 int port = 0;                          // holds the port number
-int numMeasurs = 0;                    // holds the number of measuremnts ot be taken 
+int numMeasurs = 0;                    // holds the number of measuremnts ot be taken
+
 
 
 
@@ -31,14 +32,16 @@ int numMeasurs = 0;                    // holds the number of measuremnts ot be 
 void setup () {
     Serial.begin(9600);                                           // beign serial coms
     Wire.begin();                                                 // begin i2c coms
-    portSetup(&daq);
-    sensorCheck(&daq);
-    pinMode(DAQ_SQW, INPUT_PULLUP);
-    startSquareWave(RTC_I2C_ADDRESS);
-    timer1Setup();
-    period = 2;
-    daq.periodR = 2000;                    // init R commands period to 2 sconds eventually movedt o timer2
-                                       // this will always be the same as period
+    portSetup(&daq);                                              // setup ports for daq hardware
+    sensorCheck(&daq);                                            // setup ports for daq software
+    startSquareWave();                                            // start RTC
+    timer1Setup();                                                // setup timer1
+    if(expRecover(&experiment)){
+        Serial.println("recovering");
+        TIFR1  |= (1 << ICF1);
+        SREG |= (1 << 7);
+        TIMSK1 |= (1 << ICIE1);
+    }    // 
 }
 
 
@@ -47,14 +50,8 @@ void setup () {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 void loop(){
-    if(experiment.isRunning){
-        if (experiment.isEnd){
-            experiment.isRunning = false;
-            endExp();
-        }
-    }
-//  
-//    // on incoming serial read a new command
+
+//    //on incoming serial read a new command
     if (Serial.available() > 0){
            newCmd = readNewCmd (&command, &port,  &numMeasurs);
            if(!newCmd || port > DAQ_MAXTEMPSENSORS ){
@@ -62,12 +59,12 @@ void loop(){
                respond(DAQ_ID,0);
                newCmd = false;
            }
-
     }
+    
     //check if a break command  
     if (newCmd && command == -1 && port == -1 && numMeasurs == -1){
-        experiment.isRunning = false;                //removes experiemnt flag
-        endExp();                                    // turns off timers
+        experiment.dataHead.isRunning = false;                         //removes experiemnt flag
+        endExp(&experiment);                                                      // turns off timers
         respond(DAQ_ID,0);
         newCmd = false;
     }
@@ -76,28 +73,18 @@ void loop(){
     if (newCmd){
         switch (command){
             case 0:
-                // note: the way parse comand is currently running 
-                // if only one number is return it is returned in numMeasusres
-                //todo: fix this
-                acknowledgeActive (&daq, numMeasurs);
+                acknowledgeActive (&daq, port);
             break;
             case 'P':
-                if (experiment.isRunning || numMeasurs < 1){
+                if (experiment.dataHead.isRunning || numMeasurs < 1){
                     respond(DAQ_ID , 0);
                     break;
                 }
-                period = numMeasurs;
-                // setting another period specifically for continous measurment
-                // this makes sure the uC does not have to read from a 16 bit reg 
-                // then do some math so the system can delay. bassically it speed up opperation
-                // this also need to be in miliseconds and dealy is in seconds.
-                // delay overflows at 30 seconds i believe. 
-                daq.periodR = numMeasurs * 1000;
-                respond(DAQ_ID, 0, numMeasurs);
+                setPeriod (&daq, numMeasurs);
             break;
             case 'R':
                 //todo: run comtinous measurment
-                if (experiment.isRunning && numMeasurs != 1){
+                if (experiment.dataHead.isRunning && numMeasurs != 1){
                     respond(DAQ_ID, 0);
                     break;
                 }
@@ -106,41 +93,29 @@ void loop(){
                 }
             break;
             case 'M':
-                startExp (&experiment, port, numMeasurs) ? respond (DAQ_ID, port, numMeasurs*period, numMeasurs) : respond (DAQ_ID, 0);
-            break;
-            case 'D':
-                if (experiment.ports != port || experiment.currentMeasurment == 0){
-                    respond(DAQ_ID,0);
+                if (numMeasurs == 0){
+                    respond(DAQ_ID, 0);
                     break;
                 }
                 if (port == 0){
-                    //todo: check against experiment.ports
-                    for(int i = 0; i < experiment.currentMeasurment; i++){
-                        if (daq.activePorts[0]){
-                            (i == (experiment.currentMeasurment-1) && (daq.lastPort == 0)) ? dataReport(DAQ_ID, 1, daq.timeStore[i]+experiment.startTime, daq.tempStore0[i], true) : dataReport(DAQ_ID, 1, daq.timeStore[i]+experiment.startTime, daq.tempStore0[i]);
-                        }
-                        if (daq.activePorts[1]){
-                            (i == (experiment.currentMeasurment-1) && (daq.lastPort == 1)) ? dataReport(DAQ_ID, 2, daq.timeStore[i]+experiment.startTime, daq.tempStore1[i], true) : dataReport(DAQ_ID, 2, daq.timeStore[i]+experiment.startTime, daq.tempStore1[i]);
-                        }
-                        if (daq.activePorts[2]){
-                            (i == (experiment.currentMeasurment-1) && (daq.lastPort == 2)) ? dataReport(DAQ_ID, 3, daq.timeStore[i]+experiment.startTime, daq.tempStore2[i], true) : dataReport(DAQ_ID, 3, daq.timeStore[i]+experiment.startTime, daq.tempStore2[i]);
-                        }
-                    }
+                    startExp (&experiment, port, numMeasurs) ? respond (DAQ_ID, port, numMeasurs*daq.period, numMeasurs) : respond (DAQ_ID, 0);
+                }
+                else if (daq.activePorts[port-1]){
+                    startExp (&experiment, port, numMeasurs) ? respond (DAQ_ID, port, numMeasurs*daq.period, numMeasurs) : respond (DAQ_ID, 0);
                 }
                 else{
-                    if(!daq.activePorts[port-1]){
-                        respond(DAQ_ID,0);
-                        break;
-                    }
-                    else{
-                        for(int i = 0; i < experiment.currentMeasurment; i++){
-                            i == (experiment.currentMeasurment-1) ? dataReport(DAQ_ID, 1, daq.timeStore[i]+experiment.startTime, daq.tempStore0[i],true) : dataReport(DAQ_ID, 1, daq.timeStore[i]+experiment.startTime, daq.tempStore0[i]);
-                        }
-                    }
+                    respond(DAQ_ID, 0);
                 }
             break;
+            case 'D':
+                if (experiment.dataHead.port != port || experiment.currentMeasurment == 0){
+                    respond(DAQ_ID, 0);
+                    break;
+                }
+                sendData( );
+            break;
             default:
-                respond(DAQ_ID, 100);
+                respond(DAQ_ID, 0);
         }
     //done processing commmand set flag to false
     newCmd = false;
@@ -156,23 +131,36 @@ void loop(){
 
 // inturrupt service routines
 ISR (TAKEMASURE){
-    // increment current experiement
-    // read measurments
-//    for (int i = 0; i < DAQ_MAXTEMPSENSORS; i++){
-//        if (thermocouple[i].isUsed()){
-//            thermocouple[i].readCelsius();
-//        }
-//    }
-    daq.tempStore0[experiment.currentMeasurment] = (*(daq.thermocouple[0])).readCelsius(); 
-    daq.tempStore1[experiment.currentMeasurment] = (*(daq.thermocouple[1])).readCelsius(); 
-    daq.tempStore2[experiment.currentMeasurment] = (*(daq.thermocouple[2])).readCelsius(); 
-    daq.timeStore[experiment.currentMeasurment] = experiment.addTime;
     experiment.currentMeasurment ++;
-    experiment.addTime += period;
+    if (experiment.dataHead.port == 0){
+        double tempHold[DAQ_MAXTEMPSENSORS];
+        for (int i = 0; i < DAQ_MAXTEMPSENSORS; i++){
+            if (daq.activePorts[i]){tempHold[i] = (*(daq.thermocouple[i])).readCelsius();}
+        }
+        // I am breaking this up into two for loops so that the data reads happen as clsoe
+        // to the inturrupt time as possible since writing to eerpom takes mroe time
+        // I will also write to EEPROM now since global intruupts are already disabled.
+        for (int i = 0; i < DAQ_MAXTEMPSENSORS; i++){
+          if (daq.activePorts[i]){
+              Data data;
+              data.port = i+1;
+              data.periodNum = experiment.currentMeasurment;
+              data.data = tempHold[i];
+              storeData(&experiment, &data);
+          }
+        }
+    }
+    else{
+        Data data;
+        data.data = (*(daq.thermocouple[experiment.dataHead.port-1])).readCelsius();
+        data.port = experiment.dataHead.port;
+        data.periodNum = experiment.currentMeasurment;
+        storeData(&experiment, &data);
+      
+    }
     // if that was the last measrument end the experiement
-    if (experiment.currentMeasurment >= experiment.markMeasurment){
-        experiment.isEnd = true;
-        //todo: run end experiment
+    if (experiment.currentMeasurment >= experiment.dataHead.numMeasurments){
+        endExp(&experiment);
     }
 
 }
