@@ -131,6 +131,7 @@ bt.devices = function() {
     daq.prototype.unset = unset;
     daq.prototype.get = get;
     daq.prototype.query = query;
+    daq.prototype.onRejection = onRejection;
 
     // Methods that utilize the chrome.serial API.
     daq.prototype.close = close;
@@ -148,19 +149,19 @@ bt.devices = function() {
 
 	// Send the command to get 1 measurement.
 	var p = this.protocol.getMeasurements(1);
+	var d = this;
 
 	// Handle the asynchronous result. 
 	p.then(function(response) {
 
 	    if (response.result === "Success") {
-		
 	    }
 	    else {
 		bt.ui.warning("Could not test device");
 	    }
 	    
 	}, function(error) {
-	    console.error("Failed", error);
+	    d.onRejection(error);
 	});
 
     }
@@ -194,7 +195,7 @@ bt.devices = function() {
 	    }
 	    
 	}, function(error) {
-	    console.error("Failed", error);
+	    d.onRejection(error);
 	});	
 
     }
@@ -217,8 +218,9 @@ bt.devices = function() {
 	
 	    // Indicate that the device is disconnected, both at the
 	    // UI and at the object.
-	    bt.ui.indicate(d.path,'disconnected');	
+	    console.log("Unsetting connection.");
 	    d.unset();
+	    bt.ui.indicate(d.path,'disconnected');	
 
 	});
 
@@ -269,9 +271,12 @@ bt.devices = function() {
      *
      */
     function set(ci) {
+
 	this.ci = ci;
 	this.connected = true;
 	this.protocol.ci = ci;
+
+	console.log("Set connection info for: ", this, ci);
     }
 
     /**
@@ -285,6 +290,9 @@ bt.devices = function() {
 	this.ci = undefined;
 	this.connected = false;
 	this.protocol.ci = undefined;
+
+	// Clear its commandQueue.
+	//Arduthis.protocol.commandQueue = new Array();
     }
 
     /**
@@ -365,6 +373,7 @@ bt.devices = function() {
 		// successful, we still want to indicate that an
 		// experiment is no longer running on this device.
 		d.running = false;
+		d.onRejection(error);
 	    });
 	}
 	else if (logging === 'daq') {
@@ -395,6 +404,7 @@ bt.devices = function() {
 		    // go off and mark this device as not running anymore.
 		    var totalTime = d.experiment_duration + 10;
 
+		    // TODO: Need to clear this interval somewhere....
 		    d.interval = setTimeout(function() { d.running = false; }, totalTime * 1000);
 
 		    bt.ui.info('The experiment has started on ' + d.path + ' and will be completed in ' + totalTime + ' seconds');		
@@ -411,7 +421,7 @@ bt.devices = function() {
 		}
 	    
 	    }, function(error) {
-		console.error("Failed", error);
+		d.onRejection(error);
 	    });
 
 	}	
@@ -429,7 +439,60 @@ bt.devices = function() {
 	var p = this.protocol.getLoggedData();	
 	return p;
     }
-    
+
+    /**
+     * onRejection()
+     *
+     * Invoked on a daq object, this function describes how to respond
+     * to a rejected promise from the underlying protocol layer.
+     *
+     */
+    function onRejection(error) {
+	
+	// A rejected promise supplies an object of type
+	// bt.protocol.response whose .result field can be one of x
+	// values: "Badly Formed Command", "Abort", "Not Connected",
+	// "Overrun", "No Response".
+
+
+	// "Badly Formed Command".  In some cases, commands are not allowed
+	// exceed certain n values.  Ignore this problem.
+	//
+	// "Abort".  The DAQ replied with an abort response.
+	//
+	// "Not Connected."  The DAQ no longer is connected to this
+	// application.
+	//
+	// "Overrun."  The command queue for the DAQ was overrun; this
+	// means the DAQ did not reply to the last command.  Something
+	// bad may have happened to our connection or our DAQ.  Quite
+	// likely, the DAQ ran out of battery.
+	//
+	
+	console.log("Promise rejected: ", error.result);
+
+	// "No Response."  The DAQ did not respond before the expected
+	// amount of time.
+	if(error.result === "No Response") {
+	    this.close();
+	    bt.ui.warning("Lost connection on " + this.path + ".");
+	    return;
+	}
+	
+	// "Overrun."  The command queue for the DAQ was overrun; this
+	// means the DAQ did not reply to the last command.  Something
+	// bad may have happened to our connection or our DAQ.  Quite
+	// likely, the DAQ ran out of battery.
+	else if(error.result === "Overrun") {
+	    
+	    // Clear the command queue.
+	    this.protocol.commandQueue = new Array();
+
+	    // Attempt to get an acknowledgement from the device....
+	}
+
+    }
+
     /**
      * query()
      *
@@ -745,6 +808,7 @@ bt.devices = function() {
 	    }	
 	    // In all other cases, it is possible to refresh:
 	    else {
+		console.log("About to call refresh.", d);
 		d.refresh();
 	    }
 	}
@@ -774,6 +838,10 @@ bt.devices = function() {
 	    return;
 	}
 
+	// Otherwise, we may be attempting to connect a device that is
+	// already connected.  If so, silently bail.
+	else if(d.connected === true) { return; }
+
 	// Register the path we are about to connect.  It may be that
 	// we are trying to connect to a device for the first time.
 	// If so, set its object to null.  Otherwise, it may be that
@@ -783,6 +851,9 @@ bt.devices = function() {
 	    locals[path] = null;
 	}
 	else {
+
+	    // If we are trying to re-connect to a previously connected
+	    // device, indicate that we are trying to connect to it.
 	    d.connecting = true;
 	}
 
@@ -839,7 +910,6 @@ bt.devices = function() {
 		// Set the registered device's connectivity
 		// information.		
 		d.set(ci);
-		console.log(d);
 
 		// Send an initial message to the device.
 		var p = d.protocol.acknowledge(0);
@@ -857,7 +927,7 @@ bt.devices = function() {
 		    }
 
 		}, function(error) {
-		    console.error("Failed", error);
+		    d.onRejection(error);
 		});
 	
 

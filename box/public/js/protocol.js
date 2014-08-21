@@ -25,7 +25,6 @@ bt.protocol = function() {
     // ************************************************************************
     // Variables local to this module.
     // ************************************************************************
-    var commandQueue = new Array();
     var commandElement = 0;
 
     var ct = "!;"  // The command terminator
@@ -79,6 +78,11 @@ bt.protocol = function() {
 	// command.  For many commands, the device only responds once.
 	// In others, there may be many responses to one command.
 	this.count = 0;
+
+	// Each protocol object keeps track of the commands to be
+	// issued to the underlying device in the commandQueue.
+	this.commandQueue = new Array();
+
     }
 
     /* 
@@ -150,7 +154,7 @@ bt.protocol = function() {
 	    return new Promise(function(resolve, reject) {
 		var ro = new bt.protocol.response();
 		ro.type = "NA";
-		ro.result = "Fail";
+		ro.result = "Badly Formed Command";
 		reject(ro);	
 	    });
 	}
@@ -455,9 +459,6 @@ bt.protocol = function() {
      *
      * @param n The n-value used in the command (optional).
      *
-     * Alternatively, an invocation of send() with no parameters will
-     * just send the next available command in the command queue.
-     *
      * @returns A promise that will be resolved when the response to
      * the command is received.  The promise is rejected when the
      * response times out.
@@ -465,17 +466,8 @@ bt.protocol = function() {
      */
     function send(c, a, type, n){
 
-	console.log("Send()", c, a, type, n);
+	console.log("Send()", c, a, type, n, this);
 	
-	// Does this function have the expected parameters for sending
-	// a new command?  If so create a new command from the
-	// function parameters and add the new command to the head of
-	// the command queue.
-	if(c != undefined ) {
-	    var cmd = new command(c,a,type,n);
-	    commandQueue.unshift(cmd);
-	    console.log("Adding", commandQueue);
-	}
 
 	// I can only send to the underlying device if:
 	//
@@ -487,15 +479,14 @@ bt.protocol = function() {
 	//
 	// 2) The last command that was transmitted got a response.
 	//
-
 	// If the underlying device is not connected, that's 
 	// bad.  Return a rejected promise.
-	if(this.ci === undefined) {
+	if (this.ci === undefined) {
 	    
 	    return new Promise(function(resolve, reject) {
 		var ro = new bt.protocol.response();
 		ro.type = "NA";
-		ro.result = "Fail";
+		ro.result = "Not Connected";
 		reject(ro);	
 	    });
 	    
@@ -505,21 +496,23 @@ bt.protocol = function() {
 	// that was transmitted got a response.  
 	else {
 
+	    var cmd = new command(c,a,type,n);
+	    this.commandQueue.unshift(cmd);
+	    console.log("Adding", this.commandQueue);
+
 	    // Get a command from the tail of the command queue.
-	    var next = commandQueue.pop();	    
-	    console.log("Removing", commandQueue);
+	    var next = this.commandQueue.pop();	    
+	    console.log("Removing", this.commandQueue);
 
 	    // Did we pop what was just pushed?
 	    if(cmd.element === next.element) {
 		return sendHelper.call(this, next);
 	    }
 	    else {
-		bt.ui.warning("Queue is full...I'm stuck!");
-
 		return new Promise(function(resolve, reject) {
 		    var ro = new bt.protocol.response();
 		    ro.type = "NA";
-		    ro.result = "Wait";
+		    ro.result = "Overrun";
 		    reject(ro);	
 		});
 		
@@ -572,14 +565,25 @@ bt.protocol = function() {
 	    // How long before I expect a response.  For R-style commands
 	    // this is a long time, but otherwise, it's pretty quick.
 	    if (last.type === "R") {
-		duration = last.period * last.n * 1000;
+		
+		// This might be a refresh command, 0R1:
+		if (last.n == 1) {
+		    console.log("here");
+		    duration = 1000;
+		}
+		// Otherwise, it's a longer experiment:
+		else {
+		    duration = last.period * last.n * 1000;
+		}
 	    }
 
 	    // Set a timer to reject the promise in `duration`
 	    // milliseconds.
 	    sendInterval = setTimeout(function(){
-		// d.close();
-		reject(Error("reponse error")); 
+		var ro = new bt.protocol.response();
+		ro.type = "NA";
+		ro.result = "No Response";
+		reject(ro);	
 	    }, duration);
 
 	    

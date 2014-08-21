@@ -27,6 +27,14 @@ bt.runnable = function() {
     var NO_DATA = 1;
     var NO_RESPONSE = 2;
 
+    // Devices in an experiment have one of two statuses: BROKEN or
+    // READY.  Devices that are BROKEN need help getting their
+    // connection re-established in an M-style experiment.  Devices
+    // that are READY have had a connection re-established by the
+    // experiment.
+    var BROKEN = 1;
+    var READY = 0;
+
     var MIN_DAQ_INTERVAL = 12;
     
 
@@ -73,6 +81,11 @@ bt.runnable = function() {
 	
 	this.running = false;           // Upon creation, an experiment is
 	                                // not running.
+
+	// The connectivity manager is in charge of attempting to
+	// reconnect with experiment devices that have no connection.
+	this.cm = {};
+	this.cmInterval = -1;
     };
     
     // Update the prototype for all devices of type experiment who
@@ -81,6 +94,12 @@ bt.runnable = function() {
     bt.runnable.experiment.prototype.clear = clear;
     bt.runnable.experiment.prototype.stop = stop;
     bt.runnable.experiment.prototype.onNoResponse = onNoResponse;
+
+
+    bt.runnable.experiment.prototype.isNewlyBroken = isNewlyBroken;
+    bt.runnable.experiment.prototype.setBroken = setBroken;
+    bt.runnable.experiment.prototype.clearBroken = clearBroken;
+
  
     /**
      * start()
@@ -214,18 +233,107 @@ bt.runnable = function() {
     function onNoResponse(err, path, response) {
 
 	// If there's no response from the device, attempt to
-	// re-establish a connection to it.  
+	// re-establish a connection to it.
+	console.log(this);
 	
-	// TODO: Keep making the attempt until the connection is
-	// established or the experiment is over. ??
+	// If we are getting no response and if this device is 
+	// only recently observed as broken, attempt to reestablish
+	// the connection.
+	if(err === NO_RESPONSE && this.isNewlyBroken(path)) {
 
-	// TODO: There is currently a problem.  Commands and responses
-	// do not have a strict alternation, so a connect() command 
-	// is getting the response to some D command.
-	if(err === NO_RESPONSE) {
-	    bt.devices.connect(path);
+	    // Capture this for the upcoming closure.
+	    var ex = this;
+	    
+	    // Set this device as broken, from the experiment's
+	    // perspective.
+	    ex.setBroken(path);
+
+	    // I am going to attempt to reconnect to this
+	    // BROKEN device every 12 seconds.  
+	    var duration = 12000;
+
+	    // Kick off the connectivity task.  I am going to do the
+	    // following with a period of `duration`.  That is, every
+	    // `duration` ms, I'm going to try to reconnect, or
+	    // observe that I have established a reconnection.
+	    ex.cmInterval = setInterval(function() {
+
+		// 1. Lookup the device.
+		var d = bt.devices.lookup(path);
+
+		// 2. If it's not connected, attempt to 
+		// connect it.
+		if(d === undefined || d.connected === false) {
+		    bt.ui.warning("Attempting to re-establish connection to " + path + ".");
+		    bt.devices.connect(path);
+		    return;
+		}
+		
+		// 3. Otherwise, if it's connected, stop trying
+		// to connect to it.
+		else if(d.connected) {
+		    ex.clearBroken(path);
+		    bt.ui.info("Re-established connection to " + path + ".");
+		    clearTimeout(ex.cmInterval);
+		    return;
+		}
+
+	    }, duration); 
 	}
 	
+
+    }
+
+    /**
+     * isNewlyBroken(path)
+     *
+     * Determine if a given device, represented by its path, has only 
+     * been recently observed as BROKEN by this experiment.
+     *
+     * @param: path A pathname representing the device.
+     * 
+     * @returns: true is the device is BROKEN, false otherwise.
+     */
+    function isNewlyBroken(path) {
+
+	// If the value of the .path is undefined, this is the first
+	// time we are noticing that this device is broken.
+	if (this.cm[path] === undefined) return true;
+
+	if (this.cm[path] === BROKEN) return false;
+
+	if (this.cm[path] == READY) return true;
+
+	else return false;
+    }
+
+    /**
+     * setBroken(path)
+     *
+     * Given a particular path, set it as BROKEN for this experiment.
+     * 
+     * @param: path A pathname representing the device.
+     *
+     */
+    function setBroken(path) {
+
+	this.cm[path] = BROKEN;
+
+	return;
+    }
+
+
+    /**
+     * clearBroken(path)
+     *
+     * Given a particular path, set it as READY for this experiment.
+     * 
+     * @param: path A pathname representing the device.
+     *
+     */    
+    function clearBroken(path) {
+
+	this.cm[path] = READY;
 
     }
 
@@ -364,7 +472,6 @@ bt.runnable = function() {
 		
 		
 	    }, function(error) {
-		bt.ui.warning("Error 2: Application is not receiving data from device.");
 		config.onNoResponse(NO_RESPONSE, config.devices[0]);
 	    });
 	}	
