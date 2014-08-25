@@ -293,8 +293,6 @@ boolean expRecover (Exp* exps){
     Period = exps -> dataHead.periodLgth;
     EEPROM.updateBlock(0 , exps -> dataHead);
     TCNT1 = (RTC.now().unixtime() - exps -> dataHead.startTime) % exps -> dataHead.periodLgth;      // sets timer to where in the period it should be
-    Serial.println(exps -> currentMeasurment);
-    Serial.println(TCNT1);
     return true;
 }
 

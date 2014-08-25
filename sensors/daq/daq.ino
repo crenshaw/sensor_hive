@@ -37,7 +37,6 @@ void setup () {
     startSquareWave();                                            // start RTC
     timer1Setup();                                                // setup timer1
     if(expRecover(&experiment)){
-        Serial.println("recovering");
         TIFR1  |= (1 << ICF1);
         SREG |= (1 << 7);
         TIMSK1 |= (1 << ICIE1);
