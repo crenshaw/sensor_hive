@@ -10,6 +10,7 @@
 var bt = bt || {};
 bt.data = {};
 
+   
 /**
  * data()
  * 
@@ -98,29 +99,41 @@ bt.data = function() {
 	cursorRequest.onerror = onerror;
     }
 
+ 
 
     /**
      * renderData()
      *
      */
-    function renderData(row) {
+    /*
+   
+    /*
+     * TODO:
+     *
+     * remove renderData from bt.data namespace
+     *
+     * Removed delete tag until we can learn more about it
+     *
+     * remove testRenderData()
+     *
+     */
+    bt.data.renderData = function renderData(row) {
 
-	// Get a handle to the data window.
-	var data = document.getElementById('data_list');
+	// Get a handle to the data table.
+    var dataTable = document.getElementById('data_table');
+   
+    //Parse the datum into an array
+    var dataArr = row.text.split(",");
 
-	 var li = document.createElement("li");
-	var a = document.createElement("a");
-	var t = document.createTextNode();
-	t.data = row.text;
+    var tr = document.createElement("tr");
+    dataTable.appendChild(tr);
 
-	a.addEventListener("click", function(e) {
-	    html5rocks.indexedDB.deleteTodo(row.text);
-	});
-
-	a.textContent = " [Delete]";
-	li.appendChild(t);
-	li.appendChild(a);
-	data.appendChild(li);
+    //Put the data into appropriate slots
+    dataArr.forEach(function(d) {
+        var td = document.createElement("td");
+        td.innerText = d;
+        tr.appendChild(td);
+    });
     }
 
     // ************************************************************************
@@ -198,3 +211,8 @@ bt.data = function() {
 
 // Invoke module.
 bt.data();
+function testRenderData() {
+        var row = {text:"0,001,1,140906624771,+24.50"};
+        bt.data.renderData(row);
+    }
+

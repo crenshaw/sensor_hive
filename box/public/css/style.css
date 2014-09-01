@@ -296,3 +296,9 @@ ul#alerts_list p {
 ul#exp_list {
     display: block;
 }
+
+/* Data table header */
+table,th,td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
