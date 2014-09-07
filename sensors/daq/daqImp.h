@@ -48,9 +48,9 @@ Provides the memory, power, and sleep management functions - yet to be implement
     #define TAKEMASURE TIMER1_CAPT_vect    // renames the inturupt vector
     
     #define DAQ_HEAD_OFFSET  14
-    #define DATA_OFFSET 7
+    #define DAQ_DATA_OFFSET 7
     // THE MOD NUMBER IS 980 THEN ADD OFFSET TO IT (14) CAN HOLD 140 MEASURMENTS.
-    #define DATA_MAX_ADDRESS  994
+    #define DAQ_DATA_MAX  144
     
     
     #define Period ICR1                  // rename period compare reg for tmr1 for take measure comd
@@ -119,7 +119,7 @@ void setPeriod (DataAqu* daq, int periodLength);
 void continuousMeasurment (DataAqu* daq, int port, int numMeasures);
 boolean startExp (Exp* experiment, int prt, int numMeasures);
 void storeData (Exp* exps, Data* data);
-void sendData ( );
+void sendData (int numMeasures);
 void endExp (Exp* exps);
 
 #endif

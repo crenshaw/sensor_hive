@@ -111,7 +111,7 @@ void loop(){
                     respond(DAQ_ID, 0);
                     break;
                 }
-                sendData( );
+                sendData( numMeasurs);
             break;
             default:
                 respond(DAQ_ID, 0);
