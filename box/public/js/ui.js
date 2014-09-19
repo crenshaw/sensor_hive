@@ -217,15 +217,26 @@ bt.ui = function() {
 	var action = target.id
 
 	if (action === 'trash') {
-	    bt.ui.clear(target);
+	    //bt.ui.clear(target);
+        
+        var dt = document.getElementById("data_table");
+        var tb = document.getElementById("data_table_body");
+        var newTb = document.createElement("tbody");
+        newTb.id = "data_table_body";
+        dt.replaceChild(newTb,tb);
+
+        
 	}
 
 	else if(action === 'save') {
 	   
 	    // Get the data from the data window and
 	    // save it to a local file. 
-	    var data = bt.ui.getData();
-	    bt.data.save(data);
+        // Erik 18 Sep 14: TODO 
+        // Will come back to this when I implement my own 
+        // database
+	    //var data = bt.ui.getData();
+	    //bt.data.save(data);
 	}
 
     }
@@ -466,6 +477,41 @@ bt.ui = function() {
 	return;
     }
 
+    /**
+     * addDataTableNode()
+     * 
+     * Creates a new row in the data table. This function assumes
+     * that the data comes in from the DAQ in the comma seperated
+     * value format. It parses it up and sticks the appropriate data
+     * into the appropriate slots.
+     */
+    var addDataTableNode = function(text, c) {
+
+    //Get a handle to the data table body
+	var dataTableBody = document.getElementById("data_table_body");
+
+
+	if(dataTableBody == undefined) {
+	    console.log("Cannot get data_table_body"); 
+	}
+
+    //Parse the datum into an array
+    var dataArr = text.split(',');
+
+    var tr = document.createElement("TR");
+    dataTableBody.appendChild(tr);
+
+    //Put the data into the appropriate table slots
+    dataArr.forEach(function(d) {
+        var td = document.createElement("TD");
+        td.innerText = d;
+        tr.appendChild(td);
+    });
+	
+	return;
+
+    }
+
     // ************************************************************************
     // Methods provided by this module, visible to others via 
     // the bt namespace.
@@ -683,19 +729,20 @@ bt.ui = function() {
 	if(datum === undefined) {
 
 	    // Grab the unique selector
-	    var s = document.getElementById('data_list');
+	    var s = document.getElementById('data_table_body');
 
 	    if(s == undefined) {
 		console.log("Cannot get " + sel); 
 	    }
 
-	    // Create an empty <li> element 
+	    // Append an HR tag to the data table
+        // Looks funny but it works
 	    var hr = document.createElement("HR");
 	    s.appendChild(hr);
 	}
 	
 	else {
-	    addNode('data_list', lineno + ',' + datum, 'data');
+	    addDataTableNode(datum);
 	    lineno++;
 	    infoWindows['data_window'].scroll();
 	}
@@ -839,4 +886,9 @@ bt.ui = function() {
 
 // Invoke module.
 bt.ui();
+function testRenderData() {
+        var row = "0,001,1,140906624771,+24.50";
+        bt.ui.log(row);
+        bt.ui.log();
+    }
 

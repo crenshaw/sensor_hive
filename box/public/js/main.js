@@ -31,7 +31,9 @@ bt.main = function() {
 	bt.devices.initialize();
 
 	// Open the local database, creating the table if necessary.
-	bt.data.open();
+    // Erik 19 Sep 14: Will come back to this when I implement
+    // my database
+	//bt.data.open();
 
 	// Scan for local devices.
 	bt.devices.scan();	
