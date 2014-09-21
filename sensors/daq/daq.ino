@@ -36,11 +36,15 @@ void setup () {
     sensorCheck(&daq);                                            // setup ports for daq software
     startSquareWave();                                            // start RTC
     timer1Setup();                                                // setup timer1
+    
+       
     if(expRecover(&experiment)){
         TIFR1  |= (1 << ICF1);
         SREG |= (1 << 7);
         TIMSK1 |= (1 << ICIE1);
     }    // 
+    
+ 
 }
 
 
@@ -111,7 +115,10 @@ void loop(){
                     respond(DAQ_ID, 0);
                     break;        
                 }
-                sendData( numMeasurs);
+                if (experiment.dataHead.port == 0){
+                    numMeasurs *= daq.numberActive;
+                }
+                sendData(numMeasurs);
             break;
             default:
                 respond(DAQ_ID, 0);

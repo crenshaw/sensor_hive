@@ -10,6 +10,7 @@
 
 
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 //***************************************Command Funtions********************************//
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -137,7 +138,6 @@ void sendData (int numMeasures){
     DataHead dataHead;
     EEPROM.readBlock(0, dataHead);
     Data data;
-    int currentPtr = dataHead.tailPtr-1;
     if (numMeasures == 0 || numMeasures > dataHead.tailPtr){
         if (dataHead.tailPtr > DAQ_DATA_MAX){
             numMeasures = DAQ_DATA_MAX;
@@ -147,7 +147,7 @@ void sendData (int numMeasures){
         }
     }
     while (numMeasures > 0){
-      EEPROM.readBlock(((currentPtr % DAQ_DATA_MAX)*DAQ_DATA_OFFSET+DAQ_HEAD_OFFSET), data);
+      EEPROM.readBlock((((dataHead.tailPtr - numMeasures) % DAQ_DATA_MAX)*DAQ_DATA_OFFSET+DAQ_HEAD_OFFSET), data);
       if (numMeasures == 1){
             dataReport(DAQ_ID, data.port, dataHead.startTime + (data.periodNum * dataHead.periodLgth), data.data, true);
         }     
@@ -155,7 +155,6 @@ void sendData (int numMeasures){
             dataReport(DAQ_ID, data.port, dataHead.startTime + (data.periodNum * dataHead.periodLgth), data.data);
         }
       numMeasures --;
-      currentPtr --;
     }
 }
 
