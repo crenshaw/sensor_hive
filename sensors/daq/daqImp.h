@@ -103,6 +103,11 @@ typedef struct Data_TAG{
 }Data;
 
 
+template <class Item>
+class sensors {
+    
+};
+
 // function headers
 //setup functions
 void portSetup(DataAqu* daq);

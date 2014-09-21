@@ -109,7 +109,7 @@ void loop(){
             case 'D':
                 if (experiment.dataHead.port != port || experiment.currentMeasurment == 0){
                     respond(DAQ_ID, 0);
-                    break;
+                    break;        
                 }
                 sendData( numMeasurs);
             break;
