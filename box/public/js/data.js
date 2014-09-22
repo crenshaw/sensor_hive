@@ -1,4 +1,5 @@
 var data = data || {};
+
 data.indexedDB = {};
 
 data.indexedDB.db = null;
@@ -54,7 +55,7 @@ data.indexedDB.addExperiment = function (name, expText) {
 
     var request = store.put({
         "name": name,
-        "measurements": []
+        "measurements": [expText]
     });
 
     trans.oncomplete = function(e) {
@@ -103,6 +104,28 @@ data.indexedDB.deleteExperiment = function(expName) {
 
     request.onerror = function (e) {
         console.log(e);
-        console.log("Error deleting databse entry: " + expName);
+        console.log("Error deleting database entry: " + expName);
     };
+};
+
+data.save = function (expName) {
+
+    var dataString = "";
+    data.indexedDB.getExperiment(expName, function (storedExp) {
+        dataString = storedExp[0];
+        for (var i = 1; i < storedExp.length; i++) {
+            dataString = dataString + "\n" + storedExp[i];
+        }
+        /*
+           Super janky, but it works.
+         */
+        var link = document.getElementById('save_link');
+        console.log(link);
+        link.download=expName + ".csv";
+        link.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(dataString);
+        var evt = document.createEvent("HTMLEvents");
+        evt.initEvent('click', true, true ); // event type,bubbling,cancelable
+        link.dispatchEvent(evt);
+    });
+
 };

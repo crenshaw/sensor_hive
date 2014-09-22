@@ -235,8 +235,8 @@ bt.ui = function() {
         // Erik 18 Sep 14: TODO 
         // Will come back to this when I implement my own 
         // database
-	    //var data = bt.ui.getData();
-	    //bt.data.save(data);
+	    //var datum = bt.ui.getData();
+	    //data.save("db");
 	}
 
     }
