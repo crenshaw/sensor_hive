@@ -55,7 +55,7 @@ data.indexedDB.addExperiment = function (name, expText) {
 
     var request = store.put({
         "name": name,
-        "measurements": [expText]
+        "measurements": []
     });
 
     trans.oncomplete = function(e) {

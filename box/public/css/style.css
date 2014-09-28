@@ -73,6 +73,10 @@ div.menubar {
     height: 60px;
 }
 
+div.side-by-side {
+    float: left;
+}
+
 /* UNORDERED LISTS */
 
 /* Each list item in a menubar is horizontal */
@@ -235,6 +239,22 @@ div#exp_window {
 
 div#data_window, div#setup_experiment {
     width: 420px;
+}
+
+div#data_window {
+    overflow:visible;
+}
+
+div#exp_list_div {
+    margin-left: 1em;
+    height: 100%;
+    overflow: auto;
+}
+
+div#exp_data_div {
+    width: 75%;
+    height: 100%;
+    overflow: auto;
 }
 
 div#exp_settings {

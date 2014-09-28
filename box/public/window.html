@@ -124,21 +124,31 @@
 	</div>
 	    
 	<h3>Data:</h3>
-	<div class = "info" id = "data_window"> 
-	<table id="data_table" style="width: 100%">
-        <thead>
-          <tr id="table_header">
-              <th>Element</td>
-              <th>DAQ Number</td>
-              <th>Port</td>
-              <th>Timestamp</td>
-              <th>Temp</td>
-          </tr>
-        </thead>
-        <tbody id="data_table_body">
-        </tbody>
-      </table>
-	</div>
+    <div class = "info" id = "data_window">
+        <div class="side-by-side" id="exp_data_div">
+            <table id="data_table" style="width: 100%">
+                <thead>
+                    <tr id="table_header">
+                        <th>Element</td>
+                        <th>DAQ #</td>
+                        <th>Port</td>
+                        <th>Time</td>
+                        <th>Temp</td>
+                    </tr>
+                </thead>
+                <tbody id="data_table_body">
+                </tbody>
+            </table>
+        </div>
+        <div class="side-by-side" id="exp_list_div">
+            <h4>Experiments</h4>
+            <hr>
+            <ul id="exp_list">
+                <li>Exp 1</li>
+                <li>Exp 2</li>
+            </ul>
+        </div>
+    </div>
 	<div class = "menubar" >
 	  <ul class = "menu" id = "data_menu">
 	    <li> <p class = "menuitem data_window" id = "trash"><span>clear</span></p></li>
