@@ -487,6 +487,7 @@ bt.ui = function() {
      */
     var addDataTableNode = function(text, c) {
 
+    data.indexedDB.addMeasurementToExp(
     //Get a handle to the data table body
 	var dataTableBody = document.getElementById("data_table_body");
 

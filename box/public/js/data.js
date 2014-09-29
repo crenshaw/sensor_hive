@@ -60,6 +60,31 @@ data.indexedDB.addExperiment = function (name, expText) {
 
     trans.oncomplete = function(e) {
         console.log(name + " added to database.");
+        data.saveExpName(name);
+
+        var expList = document.getElementById("exp_name_list");
+
+        var li = document.createElement("li");
+        var save = document.createElement("a");
+        var del = document.createElement("a");
+        save.addEventListener("click", function(e) {
+            data.save(name);
+        });
+        del.addEventListener("click", function(e) {
+            data.removeExpName(name);
+            data.indexedDB.deleteExperiment(name);
+            li.parentElement.removeChild(li);
+        });
+        li.textContent = name;
+        save.href='#';
+        del.href='#';
+        save.textContent = "S";
+        del.textContent = "D";
+        li.appendChild(save);
+        li.appendChild(del);
+        expList.appendChild(li);
+
+        
     };
 
     request.onerror = function (e) {
@@ -128,4 +153,36 @@ data.save = function (expName) {
         link.dispatchEvent(evt);
     });
 
+};
+
+data.saveExpName = function (expName) {
+    var data = [];
+    chrome.storage.local.get({expNames: []}, function(items) {
+        data = items.expNames;
+        data.push(expName);
+        console.log(data);
+        chrome.storage.local.set({expNames: data});
+    });
+
+};
+
+data.getExpNames = function (callback) {
+    var data = [];
+    chrome.storage.local.get({expNames: []}, function(items) {
+        data = items.expNames;
+        callback(data);
+    });
+};
+
+data.removeExpName = function (expName) {
+    var data = [];
+    chrome.storage.local.get({expNames: []}, function(items) {
+        for (var i = 0; i < items.expNames.length; i++) {
+            if (items.expNames[i] == expName) {
+                items.expNames.splice(i,1);
+                break;
+            }
+        }
+        chrome.storage.local.set(items);
+    });
 };

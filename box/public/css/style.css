@@ -164,6 +164,11 @@ span.local_device:hover {
     color: white;
 }
 
+.no_top_margin {
+    margin-top:0;
+    margin-bottom:0;
+}
+
 /* ---------------------------------------------------------- 
  * UNIQUE IDENTIFIERS
  */
@@ -246,13 +251,14 @@ div#data_window {
 }
 
 div#exp_list_div {
-    margin-left: 1em;
+    margin-left: 1%;
+    width:29%;
     height: 100%;
     overflow: auto;
 }
 
 div#exp_data_div {
-    width: 75%;
+    width: 70%;
     height: 100%;
     overflow: auto;
 }

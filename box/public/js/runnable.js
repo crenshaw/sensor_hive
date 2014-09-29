@@ -123,6 +123,10 @@ bt.runnable = function() {
 
 		bt.ui.info("Starting the experiment...");
 
+        var d = new Date();
+        var timestamp = d.toLocaleString();
+        data.indexedDB.addExperiment(timestamp);
+
 		this.running = true;
 
 		d.go(this.logging);
