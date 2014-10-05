@@ -1,0 +1,18 @@
+{
+    "require": {
+        "silex/silex": "~1.1",
+        "symfony/yaml" : "2.3.*"
+    },
+    "require-dev": {
+        "pdepend/pdepend": "*@stable",
+        "phpmd/phpmd": "*@stable",
+        "phpunit/phpunit": "4.1.*",
+        "sami/sami": "*",
+        "squizlabs/php_codesniffer": "1.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Uplabs": ["src"]
+        }
+    }
+}

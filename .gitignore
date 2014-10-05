@@ -6,3 +6,12 @@ latex/
 Doxyfile
 *wiki
 *~
+
+#ide config
+.idea
+
+#packages
+vendor/
+
+#Configuration File
+local.yml
