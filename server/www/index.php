@@ -46,4 +46,10 @@ $app->post('/api/insert', function(Request $request) use($app, $dbm) {
     return $app->json($result, 201);
 });
 
+$app->get('/api/retrieveAll', function() use ($app, $dbm) {
+   $result = $dbm->retrieveAll();
+
+    return $app->json($result, 200);
+});
+
 $app->run();

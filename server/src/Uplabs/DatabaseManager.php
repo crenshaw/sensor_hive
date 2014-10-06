@@ -38,5 +38,16 @@ class DatabaseManager
 
         return $result;
     }
+
+    public function retrieveAll()
+    {
+        $statement = "SELECT * FROM experiment_data";
+
+        $sql = $this->pdo->prepare($statement);
+
+        $sql->execute();
+
+        return $sql->fetchAll();
+    }
 }
  
