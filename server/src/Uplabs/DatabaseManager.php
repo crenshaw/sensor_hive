@@ -12,7 +12,8 @@ class DatabaseManager
     /**
      * Description: Takes post data and inserts into experiment_data table
      *
-     * @param $post
+     * @param $post - List of values which will make up one row in the database
+     *
      * @return bool - true   -- if data was inserted --OR--
      *                false  -- if data could not be inserted
      */
@@ -39,9 +40,31 @@ class DatabaseManager
         return $result;
     }
 
+    /**
+     * Retrieve all rows from experiment_data table
+     *
+     * @return array - All Experiment Data
+     */
     public function retrieveAll()
     {
         $statement = "SELECT * FROM experiment_data";
+
+        $sql = $this->pdo->prepare($statement);
+
+        $sql->execute();
+
+        return $sql->fetchAll();
+    }
+
+    /**
+     * Retrieve all experiment data for a specific experiment
+     *
+     * @param string $experimentName
+     * @return array - Experiment Data
+     */
+    public function retrieveExperimentData($experimentName)
+    {
+        $statement = "SELECT * FROM experiment_data WHERE experiment_name=" . $this->pdo->quote($experimentName);
 
         $sql = $this->pdo->prepare($statement);
 

@@ -34,12 +34,12 @@ $app->before(function (Request $request) use($dbm,$config) {
 
 $app->post('/api/insert', function(Request $request) use($app, $dbm) {
 
-    $post[0] = $experimentName = $request->request->get('experiment_name');
-    $post[1] = $deviceNumber = intval($request->request->get('device_number'));
-    $post[2] = $portNumber = intval($request->request->get('port_number'));
-    $post[3] = $timestamp = $request->request->get('timestamp');
-    $post[4] = $value = floatval($request->request->get('value'));
-    $post[5] = $unit = $request->request->get('unit');
+    $post['experimentName'] = $request->request->get('experiment_name');
+    $post['deviceNumber'] = intval($request->request->get('device_number'));
+    $post['portNumber'] = intval($request->request->get('port_number'));
+    $post['timestamp'] = $request->request->get('timestamp');
+    $post['value'] = floatval($request->request->get('value'));
+    $post['unit'] = $request->request->get('unit');
 
     $result = $dbm->insert($post);
 
@@ -47,7 +47,13 @@ $app->post('/api/insert', function(Request $request) use($app, $dbm) {
 });
 
 $app->get('/api/retrieveAll', function() use ($app, $dbm) {
-   $result = $dbm->retrieveAll();
+    $result = $dbm->retrieveAll();
+
+    return $app->json($result, 200);
+});
+
+$app->get('/api/experiments/get/{name}', function($name) use($app, $dbm) {
+    $result = $dbm->retrieveExperimentData($name);
 
     return $app->json($result, 200);
 });
