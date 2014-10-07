@@ -218,14 +218,7 @@ bt.ui = function() {
 
 	if (action === 'trash') {
 	    //bt.ui.clear(target);
-        
-        var dt = document.getElementById("data_table");
-        var tb = document.getElementById("data_table_body");
-        var newTb = document.createElement("tbody");
-        newTb.id = "data_table_body";
-        dt.replaceChild(newTb,tb);
-
-        
+        bt.ui.clearDataTable();   
 	}
 
 	else if(action === 'save') {
@@ -239,7 +232,26 @@ bt.ui = function() {
 	    //data.save("db");
 	}
 
-    }
+    };
+
+    
+    /** 
+     * getSelectedExperiment()
+     *
+     * Return the selected experiment that should be displayed in the
+     * data window.
+     *
+     * @return The name of the selected experiment. If there is no selected
+     * experiment, return undefined.
+     */
+    var getSelectedExperiment = function () {
+        var list =document.getElementById('exp_name_list');
+        var selected = list.getElementsByClassName('selected');
+        if (selected.length == 0) {
+            return undefined;
+        }
+        return selected[0].childNodes[0].data;
+    };
 
     /**
      * getSelectedDevices() 
@@ -253,7 +265,7 @@ bt.ui = function() {
 
 	 // Grab all of the devices that are currently "selected" so that
 	 // we can invoke the action on these devices.
-	 var objects = document.getElementsByClassName('selected');
+	 var objects = document.getElementById("local_devices_list").getElementsByClassName('selected');
 	 
 	 if (objects === undefined) {
 	     return undefined;
@@ -396,6 +408,9 @@ bt.ui = function() {
 		    bt.ui.error("No experiment has been configured.");
 		}
 		else {
+            var date = new Date();
+            var timestamp = date.toLocaleString();
+            bt.indexedDB.addExperiment(timestamp);
 		    bt.runnable.configuration.start();
 		}
 
@@ -434,6 +449,7 @@ bt.ui = function() {
 
     };
 
+    
     /**
      * addNode()
      * 
@@ -484,10 +500,24 @@ bt.ui = function() {
      * that the data comes in from the DAQ in the comma seperated
      * value format. It parses it up and sticks the appropriate data
      * into the appropriate slots.
+     *
+     * @param text The text to add to the datatable
+     * @param logToDB If true or undefined, will be logged to the
+     *        indexedDB, if false it will just be added to the table
      */
-    var addDataTableNode = function(text, c) {
+    var addDataTableNode = function(text, logToDB) {
+    
+    var exp = getSelectedExperiment();
 
-    data.indexedDB.addMeasurementToExp(
+    //If exp is undefined, then it there is no experiment and
+    //the user must just be testing the daq
+    if (exp == undefined) {
+        return;
+    }
+    if (logToDB === undefined || logToDB === true) {
+        bt.indexedDB.addMeasurementToExp(exp,text);
+    }
+
     //Get a handle to the data table body
 	var dataTableBody = document.getElementById("data_table_body");
 
@@ -497,6 +527,8 @@ bt.ui = function() {
 	}
 
     //Parse the datum into an array
+    text = lineno + ',' +text;
+    lineno++;
     var dataArr = text.split(',');
 
     var tr = document.createElement("TR");
@@ -509,9 +541,7 @@ bt.ui = function() {
         tr.appendChild(td);
     });
 	
-	return;
-
-    }
+    };
 
     // ************************************************************************
     // Methods provided by this module, visible to others via 
@@ -744,7 +774,8 @@ bt.ui = function() {
 	
 	else {
 	    addDataTableNode(datum);
-	    lineno++;
+        //TODO Delete this once new data table is working
+	    //lineno++;
 	    infoWindows['data_window'].scroll();
 	}
 
@@ -860,6 +891,55 @@ bt.ui = function() {
     };
 
     /**
+     * clearDataTable()
+     *
+     * Clears the text in the data window.
+     *
+     */
+    bt.ui.clearDataTable = function () {
+        var dt = document.getElementById("data_table");
+        var tb = document.getElementById("data_table_body");
+        var newTb = document.createElement("tbody");
+        newTb.id = "data_table_body";
+        dt.replaceChild(newTb,tb);
+    };
+    
+    /**
+     * selectExperiment()
+     *
+     * When an experiment in the experiments list is clicked, toggle its
+     * class between "selected" and "unselected". This function is used to
+     * determine what experiment is active and should be displayed.
+     */
+    bt.ui.selectExperiment = function(e) {
+
+    if (e.target.tagName != "LI") {
+        return;
+    }
+
+    lineno = 0;
+    if (e.target.childNodes !== undefined) {
+   	    lastExpSelected = e.target.childNodes[0].data;
+        bt.ui.clearDataTable();
+
+        bt.indexedDB.getExperiment(lastExpSelected, function(lines) {
+            for (var i = 0; i < lines.length; i++) {
+                //Add to the table, but don't select this experiment
+                addDataTableNode(lines[i], false);
+            }
+        });
+    }
+
+    // Deselect any experiments that may be selected
+	var list = document.getElementById('exp_name_list').getElementsByTagName('li');
+	for(var i = 0; i < list.length; i++) {
+	    list[i].classList.remove("selected");
+	}
+
+	e.target.classList.toggle("selected");
+    };
+
+    /**
      * getData()
      *
      * Slurp all the data currently logged to the data window and
@@ -887,9 +967,3 @@ bt.ui = function() {
 
 // Invoke module.
 bt.ui();
-function testRenderData() {
-        var row = "0,001,1,140906624771,+24.50";
-        bt.ui.log(row);
-        bt.ui.log();
-    }
-

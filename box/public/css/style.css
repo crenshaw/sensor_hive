@@ -94,6 +94,11 @@ ul.menu li {
     margin-right: 37px;
 }
 
+li.selected {
+    background-color: #ff0066;
+    color: white;
+}
+
 li.disconnected {
     list-style-type: circle;
 }

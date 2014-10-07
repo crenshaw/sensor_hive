@@ -604,11 +604,12 @@ bt.devices = function() {
 		var path = array[i].path;
 
 		// If the path contains tty.Adafruit or tty.usbmodem
-		// (Mac) or COM3 (Windows), then I am interested in
-		// listing it for the user.
+		// (Mac) or COM (Windows), then I am interested in
+		// listing it for the user. If windows, list all COM
+        // ports as we can't be sure which one is the Arduino
 		if((path.indexOf("/tty.Adafruit") > -1)  ||
 		   (path.indexOf("/tty.usbmodem") > -1)  || 
-		   (path.indexOf("COM3") > -1))               {
+		   (path.indexOf("COM") > -1))               {
 
 		    pruned[j] = array[i]; 
 		    j++;

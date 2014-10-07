@@ -122,11 +122,7 @@ bt.runnable = function() {
 	    if(d.connected) {
 
 		bt.ui.info("Starting the experiment...");
-
-        var d = new Date();
-        var timestamp = d.toLocaleString();
-        data.indexedDB.addExperiment(timestamp);
-
+        
 		this.running = true;
 
 		d.go(this.logging);
@@ -405,7 +401,9 @@ bt.runnable = function() {
 
 	    // Inform the user.
 	    bt.ui.warning('All the devices are disconnected; ending the experiment.');
-	    bt.ui.log();
+        //TODO Finalize removing this. With new data table setup
+        //the <hr> block seems unnecessary
+	    //bt.ui.log();
 	    return;
 	}
 	    
@@ -420,7 +418,9 @@ bt.runnable = function() {
 	    if(config.logging === "pc") {
 
 		bt.ui.info('The experiment is complete.');
-		bt.ui.log();
+        //TODO Finalize removing this. With new data table setup
+        //the <hr> block seems unnecessary
+		//bt.ui.log();
 		return;
 	    }
 
@@ -448,7 +448,10 @@ bt.runnable = function() {
 
 		    bt.ui.warning("Error 4: Could not get final data from device");
 		    bt.ui.info('The experiment is complete.');
-		    bt.ui.log();
+            
+            //TODO Finalize removing this. With the new experiment window
+            //setup this seems unnecessary
+		    //bt.ui.log();
 		});
 	    }
 	}
