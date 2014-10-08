@@ -10,6 +10,7 @@
 
 
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 //***************************************Command Funtions********************************//
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -102,8 +103,8 @@ boolean startExp (Exp* exps, int prt, int numMeasures){
         exps -> currentMeasurment = 0;
         exps -> dataHead.isRunning = true;
         exps -> dataHead.port = prt;
-        exps -> dataHead.headPtr = DAQ_HEAD_OFFSET;
-        exps -> dataHead.tailPtr = DAQ_HEAD_OFFSET;
+        exps -> dataHead.headPtr = 0;
+        exps -> dataHead.tailPtr = 0;
         exps -> dataHead.periodLgth = Period;
         exps -> dataHead.numMeasurments = numMeasures;
         TCNT1 = 0;                                             // clear timer1
@@ -127,29 +128,33 @@ void storeData (Exp* exps, Data* data){
     dataIn.periodNum = data -> periodNum;
     dataIn.port = data -> port;
     dataIn.data = data -> data;
-    if (exps -> dataHead.tailPtr < 994){
-        EEPROM.updateBlock((exps -> dataHead.tailPtr), dataIn);
-        exps -> dataHead.tailPtr += DATA_OFFSET;
-        EEPROM.updateBlock(0,exps->dataHead);
-    }
+    EEPROM.updateBlock(((exps -> dataHead.tailPtr) % DAQ_DATA_MAX)*DAQ_DATA_OFFSET+DAQ_HEAD_OFFSET, dataIn);
+    exps -> dataHead.tailPtr ++;
+    EEPROM.updateBlock(0,exps->dataHead);
 }
 
 //
-void sendData ( ){
+void sendData (int numMeasures){
     DataHead dataHead;
     EEPROM.readBlock(0, dataHead);
     Data data;
-    int tailPtr = dataHead.tailPtr;
-    int headPtr = dataHead.headPtr;
-    
-    for (int currentPtr = headPtr; currentPtr < tailPtr; currentPtr += DATA_OFFSET){
-        EEPROM.readBlock(currentPtr, data);
-        if (currentPtr == tailPtr - DATA_OFFSET){
+    if (numMeasures == 0 || numMeasures > dataHead.tailPtr){
+        if (dataHead.tailPtr > DAQ_DATA_MAX){
+            numMeasures = DAQ_DATA_MAX;
+        }
+        else{
+            numMeasures = dataHead.tailPtr;
+        }
+    }
+    while (numMeasures > 0){
+      EEPROM.readBlock((((dataHead.tailPtr - numMeasures) % DAQ_DATA_MAX)*DAQ_DATA_OFFSET+DAQ_HEAD_OFFSET), data);
+      if (numMeasures == 1){
             dataReport(DAQ_ID, data.port, dataHead.startTime + (data.periodNum * dataHead.periodLgth), data.data, true);
         }     
         else{
             dataReport(DAQ_ID, data.port, dataHead.startTime + (data.periodNum * dataHead.periodLgth), data.data);
         }
+      numMeasures --;
     }
 }
 
@@ -293,8 +298,6 @@ boolean expRecover (Exp* exps){
     Period = exps -> dataHead.periodLgth;
     EEPROM.updateBlock(0 , exps -> dataHead);
     TCNT1 = (RTC.now().unixtime() - exps -> dataHead.startTime) % exps -> dataHead.periodLgth;      // sets timer to where in the period it should be
-    Serial.println(exps -> currentMeasurment);
-    Serial.println(TCNT1);
     return true;
 }
 
