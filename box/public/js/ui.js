@@ -253,6 +253,16 @@ bt.ui = function() {
         return selected[0].childNodes[0].data;
     };
 
+    var getRunningExperiment = function () {
+        if (bt.runnable.configuration != undefined 
+                && bt.runnable.configuration.running) {
+            return bt.runnable.configuration.name;
+        }
+        else {
+            return undefined;
+        }
+    }
+
     /**
      * getSelectedDevices() 
      *
@@ -411,6 +421,7 @@ bt.ui = function() {
             var date = new Date();
             var timestamp = date.toLocaleString();
             bt.indexedDB.addExperiment(timestamp);
+            bt.runnable.configuration.name = timestamp
 		    bt.runnable.configuration.start();
 		}
 
@@ -507,7 +518,14 @@ bt.ui = function() {
      */
     var addDataTableNode = function(text, logToDB) {
     
-    var exp = getSelectedExperiment();
+    var exp;
+    if (bt.runnable.configuration != undefined && 
+            bt.runnable.configuration.running) {
+        exp = getRunningExperiment();
+    }
+    else {
+        exp = getSelectedExperiment();
+    }
 
     //If exp is undefined, then it there is no experiment and
     //the user must just be testing the daq
@@ -525,7 +543,7 @@ bt.ui = function() {
 	if(dataTableBody == undefined) {
 	    console.log("Cannot get data_table_body"); 
 	}
-
+    
     //Parse the datum into an array
     text = lineno + ',' +text;
     lineno++;
@@ -912,14 +930,30 @@ bt.ui = function() {
      * determine what experiment is active and should be displayed.
      */
     bt.ui.selectExperiment = function(e) {
+    
+    var lastExpSelected = undefined;
 
     if (e.target.tagName != "LI") {
         return;
     }
 
+    // get the name of the selected experiment. The idea behind
+    // the aproach of seleting the child nodes is to avoid
+    // getting the save and delete buttons in the string
+    if (e.target.childNodes != undefined) {
+        lastExpSelected = e.target.childNodes[0].data;   
+    }
+
+    // Don't allow selecting an experiment while another is running
+    if (bt.runnable.configuration != undefined &&
+            bt.runnable.configuration.name != lastExpSelected &&
+            bt.runnable.configuration.running) {
+        bt.ui.error("Cannot select another experiment, while a current one is running.");
+        return;
+    }
+
     lineno = 0;
     if (e.target.childNodes !== undefined) {
-   	    lastExpSelected = e.target.childNodes[0].data;
         bt.ui.clearDataTable();
 
         bt.indexedDB.getExperiment(lastExpSelected, function(lines) {
