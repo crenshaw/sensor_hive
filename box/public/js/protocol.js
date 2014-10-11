@@ -145,7 +145,14 @@ bt.protocol = function() {
      */
     function configurePeriod(n) {
 
-	if (typeof(n) === 'number' && n >= 1 && n <=30) {
+
+	// An experiment's period is stored in a signed 16-bit
+	// variable on the Arduino UNO.  Thus, the maximum possible
+	// period on the DAQ is currently 2^15 - 1. This maximum is
+	// enforced both by runnable.js and protocol.js.
+	var maximumPossiblePeriod = 32767;
+
+	if (typeof(n) === 'number' && n >= 1 && n <= maximumPossiblePeriod) {
 	    var command = "0P" + n + ct;
 	    return this.send(command, 0, "P", n);
 	}

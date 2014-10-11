@@ -530,6 +530,12 @@ bt.runnable = function() {
 	var per = toSeconds(period, p_units);
 	var dur = toSeconds(duration, d_units);
 
+	// An experiment's period is stored in a signed 16-bit
+	// variable on the Arduino UNO.  Thus, the maximum possible
+	// period on the DAQ is currently 2^15 - 1.  This maximum is
+	// enforced both by runnable.js and protocol.js.
+	var maximumPossiblePeriod = 32767;
+	
 	if(per === undefined) {
 	    bt.ui.error("The period must be an integer value greater than 0");
 	    return;
@@ -540,8 +546,8 @@ bt.runnable = function() {
 	    return;
 	}
 
-	else if(per > 30) {
-	    bt.ui.error("At this time, the period cannot exceed 30 seconds.");
+	else if(per > maximumPossiblePeriod) {
+	    bt.ui.error("At this time, the period cannot exceed " + maximumPossiblePeriod + " seconds.");
 	    return;
 	}
 
@@ -590,6 +596,7 @@ bt.runnable = function() {
 
 	    // Call setup on the device using the period and duration
 	    // values expressed in units of seconds.
+	    console.log("Setting up experiment for", per, dur);
 	    var p = d.setup(per, dur);
 	    
 	    // Handle the asynchronous result. 
