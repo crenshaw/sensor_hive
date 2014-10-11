@@ -183,8 +183,8 @@ bt.indexedDB = function () {
             li.textContent = name;
             save.href='#';
             del.href='#';
-            save.textContent = "S";
-            del.textContent = "D";
+            save.textContent = "(S)";
+            del.textContent = "(D)";
             li.appendChild(save);
             li.appendChild(del);
             expList.appendChild(li);

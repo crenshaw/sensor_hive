@@ -225,9 +225,10 @@ bt.ui = function() {
 	   
 	    // Get the data from the data window and
 	    // save it to a local file. 
-        // Erik 18 Sep 14: TODO 
-        // Will come back to this when I implement my own 
-        // database
+            // Erik 18 Sep 14: TODO 
+            // Will come back to this when I implement my own 
+            // database
+
 	    //var datum = bt.ui.getData();
 	    //data.save("db");
 	}

@@ -71,8 +71,12 @@ bt.protocol = function() {
 	this.last.type = "unknown";
 	this.last.address = -1;
 
-	// The last time this device got a response.
-	this.lasttime = -1;
+	// The last time each port on this device got a response.
+	// For now, I shall assume that the maximum number of ports
+	// on a DAQ is 5.  At the start, a DAQ has 5 ports that
+	// have never reported to the application.  Use -1 to
+	// indicate "never".
+	this.lasttime = [-1, -1, -1, -1, -1];
 
 	// The number of times the device has responded to the last
 	// command.  For many commands, the device only responds once.
@@ -82,7 +86,6 @@ bt.protocol = function() {
 	// Each protocol object keeps track of the commands to be
 	// issued to the underlying device in the commandQueue.
 	this.commandQueue = new Array();
-
     }
 
     /* 
@@ -649,14 +652,18 @@ bt.protocol = function() {
 		    bt.ui.serial(ro.raw);
 
 		    // Set the timestamp for "the last time we heard a
-		    // data report from the device."  Since the clock
-		    // on the desktop is not synchronized with the
-		    // clock on the device, I think it's best to use
-		    // the timestamp provided by the device.
+		    // data report from the particular address on the
+		    // device."  Since the clock on the desktop is not
+		    // synchronized with the clock on the device, I
+		    // think it's best to use the timestamp provided
+		    // by the device.
 		    if(ro.type === "D" || ro.type === "R") {
-			
-			if(ro.time > this.lasttime) {
-			    this.lasttime = ro.time;
+		
+			// If the time on the response is newer than the
+			// lasttime we heard from this particular address,
+			// then save this new time and log the data.
+			if(ro.time > this.lasttime[ro.a]) {
+			    this.lasttime[ro.a] = ro.time;
 
 			    // Moreover, log this data here, so that only
 			    // the freshest data is logged to the UI.  Some of
