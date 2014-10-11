@@ -5,7 +5,7 @@
 
 body {
     font-family: 'Lato', san-serif;
-    font-size: 90%;
+    font-size: 100%;
 }
 
 input {
@@ -140,17 +140,25 @@ p.menuitem:hover span {
 
 p.error {
     font-style: italic;
-    font-size: 85%
+    font-size: 90%
 }
 
 p.warning {
     color: #ff0066;
-    font-size: 85%
+    font-size: 90%
 }
 
 p.info, p.serial {
     color: gray;
-    font-size: 85%
+    font-size: 90%
+}
+
+p.serial {
+   -moz-user-select: text;
+   -khtml-user-select: auto;
+   -webkit-user-select: auto ;
+   -ms-user-select: auto;
+   user-select: auto;
 }
 
 /* local_device class */
@@ -226,7 +234,7 @@ div#advanced {
 }
 
 div#local_devices, div#alerts, div#setup_experiment {
-    width: 292px;
+    width: 320px;
 }
 
 div#exp_window, div#local_devices {
@@ -244,7 +252,7 @@ div#alerts p {
 }
 
 div#exp_window {
-    width: 400px;
+    width: 420px;
 }
 
 div#data_window, div#setup_experiment {
@@ -283,7 +291,7 @@ div#setup_experiment {
     padding-top: 0;
     background-color: #ffeef5;
     height: 0;
-    font-size: 85%
+    font-size: 90%
     opacity: 0;
 
     -webkit-box-sizing: border-box;
