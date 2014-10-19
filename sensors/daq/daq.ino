@@ -13,8 +13,6 @@ char command;
 uint8_t port;
 uint32_t targetMeasurment;
 
-uint32_t period = 1;
-
 void setup(){
     Serial.begin(9600);
     Wire.begin();
@@ -36,6 +34,10 @@ void loop(){
             case 0:
                 ports.isActive (port) ? respond(port) : respond (ABORT);
             break;
+            case 'B':
+                experiment.stopExperiment();
+                respond(ABORT);
+            break;
             case 'P':
                 experiment.setPeriod (targetMeasurment);
             break;
@@ -56,7 +58,5 @@ void loop(){
 }
 
 ISR (EXPERIMENT_MEASURMENT){
-    Serial.println("inturrupted");
     ports.savePortData(experiment.experimentBlock.port, experiment.updateCurrentPeriod());
-    
 }
