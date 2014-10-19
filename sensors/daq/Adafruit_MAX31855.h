@@ -33,7 +33,7 @@ class Adafruit_MAX31855 {
   double readCelsius(void);
   double readFarenheit(void);
   uint8_t readError();
-  
+
 
  private:
   int8_t sclk, miso, cs;
