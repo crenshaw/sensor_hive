@@ -777,25 +777,17 @@ bt.ui = function() {
     bt.ui.log = function(datum) {
 
 	if(datum === undefined) {
-
-	    // Grab the unique selector
-	    var s = document.getElementById('data_table_body');
-
-	    if(s == undefined) {
-		console.log("Cannot get " + sel); 
-	    }
-
-	    // Append an HR tag to the data table
-        // Looks funny but it works
-	    var hr = document.createElement("HR");
-	    s.appendChild(hr);
+        // Now that the datatable is being used, this
+        // if statement is only used for gobbling up an
+        // undefined datum passed into this function
 	}
 	
 	else {
 	    addDataTableNode(datum);
-        //TODO Delete this once new data table is working
-	    //lineno++;
-	    infoWindows['data_window'].scroll();
+
+        //scroll the data table to the bottom of the div
+	    var dataDiv = document.getElementById("exp_data_div");
+        dataDiv.scrollTop = dataDiv.scrollHeight;
 	}
 
 	return;
