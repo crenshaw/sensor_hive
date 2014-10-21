@@ -583,7 +583,11 @@ bt.protocol = function() {
 		}
 		// Otherwise, it's a longer experiment:
 		else {
-		    duration = last.period * last.n * 1000;
+            //There is some issue with the timer that the experiment
+            //runs for 14/15 of the time the user sets it up to, so
+            //multiplying the duration by 15/14 is a way to get around
+            //this issue.
+		    duration = last.period * last.n * 1000 * (15/14);
 		}
 	    }
 
