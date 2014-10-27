@@ -72,5 +72,16 @@ class DatabaseManager
 
         return $sql->fetchAll();
     }
+
+    public function retrieveExperimentNames()
+    {
+        $statement = "SELECT DISTINCT experiment_name FROM experiment_data";
+
+        $sql = $this->pdo->prepare($statement);
+
+        $sql->execute();
+
+        return $sql->fetchAll();
+    }
 }
  

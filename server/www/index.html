@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="scioWebApp">
+<head>
+    <meta charset="UTF-8">
+    <title>Scio Remote View</title>
+
+    <!--Style-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+    <!--Scripts-->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-resource.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+    <script src="controllers.js"></script>
+</head>
+<body ng-controller="ExperimentDataCtrl">
+<div class="dropdown">
+    <button class="btn btn-default dropdown-toggle" type="button" id="expDropdown" data-toggle="dropdown">
+        {{currentExperiment.experiment_name}}
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+        <li role="presentation">
+            <a role="menuitem" tabindex="-1" ng-repeat="experiment in experiments" ng-click="updateCurrentExperiment(experiment)">
+                {{experiment.experiment_name}}
+            </a>
+        </li>
+    </ul>
+    <button type="button" class="btn btn-default" ng-click="getData()">OK</button>
+</div>
+<div class="panel panel-default">
+    <div class="panel-heading">{{currentExperiment.experiment_name}} Data</div>
+
+    <!-- Table -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Device Number</th>
+                <th>Port Number</th>
+                <th>Timestamp</th>
+                <th>Value</th>
+                <th>Unit</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="line in data">
+                <td>{{line.experiment_name}}</td>
+                <td>{{line.device_number}}</td>
+                <td>{{line.port_number}}</td>
+                <td>{{line.timestamp}}</td>
+                <td>{{line.value}}</td>
+                <td>{{line.unit}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+
+</body>
+</html>

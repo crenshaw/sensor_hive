@@ -2,6 +2,7 @@
 
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Uplabs\DatabaseManager;
 
 //Require Autoloader
@@ -56,6 +57,20 @@ $app->get('/api/experiments/get/{name}', function($name) use($app, $dbm) {
     $result = $dbm->retrieveExperimentData($name);
 
     return $app->json($result, 200);
+});
+
+$app->get('/api/experiments/names', function() use($app, $dbm) {
+    $result = $dbm->retrieveExperimentNames();
+
+    return $app->json($result, 200);
+});
+
+$app->get('/', function() use($app) {
+    return $app->redirect(__DIR__ . '/index.html');
+});
+
+$app->after(function (Request $request, Response $response) {
+    $response->headers->set('Access-Control-Allow-Origin', '*');
 });
 
 $app->run();
