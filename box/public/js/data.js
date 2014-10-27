@@ -206,6 +206,10 @@ bt.indexedDB = function () {
      *
      */
     bt.indexedDB.addMeasurementToExp = function (expName, measurement) {
+	// First, let's send our data to the cloud
+	postMeasurement(expName, measurement);
+
+	// Now, let's locally back it up
         var db = bt.indexedDB.db;
         var trans = db.transaction(["experiments"], "readwrite");
         var store = trans.objectStore("experiments");
@@ -259,6 +263,25 @@ bt.indexedDB = function () {
             console.log(e);
             console.log("Error deleting database entry: " + expName);
         };
+    };
+
+    var postMeasurement = function (expName, expString) {
+	var dataArr = expString.split(',');
+	var jsonObj = {
+		"experiment_name": expName,
+		"device_number":dataArr[0],
+		"port_number":dataArr[1],
+		"timestamp":(new Date()).toJSON(),
+		"value":dataArr[3].slice(1),
+		"unit":"Degrees"
+	};
+	var xhr = new XMLHttpRequest();
+	xhr.open('POST','http://ec2-54-69-58-101.us-west-2.compute.amazonaws.com/api/insert', true);
+	xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+	xhr.send(JSON.stringify(jsonObj));
+	xhr.onloadend = function () {
+		console.log("Line of data POSTed to external database");
+	}
     };
 };
 
