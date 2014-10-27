@@ -419,8 +419,16 @@ bt.ui = function() {
 		    bt.ui.error("No experiment has been configured.");
 		}
 		else {
-            var date = new Date();
-            var timestamp = date.toLocaleString();
+            var d = new Date();
+            var seconds = d.getSeconds();
+            var minutes = d.getMinutes();
+            var hours = d.getHours();
+            var date = d.getDate();
+            date++;
+            var month = d.getMonth();
+            var year = d.getFullYear();
+
+            var timestamp = month + "-" + date + "-" + year + "_" + hours + ":" + minutes + ":" +seconds;
             bt.indexedDB.addExperiment(timestamp);
             bt.runnable.configuration.name = timestamp
 		    bt.runnable.configuration.start();
