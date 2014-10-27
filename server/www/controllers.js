@@ -4,7 +4,7 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
 
     $scope.experiments = ExperimentNames.get({},{});
 
-    $scope.currentExperiment = {'name' : $scope.experiments[0]};
+    $scope.currentExperiment = {};
 
     $scope.updateCurrentExperiment = function($experiment) {
         $scope.currentExperiment = $experiment;
