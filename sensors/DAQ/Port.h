@@ -21,6 +21,7 @@
 #define PORT_TEMP3 8
 #define PORT_TEMP4 9
 #define PORT_TEMP5 10
+#define PORT_LIGHT1 A0
 
 class Port{
     public:

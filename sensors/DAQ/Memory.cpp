@@ -14,7 +14,10 @@ void Memory::memorySetup (void){
 }
 
 void Memory::updateExperimentBlock (ExperimentBlock experimentBlock){
+    uint8_t tempReg = SREG;
+    SREG &= (0 << 7);
     EEPROM.updateBlock(EXPERIMENT_BLOCK_ADDRESS, experimentBlock);
+    SREG = tempReg;
 }
 
 void Memory::loadExperimentBlock (ExperimentBlock* experimentBlock){
@@ -24,16 +27,22 @@ void Memory::loadExperimentBlock (ExperimentBlock* experimentBlock){
 }
 
 void Memory::saveDataBlock (DataBlock dataBlock){
+    uint8_t tempReg = SREG;
+    SREG &= (0 << 7);
     EEPROM.updateBlock((memoryBlock.tailPtr)*dataBlockSize + headerBlockSize, dataBlock);
     memoryBlock.tailPtr = (((memoryBlock.tailPtr)+1) % maxBlocks);
     if (memoryBlock.tailPtr == memoryBlock.headPtr){
         memoryBlock.headPtr = ((memoryBlock.headPtr)+1) % maxBlocks;
     }
     EEPROM.updateBlock(MEMORY_BLOCK_ADDRESS,memoryBlock);
+    SREG = tempReg;
 }
 
 boolean Memory::loadDataBlock (uint16_t* address, DataBlock* dataBlock){
+      Serial.println(*address);
+      Serial.println(memoryBlock.tailPtr);
       if (*address == memoryBlock.tailPtr){
+          Serial.println("here");
           return true;
       }
       DataBlock newBlock;
@@ -47,7 +56,10 @@ boolean Memory::loadDataBlock (uint16_t* address, DataBlock* dataBlock){
 void Memory::reset (void){
     memoryBlock.headPtr = 0;
     memoryBlock.tailPtr = 0;
+    uint8_t tempReg = SREG;
+    SREG &= (0 << 7);
     EEPROM.updateBlock(MEMORY_BLOCK_ADDRESS, memoryBlock);
+    SREG = tempReg;
 }
 //set block 1 equal to block two
 void Memory::setEqual (ExperimentBlock* block1, ExperimentBlock* block2){

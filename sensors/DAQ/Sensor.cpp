@@ -25,14 +25,14 @@ double SensorTemp::measureTemp(void){
     return (*sensor).readCelsius();
 }
 
-uint32_t SensorTemp::measureLight(void){
+float SensorTemp::measureLight(void){
     return NULL;
 }
 
 
 
 //*************************Light functions****************************//
-SensorLight::SensorLight (TSL2561* sensorInit, boolean stateInit){
+SensorLight::SensorLight (Adafruit_GA1A12S202* sensorInit, boolean stateInit){
     sensor = sensorInit;
     setState(stateInit);
     setType(SENSOR_TYPE_B);
@@ -41,7 +41,7 @@ SensorLight::SensorLight (TSL2561* sensorInit, boolean stateInit){
 double SensorLight::measureTemp(void){
     return NULL;
 }
-uint32_t SensorLight::measureLight(void){
-    return (*sensor).getFullLuminosity ();
+float SensorLight::measureLight(void){
+    return (*sensor).readLux ();
 }
 

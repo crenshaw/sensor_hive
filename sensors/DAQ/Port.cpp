@@ -21,9 +21,9 @@ Port::Port (void){
     ports[4] = new SensorTemp(tempPtr, false);
     
     //light sensor declarations
-    TSL2561* lightPtr;
+    Adafruit_GA1A12S202* lightPtr;
     //light sensor 1
-    lightPtr = new TSL2561(TSL2561_ADDR_FLOAT);
+    lightPtr = new Adafruit_GA1A12S202 (PORT_LIGHT1);
     ports[5] = new SensorLight(lightPtr, false);
 }
 
@@ -68,7 +68,7 @@ void Port::savePortData (uint8_t portAddress, uint32_t currentPeriod){
             DataBlock newData;
             newData.port = portAddress;
             newData.periodNumber = currentPeriod;
-            double temp = (*ports[portAddress -1]).measureTemp();
+            SENSOR_RETURN_TYPE_A temp = (*ports[portAddress -1]).measureTemp();
             newData.data = *(reinterpret_cast <uint32_t*> (&temp));
             (*memory).saveDataBlock(newData);
         }
@@ -76,8 +76,8 @@ void Port::savePortData (uint8_t portAddress, uint32_t currentPeriod){
             DataBlock newData;
             newData.port = portAddress;
             newData.periodNumber = currentPeriod;
-            //newData.data = (*ports[portAddress -1]).measureLight();
-            newData.data = 1111;
+            SENSOR_RETURN_TYPE_B temp = (*ports[portAddress -1]).measureLight();
+            newData.data = *(reinterpret_cast <uint32_t*> (&temp));
             (*memory).saveDataBlock(newData);
         }
     }
@@ -93,6 +93,7 @@ void Port::sendSavedData (uint16_t amount){
     uint16_t currentBlock = (*memory).memoryBlock.headPtr;
     boolean finished = ((*memory).loadDataBlock(&currentBlock, &dataBlock));
     if (finished){
+        Serial.println("Finished");
         respond(ABORT);
     }
     while (!finished){
@@ -100,12 +101,12 @@ void Port::sendSavedData (uint16_t amount){
         uint8_t port = dataBlock.port;
         //recovering stored data type
         if ((*ports[port-1]).getType() == SENSOR_TYPE_A){
-            double data = *(reinterpret_cast <double*> (&dataBlock.data));
+            SENSOR_RETURN_TYPE_A data = *(reinterpret_cast <SENSOR_RETURN_TYPE_A*> (&dataBlock.data));
             dataReport(port, Time, data);
         }
         else if ((*ports[port-1]).getType() == SENSOR_TYPE_B){
           
-            uint32_t data = *(reinterpret_cast <uint32_t*> (&dataBlock.data));
+            SENSOR_RETURN_TYPE_B data = *(reinterpret_cast <SENSOR_RETURN_TYPE_B*> (&dataBlock.data));
             dataReport(port, Time, data);
         }
         finished = ((*memory).loadDataBlock(&currentBlock, &dataBlock));

@@ -58,5 +58,8 @@ void loop(){
 }
 
 ISR (EXPERIMENT_MEASURMENT){
-    ports.savePortData(experiment.experimentBlock.port, experiment.updateCurrentPeriod());
+    Serial.println("inturrupted");
+//    uint32_t time = experiment.updateCurrentPeriod();
+//    Serial.println(time);
+//    ports.savePortData(experiment.experimentBlock.port, time);
 }

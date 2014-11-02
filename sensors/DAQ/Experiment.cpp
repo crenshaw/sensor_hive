@@ -12,7 +12,6 @@ void Experiment::experimentSetup (Port* portsPtr, Memory* memPtr){
   memory = memPtr;
   timerSetup();
   startClock();
-  //memory.memorySetup();
   recoverExperiment();
 }
 
@@ -59,28 +58,23 @@ void Experiment::startR (uint8_t port, uint32_t targetMeasurment){
 
 void Experiment::startM (uint8_t port, uint32_t targetMeasurment){
     if (experimentBlock.isRunning || (!(*ports).isActive(port) && port !=0) || port > PORT_MAX || port < 0){
-        experimentBlock.isRunning = false;
         respond(ABORT);
     }
     else {
-        SREG &= (0 << 7);                                      // turn off global inturrupts to protect memory
         currentPeriod = 0;
         experimentBlock.isRunning = true;
         experimentBlock.port = port;
         (*memory).reset();
         experimentBlock.periodLgth = EXPERIMENT_PERIOD;
         experimentBlock.targetMeasurment = targetMeasurment;
-        TCNT1 = 0;                                             // clear timer1
-        SREG |= (1 << 7);                                      // turn on global inturrupts Note: this need to be done before
-        RTC_DS1307 RTC;                                        //reading the time since i2c requires inturrupts
-        // clear the inturrupt flag                            
-        TIFR1  |= (1 << ICF1);                                  
+        RTC_DS1307 RTC;                                        //reading the time since i2c requires inturrupts                                  
         experimentBlock.startTime = RTC.now().unixtime();     // set starting time
-        // set timer interupt on                               
-        TIMSK1 |= (1 << ICIE1);                                // start exp
-        SREG &= (0 << 7);                                       // turn off inturrupts to writeto EEPROM
         (*memory).updateExperimentBlock(experimentBlock);
-        SREG |= (1 << 7);                                       // resume inturrupts when finished
+        TCNT1 = 0;         // clear timer1
+        TIFR1  |= (1 << ICF1);  // clear the inturrupt flag    
+        // set timer interupt on                               
+        TIMSK1 |= (1 << ICIE1); // start exp
+                                     
         respond (port, EXPERIMENT_PERIOD*targetMeasurment, targetMeasurment);
       }
 }
@@ -92,14 +86,13 @@ void Experiment::stopExperiment (void){
     //clear is runnign flag
     experimentBlock.isRunning = false;
     //update data header in memory
-    SREG &= (0 << 7);
     (*memory).updateExperimentBlock(experimentBlock);
-    SREG |= (1 << 7);
 }
 
 void Experiment::recoverExperiment (void){
     (*memory).loadExperimentBlock(&experimentBlock);
     if (experimentBlock.isRunning){
+        Serial.println("isRunning");
         RTC_DS1307 RTC;
         currentPeriod = ((RTC.now().unixtime()) - (experimentBlock.startTime)) / experimentBlock.periodLgth;
         if (currentPeriod > experimentBlock.targetMeasurment){
