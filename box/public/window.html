@@ -111,6 +111,13 @@
 	      <option value="pc">desktop only (short experiment)</option>
 	      <option value="daq">desktop and DAQ (long experiment)</option>
 	    </select>
+        
+        <br>
+        
+        Store experiment in cloud: 
+
+        <input type = "checkbox" id = "cloud_storage" checked>
+        </input>
 
 	    <div class = "buttons">
 	    <button type="button" id="cancel">cancel</button>
@@ -147,8 +154,9 @@
     </div>
 	<div class = "menubar" >
 	  <ul class = "menu" id = "data_menu">
-	    <li> <p class = "menuitem data_window" id = "trash"><span>clear</span></p></li>
-	    <li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">save</a></span></p></li>	    
+	    <li> <p class = "menuitem data_window" id = "trash"><span>delete experiment</span></p></li>
+	    <li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">save to csv</a></span></p></li>
+        <li> <p class = "menuitem data_window" id = "upload"><span>upload to cloud</span></p></li>
 	  </ul>
 	  </div>
       </div>

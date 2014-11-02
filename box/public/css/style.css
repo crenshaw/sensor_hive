@@ -226,6 +226,9 @@ p#stop {
 p#trash {
     background-image:url('../icons/trash.png');
 }
+p#upload {
+    background-image:url('../icons/push.png');
+}
 
 
 /* DIVS */

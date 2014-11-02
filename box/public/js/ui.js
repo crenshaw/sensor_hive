@@ -216,23 +216,45 @@ bt.ui = function() {
 	var target = e.target;
 	var action = target.id
 
+    var currentExp = getSelectedExperiment();
+
 	if (action === 'trash') {
-	    //bt.ui.clear(target);
-        bt.ui.clearDataTable();   
+        if (currentExp === undefined) {
+            return;
+        }
+        bt.ui.clearDataTable();
+
+        //Don't delete experiments while others are running
+        if (bt.runnable.configuration != undefined && bt.runnable.configuration.running) {
+            bt.ui.error("Experiments cannot be deleted while an experiment is running.");
+            return;
+        }
+
+        //Clear the local data on delete
+        bt.local.removeExpName(currentExp);
+        bt.indexedDB.deleteExperiment(currentExp);
+
+        var selected = document.getElementsByClassName('selected');
+        for (var i = 0; i < selected.length; i++) {
+            if (selected[i].nodeName == "LI") {
+                selected[i].parentElement.removeChild(selected[i]);
+            }
+        }
+
 	}
 
 	else if(action === 'save') {
-	   
-	    // Get the data from the data window and
-	    // save it to a local file. 
-            // Erik 18 Sep 14: TODO 
-            // Will come back to this when I implement my own 
-            // database
-
-	    //var datum = bt.ui.getData();
-	    //data.save("db");
+        if (currentExp != undefined) {
+            bt.local.save(currentExp);
+        }
 	}
 
+    else if (action === 'upload') {
+        if (currentExp != undefined) {
+            bt.cloud.pushExperiment(currentExp);
+        }
+        bt.ui.info("Experiment pushed to server.");
+    }
     };
 
     

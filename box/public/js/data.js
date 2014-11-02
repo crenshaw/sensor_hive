@@ -145,32 +145,6 @@ bt.indexedDB = function () {
             var expList = document.getElementById("exp_name_list");
 
             var li = document.createElement("li");
-            var save = document.createElement("a");
-            var del = document.createElement("a");
-
-            // Link to save this experiment to CSV
-            save.addEventListener("click", function(e) {
-                bt.local.save(name);
-            });
-            // Link to delete this experiment from local storage
-            del.addEventListener("click", function(e) {
-
-                //Don't delete experiments while others are running
-                if (bt.runnable.configuration != undefined && bt.runnable.configuration.running) {
-                    bt.ui.error("Experiments cannot be deleted while an experiment is running.");
-                    return;
-                }
-
-                //Clear the datatable if we delete the selected experiment
-                if (e.target.parentNode.className == "selected") {
-                    bt.ui.clearDataTable(); 
-                }
-
-                //Clear the local data on delete
-                bt.local.removeExpName(name);
-                bt.indexedDB.deleteExperiment(name);
-                li.parentElement.removeChild(li);
-            });
 
             li.onclick = bt.ui.selectExperiment;
 
@@ -179,14 +153,7 @@ bt.indexedDB = function () {
             for (var i =0; i < expListElements.length; i++) {
                 expListElements[i].classList.remove("selected");
             }
-
             li.textContent = name;
-            save.href='#';
-            del.href='#';
-            save.textContent = "(S)";
-            del.textContent = "(D)";
-            li.appendChild(save);
-            li.appendChild(del);
             expList.appendChild(li);
 
             //Simulate a click on the experiment listing
@@ -206,8 +173,11 @@ bt.indexedDB = function () {
      *
      */
     bt.indexedDB.addMeasurementToExp = function (expName, measurement) {
-	// First, let's send our data to the cloud
-	postMeasurement(expName, measurement);
+	// First, let's send our data to the cloud if the user
+    // wants it there
+    if (document.getElementById('cloud_storage').checked) {
+	    bt.cloud.postMeasurement(expName, measurement);
+    }
 
 	// Now, let's locally back it up
         var db = bt.indexedDB.db;
@@ -265,8 +235,30 @@ bt.indexedDB = function () {
         };
     };
 
-    var postMeasurement = function (expName, expString) {
-	var dataArr = expString.split(',');
+    };
+
+bt.cloud = function() {
+
+    /**
+     * pushExperiment()
+     *
+     * Pushes the experiment to the cloud.
+     *
+     * @param expName The name of the experiment to push
+     * @param expString The full text of the experiment to push
+     */
+    bt.cloud.pushExperiment = function(expName, expString) {
+
+        //Retrieve the experiment from indexedDB
+        bt.indexedDB.getExperiment(expName, function (storedExp) {
+            for (var i = 0; i < storedExp.length; i++) {
+                bt.cloud.postMeasurement(expName, storedExp[i]);
+            }
+        });
+    };
+
+    bt.cloud.postMeasurement = function(expName,expString) {
+    var dataArr = expString.split(',');
 	var jsonObj = {
 		"experiment_name": expName,
 		"device_number":dataArr[0],
@@ -282,6 +274,7 @@ bt.indexedDB = function () {
 	xhr.onloadend = function () {
 		console.log("Line of data POSTed to external database");
 	}
+
     };
 };
 
@@ -391,4 +384,5 @@ bt.local = function () {
 
 // Initialize the modules
 bt.indexedDB();
+bt.cloud();
 bt.local();
