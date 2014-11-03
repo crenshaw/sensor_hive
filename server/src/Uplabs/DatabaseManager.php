@@ -19,23 +19,37 @@ class DatabaseManager
      */
     public function insert($post)
     {
-        //Base SQL statement
-        $statement = "INSERT INTO experiment_data VALUES";
-
-        //Properly en-quote all values in post
-        $values = array_map([$this->pdo, "quote"], $post);
-
-        //Create a parenthesized string from post array
-        $row = "(" . implode(', ', $values) . ")";
-
-        //Attach post-values string to base SQL statement
-        $statement.=$row;
-
-        //Prepare the statement
+        //Check if experiment already exists
+        $experimentName = $post['experimentName'];
+        $statement = "SELECT * FROM experiment WHERE experiment_name=" . $this->pdo->quote($experimentName);
         $sql = $this->pdo->prepare($statement);
+        $sql->execute();
 
-        //Insert the data
-        $result = $sql->execute();
+        if($sql->fetchAll() == []) {
+            //Create a new Experiment
+            $deviceNumber = $post['deviceNumber'];
+            $ownerName = "";
+
+            //Check if device has been specified
+            $statement = "SELECT * FROM device WHERE device_number=" . $this->pdo->quote($deviceNumber);
+            $sql = $this->pdo->prepare($statement);
+            $sql->execute();
+
+            if($sql->fetchAll() == []) {
+                //Create a Device
+                $deviceCaption = "Device Number: " . $deviceNumber;
+                $deviceLocation = "";
+
+                $deviceValues = [$deviceNumber,$deviceCaption,$ownerName,$deviceLocation];
+                $this->addItem("device", $deviceValues);
+            }
+
+            $experimentValues = [$experimentName,$deviceNumber,$ownerName];
+
+            $this->addItem("experiment",$experimentValues);
+        }
+
+        $result = $this->addItem("experiment_data", $post);
 
         return $result;
     }
@@ -82,6 +96,32 @@ class DatabaseManager
         $sql->execute();
 
         return $sql->fetchAll();
+    }
+
+    /**
+     * addItem()
+     *
+     * @param $table - Table to add to
+     * @param $values - List of values associated with new item (i.e column values)
+     *
+     * @return bool - True if item was inserted
+     *                False if not inserted
+     */
+    public function addItem($table, $values)
+    {
+        $statement = "INSERT INTO " . $table . " VALUES";
+
+        $values = array_map([$this->pdo, "quote"], $values);
+
+        $device = "(" . implode(', ', $values) . ")";
+
+        $statement.=$device;
+
+        $sql = $this->pdo->prepare($statement);
+
+        $result = $sql->execute();
+
+        return $result;
     }
 }
  
