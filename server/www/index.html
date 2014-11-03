@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" ng-app="scioWebApp">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" content="width=device-width, initial-scale=1.0">
     <title>Scio Remote View</title>
 
     <!--Style-->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" media="screen">
 
     <!--Scripts-->
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-resource.min.js"></script>
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="../bower_components/highcharts/highcharts.js"></script>
+
 
     <script src="controllers.js"></script>
 </head>
@@ -56,6 +58,10 @@
             </tr>
         </tbody>
     </table>
+
+    <div class="panel panel default" id="highcharts">
+
+    </div>
 </div>
 
 
