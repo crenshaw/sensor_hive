@@ -12,6 +12,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-resource.min.js"></script>
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
 
     <script src="controllers.js"></script>
 </head>
@@ -28,7 +29,7 @@
             </a>
         </li>
     </ul>
-    <button type="button" class="btn btn-default" ng-click="getData()">Get Data</button>
+    <button type="button" class="btn btn-default" ng-click="getData();">Get Data</button>
 </div>
 <div class="panel panel-default">
     <div class="panel-heading">{{currentExperiment.experiment_name}} Data</div>
@@ -57,7 +58,23 @@
         </tbody>
     </table>
 </div>
+<div class="dropdown">
+    <button class="btn btn-default dropdown-toggle" type="button" id="portDropdown" data-toggle="dropdown">
+        {{currentPort}}
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+        <li role="presentation" ng-repeat="port in ports">
+            <a role="menuitem" tabindex="-1"  ng-click="changeCurrentPort(port)">
+                {{port}}
+            </a>
+        </li>
+    </ul>
+    <button type="button" class="btn btn-default" ng-click="updateChart()">Show Data</button>
+</div>
+<div class="panel panel-default" id="highcharts">
 
+</div>
 
 
 </body>
