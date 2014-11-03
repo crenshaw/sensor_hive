@@ -71,12 +71,12 @@ bt.protocol = function() {
 	this.last.type = "unknown";
 	this.last.address = -1;
 
-	// The last time each port on this device got a response.
-	// For now, I shall assume that the maximum number of ports
-	// on a DAQ is 5.  At the start, a DAQ has 5 ports that
-	// have never reported to the application.  Use -1 to
-	// indicate "never".
-	this.lasttime = [-1, -1, -1, -1, -1];
+	// The last time each port on this device got a response.  For
+	// now, I shall assume that the maximum number of ports on a
+	// DAQ is 6 (where counting begins at 1).  At the start, a DAQ
+	// has 6 ports that have never reported to the application.
+	// Use -1 to indicate "never".
+	this.lasttime = [-1, -1, -1, -1, -1, -1, -1];
 
 	// The number of times the device has responded to the last
 	// command.  For many commands, the device only responds once.
