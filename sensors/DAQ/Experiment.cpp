@@ -92,7 +92,6 @@ void Experiment::stopExperiment (void){
 void Experiment::recoverExperiment (void){
     (*memory).loadExperimentBlock(&experimentBlock);
     if (experimentBlock.isRunning){
-        Serial.println("isRunning");
         RTC_DS1307 RTC;
         currentPeriod = ((RTC.now().unixtime()) - (experimentBlock.startTime)) / experimentBlock.periodLgth;
         if (currentPeriod > experimentBlock.targetMeasurment){
@@ -128,6 +127,7 @@ void Experiment::startClock (void){
      #ifdef BEBUGsqw
      Serial.println("transmitting");
      #endif
+     pinMode(EXPERIMENT_CLOCK_PIN, INPUT_PULLUP);
      Wire.beginTransmission(EXPERIMENT_RTC_I2C_ADDRESS);
      Wire.write(0x07); // move pointer to DAQ_SQW address
      Wire.write(0x10); // sends 0x10 (hex) 00010000 (binary)

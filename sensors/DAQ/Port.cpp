@@ -64,22 +64,18 @@ void Port::savePortData (uint8_t portAddress, uint32_t currentPeriod){
         saveAll(currentPeriod);
     }
     else {
+        DataBlock newData;
+        newData.port = portAddress;
+        newData.periodNumber = currentPeriod;
         if ((*ports[portAddress -1]).getType() == SENSOR_TYPE_A){
-            DataBlock newData;
-            newData.port = portAddress;
-            newData.periodNumber = currentPeriod;
             SENSOR_RETURN_TYPE_A temp = (*ports[portAddress -1]).measureTemp();
             newData.data = *(reinterpret_cast <uint32_t*> (&temp));
-            (*memory).saveDataBlock(newData);
         }
         else if ((*ports[portAddress -1]).getType() == SENSOR_TYPE_B){
-            DataBlock newData;
-            newData.port = portAddress;
-            newData.periodNumber = currentPeriod;
             SENSOR_RETURN_TYPE_B temp = (*ports[portAddress -1]).measureLight();
             newData.data = *(reinterpret_cast <uint32_t*> (&temp));
-            (*memory).saveDataBlock(newData);
         }
+        (*memory).saveDataBlock(newData);
     }
 }
 
@@ -93,7 +89,6 @@ void Port::sendSavedData (uint16_t amount){
     uint16_t currentBlock = (*memory).memoryBlock.headPtr;
     boolean finished = ((*memory).loadDataBlock(&currentBlock, &dataBlock));
     if (finished){
-        Serial.println("Finished");
         respond(ABORT);
     }
     while (!finished){
@@ -105,7 +100,6 @@ void Port::sendSavedData (uint16_t amount){
             dataReport(port, Time, data);
         }
         else if ((*ports[port-1]).getType() == SENSOR_TYPE_B){
-          
             SENSOR_RETURN_TYPE_B data = *(reinterpret_cast <SENSOR_RETURN_TYPE_B*> (&dataBlock.data));
             dataReport(port, Time, data);
         }

@@ -39,10 +39,7 @@ void Memory::saveDataBlock (DataBlock dataBlock){
 }
 
 boolean Memory::loadDataBlock (uint16_t* address, DataBlock* dataBlock){
-      Serial.println(*address);
-      Serial.println(memoryBlock.tailPtr);
       if (*address == memoryBlock.tailPtr){
-          Serial.println("here");
           return true;
       }
       DataBlock newBlock;
@@ -61,7 +58,7 @@ void Memory::reset (void){
     EEPROM.updateBlock(MEMORY_BLOCK_ADDRESS, memoryBlock);
     SREG = tempReg;
 }
-//set block 1 equal to block two
+//set block1 equal to block2
 void Memory::setEqual (ExperimentBlock* block1, ExperimentBlock* block2){
     block1 -> isRunning = block2 -> isRunning;             
     block1 -> port = block2 -> port;                  

@@ -156,8 +156,8 @@ boolean readNewCmd( char* command, int* port, int* numMeasures)
     If the commands recieved was parsed succesfully returns true
 **/
 boolean readNewCmd( char* command, uint8_t* port, uint32_t* numMeasures){
-    char buffer[15];
-    int numChars = Serial.readBytesUntil(';', buffer, 15);
+    char buffer[17];
+    int numChars = Serial.readBytesUntil(';', buffer, 17);
     //check if command ends with '!'.
     if (buffer[numChars -1] != '!'){
         return false;
