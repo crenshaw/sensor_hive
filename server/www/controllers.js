@@ -25,9 +25,11 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
     $scope.updateChart = function() {
         $scope.data.$promise.then(function(stuff) {
             var time1 = stuff[0].timestamp;
+            var time2 = stuff[1].timestamp;
             var finalTime = stuff[stuff.length - 1].timestamp;
 
             var startDate = new Date(time1);
+            var nextDate = new Date(time2);
 
             values = [[], [], [], [], [], []];
 
@@ -44,21 +46,20 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
 
             datapoints = [[],[],[],[],[],[]];
 
-            //console.log(stuff);
             for(index = 0; index < stuff.length; index++) {
                 for(port = 1;port<=6;port++) {
                     if(stuff[index].port_number == port) {
                         values[port-1].push(parseFloat(stuff[index].value));
                         timestamps[port-1].push(Date.parse(stuff[index].timestamp));
-                        dataPoint = [Date.parse(stuff[index].timestamp), parseFloat(stuff[index].value)];
 
+                        //NOT USED -- Helpful if multiple series per graph is desired
+                        dataPoint = [Date.parse(stuff[index].timestamp), parseFloat(stuff[index].value)];
                         datapoints[port-1].push(dataPoint);
                     }
                 }
             }
 
-            console.log(datapoints);
-
+            //NOT USED -- Helpful if multiple series per graph is desired
             var seriesOptions = [];
             for(index=0;index<6;index++) {
                 if(datapoints[index] != []) {
@@ -74,11 +75,11 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
                     text: 'Visual Data'
                 },
                 subtitle: {
-                    text: $scope.currentExperiment.experiment_name
+                    text: "Experiment: " + $scope.currentExperiment.experiment_name
                 },
                 xAxis: {
                     type: 'datetime',
-                    minRange: finalTime - time1
+                    minRange: Date.parse(finalTime) - Date.parse(time1)
                 },
                 yAxis: {
                     title: {
@@ -100,7 +101,7 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
                 series: [{
                     type: 'line',
                     name: 'Value',
-                    pointInterval: 60000,
+                    pointInterval: nextDate - startDate,
                     pointStart:Date.UTC(
                         startDate.getFullYear(),
                         startDate.getMonth(),
