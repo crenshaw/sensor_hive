@@ -45,7 +45,7 @@ boolean Memory::loadDataBlock (uint16_t* address, DataBlock* dataBlock){
       DataBlock newBlock;
       EEPROM.readBlock((*address)*dataBlockSize + headerBlockSize, newBlock);
       setEqual (dataBlock, &newBlock);
-      *address = *address+1 % maxBlocks;
+      *address = (*address+1) % maxBlocks;
       return false;
 
 }

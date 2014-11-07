@@ -7,7 +7,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 #include "EEPROMex.h"
-#define MEMORY_SIZE 1048
+#define MEMORY_SIZE 1024
 #define MEMORY_BLOCK_ADDRESS 0
 #define EXPERIMENT_BLOCK_ADDRESS 4
 
