@@ -476,7 +476,7 @@ bt.protocol = function() {
      */
     function send(c, a, type, n){
 
-	console.log("Send()", c, a, type, n, this);
+	console.log("Send()", c, a, type, n, this.path);
 	
 
 	// I can only send to the underlying device if:
@@ -537,7 +537,7 @@ bt.protocol = function() {
      */
     function sendHelper(cmd) {
 
-	console.log(this);
+	//console.log(this);
 
 	this.last.command = cmd.c;
 	this.last.address = cmd.a;

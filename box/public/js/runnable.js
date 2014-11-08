@@ -236,7 +236,7 @@ bt.runnable = function() {
 
 	// If there's no response from the device, attempt to
 	// re-establish a connection to it.
-	console.log(this);
+	console.log("runnable.js: There's no response from the device.  Attempt to re-establish a connection.");
 	
 	// If we are getting no response and if this device is 
 	// only recently observed as broken, attempt to reestablish
@@ -266,6 +266,7 @@ bt.runnable = function() {
 		// 2. If it's not connected, attempt to 
 		// connect it.
 		if(d === undefined || d.connected === false) {
+		    console.log("runnable.js: Attempting.");
 		    bt.ui.warning("Attempting to re-establish connection to " + path + ".");
 		    bt.devices.connect(path);
 		    return;
@@ -274,6 +275,7 @@ bt.runnable = function() {
 		// 3. Otherwise, if it's connected, stop trying
 		// to connect to it.
 		else if(d.connected) {
+		    console.log("runnable.js: reconnected.");
 		    ex.clearBroken(path);
 		    bt.ui.info("Re-established connection to " + path + ".");
 		    clearTimeout(ex.cmInterval);
@@ -281,9 +283,7 @@ bt.runnable = function() {
 		}
 
 	    }, duration); 
-	}
-	
-
+	}	
     }
 
     /**
@@ -386,6 +386,9 @@ bt.runnable = function() {
 	    if (d.connected === true) {
 		isBroken = false;
 	    }
+	    else {
+		console.log("runnable.js:  Device(s) are broken.");
+	    }
 	}
 
 
@@ -403,9 +406,7 @@ bt.runnable = function() {
 
 	    // Inform the user.
 	    bt.ui.warning('All the devices are disconnected; ending the experiment.');
-        //TODO Finalize removing this. With new data table setup
-        //the <hr> block seems unnecessary
-	    //bt.ui.log();
+ 
 	    return;
 	}
 	    
@@ -420,9 +421,7 @@ bt.runnable = function() {
 	    if(config.logging === "pc") {
 
 		bt.ui.info('The experiment is complete.');
-        //TODO Finalize removing this. With new data table setup
-        //the <hr> block seems unnecessary
-		//bt.ui.log();
+
 		return;
 	    }
 
@@ -450,10 +449,6 @@ bt.runnable = function() {
 
 		    bt.ui.warning("Error 4: Could not get final data from device");
 		    bt.ui.info('The experiment is complete.');
-            
-            //TODO Finalize removing this. With the new experiment window
-            //setup this seems unnecessary
-		    //bt.ui.log();
 		});
 	    }
 	}
