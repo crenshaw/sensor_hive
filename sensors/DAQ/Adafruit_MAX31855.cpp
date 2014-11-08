@@ -40,9 +40,8 @@ void Adafruit_MAX31855::changeCS(int newCS){
 
 double Adafruit_MAX31855::readInternal(void) {
   uint32_t v;
-
+  
   v = spiread32();
-
   // ignore bottom 4 bits - they're just thermocouple data
   v >>= 4;
 

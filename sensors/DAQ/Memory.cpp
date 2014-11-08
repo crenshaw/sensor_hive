@@ -38,16 +38,39 @@ void Memory::saveDataBlock (DataBlock dataBlock){
     SREG = tempReg;
 }
 
-boolean Memory::loadDataBlock (uint16_t* address, DataBlock* dataBlock){
-      if (*address == memoryBlock.tailPtr){
-          return true;
-      }
-      DataBlock newBlock;
-      EEPROM.readBlock((*address)*dataBlockSize + headerBlockSize, newBlock);
-      setEqual (dataBlock, &newBlock);
-      *address = (*address+1) % maxBlocks;
-      return false;
+void Memory::loadDataBlock (uint16_t effectiveAddress, DataBlock* dataBlock){
+    DataBlock newBlock;
+    uint16_t absoluteAddress = effectiveAddress*dataBlockSize + headerBlockSize;
+    EEPROM.readBlock(absoluteAddress, newBlock);
+    setEqual (dataBlock, &newBlock);
+}
+//returns the effective address of block in EEPROM
+uint16_t Memory::getPtr(uint16_t numValues){
+    if(numValues < 1 || numValues > maxBlocks){
+        return memoryBlock.headPtr;
+    }
+    //memory is full and any value in is acceptable
+    else if (memoryBlock.headPtr > memoryBlock.tailPtr){
+        if (numValues > memoryBlock.tailPtr){
+            return (maxBlocks - (numValues - memoryBlock.tailPtr));
+        }
+        else{
+            return (memoryBlock.tailPtr - numValues);
+        }
+    }
+    //memory is not full and we can't ask for more than we have
+    else{
+        if(numValues > memoryBlock.tailPtr){
+            return memoryBlock.headPtr;
+        }
+        else{
+            return (memoryBlock.tailPtr - numValues);
+        }
+    }
+}
 
+void Memory::updatePtr(uint16_t* ptr){
+    (*ptr) = ((*ptr)+1) % maxBlocks;
 }
 
 void Memory::reset (void){

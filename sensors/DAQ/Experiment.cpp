@@ -13,6 +13,11 @@ void Experiment::experimentSetup (Port* portsPtr, Memory* memPtr){
   timerSetup();
   startClock();
   recoverExperiment();
+  #ifdef RTCset
+      // following line sets the RTC to the date & time this sketch was compiled
+      RTC_DS1307 RTC;
+      RTC.adjust(DateTime(__DATE__, __TIME__));
+  #endif
 }
 
 
@@ -74,9 +79,13 @@ void Experiment::startM (uint8_t port, uint32_t targetMeasurment){
         TIFR1  |= (1 << ICF1);  // clear the inturrupt flag    
         // set timer interupt on                               
         TIMSK1 |= (1 << ICIE1); // start exp
-                                     
-        respond (port, EXPERIMENT_PERIOD*targetMeasurment, targetMeasurment);
-      }
+        if (port == 0){                           
+            respond (port*(*ports).getNumberActive(), EXPERIMENT_PERIOD*targetMeasurment, targetMeasurment);
+        }
+        else{
+            respond (port, EXPERIMENT_PERIOD*targetMeasurment, targetMeasurment);
+        }
+    }
 }
 
 

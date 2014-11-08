@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include <avr/wdt.h>
 #include "Port.h"
 #include "Experiment.h"
 #include "Memory.h"
@@ -19,7 +20,6 @@ void setup(){
     memory.memorySetup();
     ports.portSetup(&memory);
     experiment.experimentSetup(&ports, &memory);
-    
 }
 
 void loop(){

@@ -31,6 +31,7 @@ class Port{
     Sensor* ports[PORT_MAX];
     //public functions
     boolean isActive (uint8_t portAddress);
+    uint8_t getNumberActive(void){return activePorts;};
     void sendPortData (uint8_t portAddress);
     void savePortData (uint8_t portAddress, uint32_t currentPeriod);
     void sendSavedData (uint16_t amount);

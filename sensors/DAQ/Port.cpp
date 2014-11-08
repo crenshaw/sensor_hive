@@ -26,6 +26,30 @@ Port::Port (void){
     lightPtr = new Adafruit_GA1A12S202 (PORT_LIGHT1);
     ports[5] = new SensorLight(lightPtr, false);
 }
+//TODO: change this function so that it probperly activates ports.
+void Port::portSetup (Memory* memoryPtr){
+    memory = memoryPtr;
+    activePorts = 0;
+    for (uint8_t portAddress = 0; portAddress < PORT_MAX; portAddress++){
+        // if read error returns the following errors
+        //000 if everything is fine
+        //001 if open connection
+        //010 if shorted to ground
+        //100 if shorted to vcc
+        if ((*ports[portAddress]).getType() == SENSOR_TYPE_A && (*ports[portAddress]).getError() == 0){
+            if ((*ports[portAddress]).measureTemp() != 0){
+                (*ports[portAddress]).setState(true);
+                lastPort = portAddress+1;
+                activePorts++;
+            }
+        }
+        else if ((*ports[portAddress]).getType() == SENSOR_TYPE_B && (*ports[portAddress]).getError() ==0){
+            (*ports[portAddress]).setState(true);
+            lastPort = portAddress+1;
+            activePorts++;
+        }
+    }
+}
 
 boolean Port::isActive (uint8_t portAddress){
     if (portAddress > 0 && portAddress <= PORT_MAX && (*ports[portAddress-1]).isActive()){
@@ -35,7 +59,7 @@ boolean Port::isActive (uint8_t portAddress){
         return false;
     }
 }
-
+//TODO: this need to be mostly implemented in memroy by using an ittorator.
 void Port::sendPortData (uint8_t portAddress){
     if (portAddress == 0){
         sendAll();
@@ -84,14 +108,13 @@ void Port::sendSavedData (uint16_t amount){
     DataBlock dataBlock;
     (*memory).loadExperimentBlock(&experiment);
     
-    uint16_t sentBlocks = 1;
-    
-    uint16_t currentBlock = (*memory).memoryBlock.headPtr;
-    boolean finished = ((*memory).loadDataBlock(&currentBlock, &dataBlock));
-    if (finished){
+    uint16_t ptr = (*memory).getPtr(amount*activePorts);
+    uint16_t tail = (*memory).tail();
+    if (ptr == (*memory).tail()){
         respond(ABORT);
     }
-    while (!finished){
+    for (ptr ;  ptr != tail; (*memory).updatePtr(&ptr)){
+        (*memory).loadDataBlock(ptr, &dataBlock);
         uint32_t Time = experiment.startTime + dataBlock.periodNumber* experiment.periodLgth;
         uint8_t port = dataBlock.port;
         //recovering stored data type
@@ -103,33 +126,15 @@ void Port::sendSavedData (uint16_t amount){
             SENSOR_RETURN_TYPE_B data = *(reinterpret_cast <SENSOR_RETURN_TYPE_B*> (&dataBlock.data));
             dataReport(port, Time, data);
         }
-        finished = ((*memory).loadDataBlock(&currentBlock, &dataBlock));
-        if (finished || sentBlocks == amount*activePorts){
-            finished = true;
+        if (ptr == tail-1){
             terminate();
         }
         endLine();
-        sentBlocks++;
     }
 }
 
 
-void Port::portSetup (Memory* memoryPtr){
-    memory = memoryPtr;
-    activePorts = 0;
-    for (uint8_t portAddress = 0; portAddress < PORT_MAX; portAddress++){
-        if ((*ports[portAddress]).measureTemp() != NULL){
-            (*ports[portAddress]).setState(true);
-            lastPort = portAddress+1;
-            activePorts++;
-        }
-        else if ((*ports[portAddress]).measureLight() != NULL){
-            (*ports[portAddress]).setState(true);
-            lastPort = portAddress+1;
-            activePorts++;
-        }
-    }
-}
+
 
 void Port::sendAll (void){
     for (uint8_t portAddress = 1; portAddress <= PORT_MAX; portAddress++){

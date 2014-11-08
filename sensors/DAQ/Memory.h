@@ -45,10 +45,16 @@ class Memory{
     MemoryBlock memoryBlock;
     //public functions
     void memorySetup ();
+    
     void updateExperimentBlock (ExperimentBlock experimentBlock);
-    void loadExperimentBlock (ExperimentBlock* experimentBlock);
     void saveDataBlock (DataBlock dataBlock);
-    boolean loadDataBlock (uint16_t* Address, DataBlock* dataBlock);
+    
+    void loadExperimentBlock (ExperimentBlock* experimentBlock);
+    void loadDataBlock (uint16_t effectiveAddress, DataBlock* dataBlock);
+    
+    uint16_t getPtr(uint16_t numValues);
+    void updatePtr(uint16_t* ptr);
+    uint16_t tail(void){return memoryBlock.tailPtr;};
     void reset (void);
     
     private:

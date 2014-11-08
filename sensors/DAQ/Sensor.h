@@ -21,9 +21,13 @@ class Sensor{
     //pure virtual functions to be define in child classes
     virtual double measureTemp (void) = 0;
     virtual float measureLight (void) = 0;
+    virtual uint8_t getError(void) = 0;
     //member functions needed in each child class
+    //getter
     boolean isActive (void);
     int getType (void){return type;};
+
+    //setter
     void setState (boolean newState);
     void setType (int newType){type = newType;};
   private:
@@ -38,6 +42,7 @@ class SensorTemp: public Sensor {
     //member functions
     double measureTemp (void);
     float measureLight (void);
+    uint8_t getError(void);
   private:
     Adafruit_MAX31855* sensor;
 };
@@ -49,6 +54,7 @@ class SensorLight: public Sensor{
     //member functions
     double measureTemp (void);
     float measureLight (void);
+    uint8_t getError(void);
   private:
     Adafruit_GA1A12S202* sensor;
 };

@@ -29,6 +29,10 @@ float SensorTemp::measureLight(void){
     return NULL;
 }
 
+uint8_t SensorTemp::getError(void){
+    return (*sensor).readError();
+}
+
 
 
 //*************************Light functions****************************//
@@ -41,7 +45,12 @@ SensorLight::SensorLight (Adafruit_GA1A12S202* sensorInit, boolean stateInit){
 double SensorLight::measureTemp(void){
     return NULL;
 }
+
 float SensorLight::measureLight(void){
     return (*sensor).readLux ();
+}
+
+uint8_t SensorLight::getError(void){
+    return 0;
 }
 
