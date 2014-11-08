@@ -203,7 +203,9 @@ bt.indexedDB = function () {
                 console.log("Error updating experiment: " + expName);
             };
             requestUpdate.onsuccess = function(e) {
-                console.log("Experiment "  + expName + " successfully updated.");
+		// TLC: Omitting this logging element because it crowds the
+		// log during long-term experiments.
+                // console.log("Experiment "  + expName + " successfully updated.");
             };
         };
     };

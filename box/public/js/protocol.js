@@ -508,11 +508,9 @@ bt.protocol = function() {
 
 	    var cmd = new command(c,a,type,n);
 	    this.commandQueue.unshift(cmd);
-	    console.log("Adding", this.commandQueue);
 
 	    // Get a command from the tail of the command queue.
 	    var next = this.commandQueue.pop();	    
-	    console.log("Removing", this.commandQueue);
 
 	    // Did we pop what was just pushed?
 	    if(cmd.element === next.element) {
@@ -520,6 +518,7 @@ bt.protocol = function() {
 	    }
 	    else {
 		return new Promise(function(resolve, reject) {
+		    console.log("protocol.js:  Command queue was overrun!");
 		    var ro = new bt.protocol.response();
 		    ro.type = "NA";
 		    ro.result = "Overrun";
@@ -527,9 +526,7 @@ bt.protocol = function() {
 		});
 		
 	    }
-
 	}
-
     }
 
     /** 
@@ -578,15 +575,15 @@ bt.protocol = function() {
 		
 		// This might be a refresh command, 0R1:
 		if (last.n == 1) {
-		    console.log("here");
 		    duration = 1000;
 		}
 		// Otherwise, it's a longer experiment:
 		else {
-            //There is some issue with the timer that the experiment
-            //runs for 14/15 of the time the user sets it up to, so
-            //multiplying the duration by 15/14 is a way to get around
-            //this issue.
+
+		    //There is some issue with the timer that the experiment
+		    //runs for 14/15 of the time the user sets it up to, so
+		    //multiplying the duration by 15/14 is a way to get around
+		    //this issue.
 		    duration = last.period * last.n * 1000 * (15/14);
 		}
 	    }

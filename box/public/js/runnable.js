@@ -95,7 +95,6 @@ bt.runnable = function() {
     bt.runnable.experiment.prototype.stop = stop;
     bt.runnable.experiment.prototype.onNoResponse = onNoResponse;
 
-
     bt.runnable.experiment.prototype.isNewlyBroken = isNewlyBroken;
     bt.runnable.experiment.prototype.setBroken = setBroken;
     bt.runnable.experiment.prototype.clearBroken = clearBroken;
@@ -133,7 +132,10 @@ bt.runnable = function() {
 		
 		// For pc-style logging, the interval for the manager can
 		// be roughly the same period as the experiment's period.
-		var ep = this.period + 2;
+		// Be sure to use the value of period, as it is expressed
+		// in seconds.
+		var ep = this.p + 2;
+		console.log("Setting experiment polling period to: ", ep);
 		
 		// For daq-style logging, the interval has a minimum.
 		if(this.logging === "daq") {
@@ -630,7 +632,7 @@ bt.runnable = function() {
 		    // Register the experiment with the device.
 		    var d = bt.devices.lookup(bt.runnable.configuration.devices[0]);
 		    d.experiment = true;
-		    console.log(d);
+		    console.log("Registering experiment with: ", d.path);
 
 		    var msg = d.path + ' has a configured period of ' + period + ' ' + p_units + ' with an experiment length of ' + duration + ' ' + d_units + '.';
 		    bt.ui.info(msg);
