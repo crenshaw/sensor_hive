@@ -273,9 +273,15 @@ bt.cloud = function() {
 	xhr.open('POST','http://ec2-54-69-58-101.us-west-2.compute.amazonaws.com/api/insert', true);
 	xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 	xhr.send(JSON.stringify(jsonObj));
-	xhr.onloadend = function () {
+	xhr.onload = function () {
 		console.log("Line of data POSTed to external database");
 	}
+    xhr.onerror = function () {
+        console.log("Cannot POST to external database. There may \
+             be no internet connection.");
+        bt.ui.warning("Failed to post to external database. Check \
+            your internet connection. Manually upload results later.");
+    }
 
     };
 };

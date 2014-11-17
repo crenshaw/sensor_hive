@@ -130,7 +130,9 @@ bt.ui = function() {
 	if(d.style.opacity == 0) {
 	    d.style.border = '1px solid silver';
 	    d.style.opacity = 1;
-	    d.style.height = '93px';
+        // 11/10/2014 Erik increased the height attribute to fit
+        // new config settings
+	    d.style.height = '120px';
 	    b.style.border = '2px solid #ff0066';
 	    
 	}
@@ -579,6 +581,9 @@ bt.ui = function() {
     text = lineno + ',' +text;
     lineno++;
     var dataArr = text.split(',');
+    var portNumber = parseInt(dataArr[2]);
+    var port = document.getElementById("port" + portNumber).value;
+    dataArr[2] = port;
 
     var tr = document.createElement("TR");
     dataTableBody.appendChild(tr);
