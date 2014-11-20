@@ -444,13 +444,22 @@ bt.ui = function() {
 		}
 		else {
             var d = new Date();
-            var seconds = d.getSeconds();
-            var minutes = d.getMinutes();
+            var seconds = d.getSeconds()+1;
+            var minutes = d.getMinutes()+1;
             var hours = d.getHours();
             var date = d.getDate();
-            date++;
-            var month = d.getMonth();
+            var month = d.getMonth()+1;
             var year = d.getFullYear();
+
+            if (seconds < 10) {
+                seconds = "0" + seconds;
+            }
+            if (minutes < 10) {
+                minutes = "0" + minutes;
+            }
+            if (hours < 10) {
+                hours = "0" + hours;
+            }
 
             var timestamp = month + "-" + date + "-" + year + "_" + hours + ":" + minutes + ":" +seconds;
             bt.indexedDB.addExperiment(timestamp);
