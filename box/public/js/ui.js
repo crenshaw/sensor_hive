@@ -443,6 +443,8 @@ bt.ui = function() {
 		    bt.ui.error("No experiment has been configured.");
 		}
 		else {
+            //Javascript doesn't have a date function that I like 
+            //so I'll just generate my own date
             var d = new Date();
             var seconds = d.getSeconds()+1;
             var minutes = d.getMinutes()+1;
@@ -451,6 +453,8 @@ bt.ui = function() {
             var month = d.getMonth()+1;
             var year = d.getFullYear();
 
+            // This adds a zero infront of the value if
+            // the value only has a single digit
             if (seconds < 10) {
                 seconds = "0" + seconds;
             }
