@@ -7,8 +7,10 @@
       "serial",
       "fileSystem",
       "unlimitedStorage",
+      "storage",
       "http://localhost/",
-      "http://fonts.googleapis.com/"	
+      "http://fonts.googleapis.com/",
+      "http://ec2-54-69-58-101.us-west-2.compute.amazonaws.com/api/*"      
   ],
 
   "app": {

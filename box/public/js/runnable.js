@@ -24,6 +24,19 @@ bt.runnable = function() {
     // ************************************************************************
     // Variables local to this module.
     // ************************************************************************
+    var NO_DATA = 1;
+    var NO_RESPONSE = 2;
+
+    // Devices in an experiment have one of two statuses: BROKEN or
+    // READY.  Devices that are BROKEN need help getting their
+    // connection re-established in an M-style experiment.  Devices
+    // that are READY have had a connection re-established by the
+    // experiment.
+    var BROKEN = 1;
+    var READY = 0;
+
+    var MIN_DAQ_INTERVAL = 12;
+    
 
     // This application has a single experiment configuration at a given time.
     // The experiment configuration is either 'undefined' or an experiment
@@ -48,7 +61,15 @@ bt.runnable = function() {
 	
 	this.logging = input.logging;   // Logging on desktop or desktop + daq.
 	this.devices = input.devices;   // The list of device paths.
-	this.daqs = input.daqs;         // The list of the devices' daq objects.
+
+	// It is tempting to keep track of daq objects, to avoid
+	// lookup, but there's a problem.  Daqs change state over time
+	// -- they are reconnected on different serial connection IDs,
+	// for example, and keeping track of daq objects can mean that
+	// the experiment's copy of the daq object goes stale.
+	// Instead, whenever I want to contact a daq, just lookup its
+	// object using its pathname, stored in this.devices, defined
+	// above.
 
 	this.p = input.p;               // Period, in seconds.
 	this.period = input.period;     // Period, as originally provided.
@@ -60,13 +81,25 @@ bt.runnable = function() {
 	
 	this.running = false;           // Upon creation, an experiment is
 	                                // not running.
+
+	// The connectivity manager is in charge of attempting to
+	// reconnect with experiment devices that have no connection.
+	this.cm = {};
+	this.cmInterval = -1;
     };
     
     // Update the prototype for all devices of type experiment who
     // share the same methods.
     bt.runnable.experiment.prototype.start = start;
     bt.runnable.experiment.prototype.clear = clear;
-    
+    bt.runnable.experiment.prototype.stop = stop;
+    bt.runnable.experiment.prototype.onNoResponse = onNoResponse;
+
+    bt.runnable.experiment.prototype.isNewlyBroken = isNewlyBroken;
+    bt.runnable.experiment.prototype.setBroken = setBroken;
+    bt.runnable.experiment.prototype.clearBroken = clearBroken;
+
+ 
     /**
      * start()
      *
@@ -80,18 +113,79 @@ bt.runnable = function() {
 	    bt.ui.error("The experiment is already running.  Please wait.");
 	}
 	else {
-	    this.running = true;
-	    bt.ui.info("Starting the experiment...");
-
 	    // Call go() for each device belonging to this
 	    // experiment.
-	    this.daqs[0].go(this.logging);	    
+	    var d = bt.devices.lookup(this.devices[0]);
 
-	    // Now that we've hit the 'go' button on all the devices,
-	    // we must responsibly manage the experiment.
-	    this.interval = setInterval(function(){ manage.call(); }, (this.period+2) * 1000);
+	    // If the devices are connected, then start an experiment.
+	    if(d.connected) {
+
+		bt.ui.info("Starting the experiment...");
+        
+		this.running = true;
+
+		d.go(this.logging);
+
+		// Now that we've hit the 'go' button on all the devices,
+		// we must responsibly manage the experiment. Begin calling
+		// the experiment manager, manage() on regular intervals.
+		
+		// For pc-style logging, the interval for the manager can
+		// be roughly the same period as the experiment's period.
+		// Be sure to use the value of period, as it is expressed
+		// in seconds.
+		var ep = this.p + 2;
+		console.log("Setting experiment polling period to: ", ep);
+		
+		// For daq-style logging, the interval has a minimum.
+		if(this.logging === "daq") {
+		    if (ep <= MIN_DAQ_INTERVAL) {
+			ep = MIN_DAQ_INTERVAL;
+		    }
+		}
+
+		// Set up the interval
+		this.interval = setInterval(function(){ manage.call(); }, (ep) * 1000);
+	    }
+	    else {
+		bt.ui.error("Cannot start the experiment.  " + d.path + " is disconnected.  Please enable it.");
+	    }
+	    
 	}	
     }
+
+    /**
+     * stop()
+     *
+     * Stop the given experiment.  
+     *
+     * Note: I'm agonizing over whether to call this "stop" or
+     * "cancel" as experiments cannot be resumed.
+     *
+     */
+    function stop(){
+
+	// If an experiment isn't already running, there is no 
+	// work to do.
+	if(this.running) {
+
+	    // Examine the list of devices and stop each one.
+	    for(var i = 0; i < this.devices.length; i++) {
+		
+		var d = bt.devices.lookup(this.devices[i]);
+
+		if(d != undefined && d.connected && d.running ) {
+		   
+		    d.stop();
+		}
+	    }
+	}
+	
+	// Just told a bunch of devices to stop.  Now we need
+	// to wait and see if they did.  The manage() method will
+	// automatically take care of this.
+    }
+
 
     /** 
      * clear()
@@ -109,14 +203,140 @@ bt.runnable = function() {
 	}
 	else {
 
-	    // Examine the list of daqs and clear each one.
-	    for(var i = 0; i < this.daqs.length; i++) {
+	    // Examine the list of devices and clear each one.
+	    for(var i = 0; i < this.devices.length; i++) {
 		
-		this.daqs[i].experiment = false;
-		bt.ui.indicate(this.daqs[i].path, 'clear');
+		var d = bt.devices.lookup(this.devices[i]);
+		d.experiment = false;
+		bt.ui.indicate(this.devices[i], 'clear');
 		
 	    }
 	}
+    }
+
+    /**
+     * onNoResponse()
+     *
+     * For an experiment with daq-style logging, this function defines
+     * what an experiment should do if a device does not respond
+     * properly to queries for data (D-commands).
+     *
+     * @param err The error number that caused invocation of this
+     * method.
+     *
+     * @param path The pathname representing the troubled device.
+     *
+     * @param response If available, the last response received from
+     * the device.  For example, a device may have simply replied
+     * with an Abort response, which is less devastating than no
+     * response at all.
+     *
+     */
+    function onNoResponse(err, path, response) {
+
+	// If there's no response from the device, attempt to
+	// re-establish a connection to it.
+	console.log("runnable.js: There's no response from the device.  Attempt to re-establish a connection.");
+	
+	// If we are getting no response and if this device is 
+	// only recently observed as broken, attempt to reestablish
+	// the connection.
+	if(err === NO_RESPONSE && this.isNewlyBroken(path)) {
+
+	    // Capture this for the upcoming closure.
+	    var ex = this;
+	    
+	    // Set this device as broken, from the experiment's
+	    // perspective.
+	    ex.setBroken(path);
+
+	    // I am going to attempt to reconnect to this
+	    // BROKEN device every 12 seconds.  
+	    var duration = 12000;
+
+	    // Kick off the connectivity task.  I am going to do the
+	    // following with a period of `duration`.  That is, every
+	    // `duration` ms, I'm going to try to reconnect, or
+	    // observe that I have established a reconnection.
+	    ex.cmInterval = setInterval(function() {
+
+		// 1. Lookup the device.
+		var d = bt.devices.lookup(path);
+
+		// 2. If it's not connected, attempt to 
+		// connect it.
+		if(d === undefined || d.connected === false) {
+		    console.log("runnable.js: Attempting.");
+		    bt.ui.warning("Attempting to re-establish connection to " + path + ".");
+		    bt.devices.connect(path);
+		    return;
+		}
+		
+		// 3. Otherwise, if it's connected, stop trying
+		// to connect to it.
+		else if(d.connected) {
+		    console.log("runnable.js: reconnected.");
+		    ex.clearBroken(path);
+		    bt.ui.info("Re-established connection to " + path + ".");
+		    clearTimeout(ex.cmInterval);
+		    return;
+		}
+
+	    }, duration); 
+	}	
+    }
+
+    /**
+     * isNewlyBroken(path)
+     *
+     * Determine if a given device, represented by its path, has only 
+     * been recently observed as BROKEN by this experiment.
+     *
+     * @param: path A pathname representing the device.
+     * 
+     * @returns: true is the device is BROKEN, false otherwise.
+     */
+    function isNewlyBroken(path) {
+
+	// If the value of the .path is undefined, this is the first
+	// time we are noticing that this device is broken.
+	if (this.cm[path] === undefined) return true;
+
+	if (this.cm[path] === BROKEN) return false;
+
+	if (this.cm[path] == READY) return true;
+
+	else return false;
+    }
+
+    /**
+     * setBroken(path)
+     *
+     * Given a particular path, set it as BROKEN for this experiment.
+     * 
+     * @param: path A pathname representing the device.
+     *
+     */
+    function setBroken(path) {
+
+	this.cm[path] = BROKEN;
+
+	return;
+    }
+
+
+    /**
+     * clearBroken(path)
+     *
+     * Given a particular path, set it as READY for this experiment.
+     * 
+     * @param: path A pathname representing the device.
+     *
+     */    
+    function clearBroken(path) {
+
+	this.cm[path] = READY;
+
     }
 
     // end definition of experiment()
@@ -146,21 +366,54 @@ bt.runnable = function() {
     function manage() {
 
 	var isDone = true;
+	var isBroken = true;
 	var config = bt.runnable.configuration;
 
-	// First thing, first.
-	//
-	// Are the daqs done running?  If so, then the experiment
-	// is done.
-	for(var i = 0; i < config.daqs.length; i++) {
-	    if (config.daqs[i].running === true) {
+	// First thing, first.  Check the health of the devices: their
+	// `.connected` and `.running` status.
+
+	for(var i = 0; i < config.devices.length; i++) {
+	    var d = bt.devices.lookup(config.devices[i]);
+
+	    // Are the devices done running?  If so, then the experiment
+	    // is done.
+	    if (d.running === true) {
 		isDone = false;
+	    }
+
+	    // Are the devices connected?  If they are all disconnected,
+	    // then something bad may have happened.
+	    if (d.connected === true) {
+		isBroken = false;
+	    }
+	    else {
+		console.log("runnable.js:  Device(s) are broken.");
 	    }
 	}
 
-	// If all the daqs are done running, then clear the manager's
+
+	// If all the devices are not connected and the experiment is
+	// a pc-style experiment, then quit the experiment.
+	if(isBroken && config.logging === "pc") {
+
+	    // Clear the experiment and devices.  Nobody is running
+	    // anymore.
+	    config.running = false;
+	    config.clear();
+
+	    // Stop re-invoking this manager.
+	    clearInterval(config.interval);
+
+	    // Inform the user.
+	    bt.ui.warning('All the devices are disconnected; ending the experiment.');
+ 
+	    return;
+	}
+	    
+
+	// If all the devices are done running, then clear the manager's
 	// periodic interval.
-	if(isDone) {
+	else if(isDone) {
 	    config.running = false; 
 	    clearInterval(config.interval);
 
@@ -168,7 +421,7 @@ bt.runnable = function() {
 	    if(config.logging === "pc") {
 
 		bt.ui.info('The experiment is complete.');
-		bt.ui.log();
+
 		return;
 	    }
 
@@ -179,7 +432,8 @@ bt.runnable = function() {
 
 		// Call get() on the 0th daq, since we only handle 1 device
 		// for an experiment right now.
-		var p = config.daqs[0].get();
+		var d = bt.devices.lookup(config.devices[0]);
+		var p = d.get();
 	    
 		// Handle the asynchronous result. 
 		p.then(function(response) {
@@ -188,11 +442,13 @@ bt.runnable = function() {
 		    bt.ui.log();
 
 		    if (response.result != "Success") {
-			bt.ui.error("Could not get() final data from device");
+			bt.ui.warning("Error 3: Could not get final data from device");
 		    }
 		    
 		}, function(error) {
-		    console.error("Failed", error);
+
+		    bt.ui.warning("Error 4: Could not get final data from device");
+		    bt.ui.info('The experiment is complete.');
 		});
 	    }
 	}
@@ -204,24 +460,23 @@ bt.runnable = function() {
 	    
 	    // Call get() on the 0th daq, since we only handle 1 device
 	    // for an experiment right now.
-	    var p = config.daqs[0].get();
+	    var d = bt.devices.lookup(config.devices[0]);
+	    var p = d.get();
 	    
 	    // Handle the asynchronous result. 
 	    p.then(function(response) {
-				
+		
+		console.log(response);
+
 		if (response.result != "Success") {
 
-		    // TODO.  If there's an unsuccessful response from
-		    // a device during the manage() function, more
-		    // work needs to be done to restablish a working
-		    // connection with the device.  Right now, it's
-		    // not enough to just log an error, but this will
-		    // let me know this TODO exists.
-		    bt.ui.error("Manager cannot get data from device.");
+		    bt.ui.warning("Error 1: Application is not receiving data from device.");
+		    config.onNoResponse(NO_DATA, config.devices[0], response);
 		}
 		
+		
 	    }, function(error) {
-		console.error("Failed", error);
+		config.onNoResponse(NO_RESPONSE, config.devices[0]);
 	    });
 	}	
     }
@@ -269,25 +524,31 @@ bt.runnable = function() {
      */
     bt.runnable.createExperiment = function(logging, devices, period, p_units, duration, d_units, action) {
     
-	var p = toSeconds(period, p_units);
-	var d = toSeconds(duration, d_units);
+	var per = toSeconds(period, p_units);
+	var dur = toSeconds(duration, d_units);
 
-	if(p === undefined) {
+	// An experiment's period is stored in a signed 16-bit
+	// variable on the Arduino UNO.  Thus, the maximum possible
+	// period on the DAQ is currently 2^15 - 1.  This maximum is
+	// enforced both by runnable.js and protocol.js.
+	var maximumPossiblePeriod = 32767;
+	
+	if(per === undefined) {
 	    bt.ui.error("The period must be an integer value greater than 0");
 	    return;
 	}
 	
-	else if(d === undefined) {
+	else if(dur === undefined) {
 	    bt.ui.error("The duration must be an integer value greater than 0");
 	    return;
 	}
 
-	else if(p > 30) {
-	    bt.ui.error("At this time, the period cannot exceed 30 seconds.");
+	else if(per > maximumPossiblePeriod) {
+	    bt.ui.error("At this time, the period cannot exceed " + maximumPossiblePeriod + " seconds.");
 	    return;
 	}
 
-	else if(d < p) {
+	else if(dur < per) {
 	    bt.ui.error("The duration must be greater than the period.");
 	    return;
 	}
@@ -314,8 +575,6 @@ bt.runnable = function() {
 		return;
 	    }
 	    
-	    var daqs = new Array();
-
 	    // Are all the devices enabled?
 	    for(var i = 0; i < devices.length; i++) {
 		var d = bt.devices.lookup(devices[0]);
@@ -324,21 +583,18 @@ bt.runnable = function() {
 	    	    bt.ui.error("Cannot configure a new experiment for " + devices[i] + ". It has not been enabled.");
 		    return;
 		}	    
-		 
-		// If the device is enabled, keep track of it in array
-		// of devices associated with the experiment that is
-		// about to be created.
-		else {
-		    daqs[i] = d;
-		}
 	    }
-	    
-	    // Determine the success message.
-	    var msg = d.path + ' has a configured period of ' + period + ' ' + p_units + ' with an experiment length of ' + duration + ' ' + d_units + '.';
+	 
+	 
 
 	    // TODO: Figure out how to call setup on an array of devices and chain the
 	    // promises together.
-	    var p = d.setup(period, duration);
+
+
+	    // Call setup on the device using the period and duration
+	    // values expressed in units of seconds.
+	    console.log("Setting up experiment for", per, dur);
+	    var p = d.setup(per, dur);
 	    
 	    // Handle the asynchronous result. 
 	    p.then(function(response) {
@@ -348,19 +604,20 @@ bt.runnable = function() {
 		    var result = {};
 		    
 		    result.logging = logging;
-		    result.daqs = daqs;
 		    result.devices = devices;
-		    result.p = p;
+		    result.p = per;
 		    result.period = period;
 		    result.p_units = p_units;
-		    result.d = d;
+		    result.d = dur;
 		    result.duration = duration;
 		    result.d_units = d_units;			
 		    
+
 		    // About to register a new experiment.  Clear the
-		    // experiment field on the previous daqs.
+		    // experiment field on the previous devices.
 		    if (bt.runnable.configuration != undefined) {
-			bt.runnable.configuration.daqs[0].experiment = false;
+			var prev = bt.devices.lookup(bt.runnable.configuration.devices[0]);
+			prev.experiment = false;
 		    }
 
 		    // Create the experiment object and assign it as the application's
@@ -368,9 +625,11 @@ bt.runnable = function() {
 		    bt.runnable.configuration = new bt.runnable.experiment(result);
 		    
 		    // Register the experiment with the device.
+		    var d = bt.devices.lookup(bt.runnable.configuration.devices[0]);
 		    d.experiment = true;
-		    console.log(d);
+		    console.log("Registering experiment with: ", d.path);
 
+		    var msg = d.path + ' has a configured period of ' + period + ' ' + p_units + ' with an experiment length of ' + duration + ' ' + d_units + '.';
 		    bt.ui.info(msg);
 
 		    var loggingMsg;

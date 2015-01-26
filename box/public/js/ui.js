@@ -216,18 +216,74 @@ bt.ui = function() {
 	var target = e.target;
 	var action = target.id
 
+    var currentExp = getSelectedExperiment();
+
 	if (action === 'trash') {
-	    bt.ui.clear(target);
+        if (currentExp === undefined) {
+            return;
+        }
+        bt.ui.clearDataTable();
+
+        //Don't delete experiments while others are running
+        if (bt.runnable.configuration != undefined && bt.runnable.configuration.running) {
+            bt.ui.error("Experiments cannot be deleted while an experiment is running.");
+            return;
+        }
+
+        //Clear the local data on delete
+        bt.local.removeExpName(currentExp);
+        bt.indexedDB.deleteExperiment(currentExp);
+
+        var selected = document.getElementsByClassName('selected');
+        for (var i = 0; i < selected.length; i++) {
+            if (selected[i].nodeName == "LI") {
+                selected[i].parentElement.removeChild(selected[i]);
+            }
+        }
+
 	}
 
 	else if(action === 'save') {
-	   
-	    // Get the data from the data window and
-	    // save it to a local file. 
-	    var data = bt.ui.getData();
-	    bt.data.save(data);
+        if (currentExp != undefined) {
+            bt.local.save(currentExp);
+        }
 	}
 
+    else if (action === 'upload') {
+        if (currentExp != undefined) {
+            bt.cloud.pushExperiment(currentExp);
+        }
+        bt.ui.info("Experiment pushed to server.");
+    }
+    };
+
+    
+    /** 
+     * getSelectedExperiment()
+     *
+     * Return the selected experiment that should be displayed in the
+     * data window.
+     *
+     * @return The name of the selected experiment. If there is no selected
+     * experiment, return undefined.
+     */
+    var getSelectedExperiment = function () {
+        var list =document.getElementById('exp_name_list');
+        var selected = list.getElementsByClassName('selected');
+        if (selected.length == 0) {
+            return undefined;
+        }
+        return selected[0].childNodes[0].data;
+    };
+
+    var getRunningExperiment = function () {
+        if (bt.runnable.configuration != undefined 
+                && bt.runnable.configuration.running) {
+            return bt.runnable.configuration.name;
+        }
+        else {
+            return undefined;
+        }
     }
 
     /**
@@ -242,7 +298,7 @@ bt.ui = function() {
 
 	 // Grab all of the devices that are currently "selected" so that
 	 // we can invoke the action on these devices.
-	 var objects = document.getElementsByClassName('selected');
+	 var objects = document.getElementById("local_devices_list").getElementsByClassName('selected');
 	 
 	 if (objects === undefined) {
 	     return undefined;
@@ -276,9 +332,10 @@ bt.ui = function() {
 	// Get the id of the target that was clicked and deploy
 	// the corresponding action.
 	var action = e.target.id
-	
-	var devices = getSelectedDevices();
 
+	// SECTION 1: EXPERIMENT-RELATED ACTIONS.
+
+	// CLEAR EXPERIMENT SETTINGS
 	// Clearing an experiment has nothing to do with devices, though
 	// it should not happen while an experiment is running.
 	if (action === 'clearexp') {
@@ -301,7 +358,40 @@ bt.ui = function() {
 		bt.ui.experiment();
 	    }
 		
+	    // All done.
+	    return;
 	}
+
+	// STOP 
+	// Stopping an experiment has nothing to do with devices,
+	// though it cannot happen if an experiment doesn't exist or
+	// isn't running.  It also cannot happen if an experiment is
+	// running pc-style logging.
+	else if (action === 'stop') {
+	    if (bt.runnable.configuration === undefined) {
+		bt.ui.error("There is no experiment currently configured.");
+	    }
+	    else if (!bt.runnable.configuration.running) {
+		bt.ui.error("The experiment is already stopped.");
+	    }
+	    else if (bt.runnable.configuration.logging === 'pc') {
+		bt.ui.error("Experiments with desktop-style logging may not be stopped.");
+	    }
+	    else {
+		
+		bt.ui.info("Stopping the experiment...");
+		// Stop the experiment.
+		bt.runnable.configuration.stop();
+	    }
+	    
+	    // All done.
+	    return;
+
+	}
+
+	// SECTION 2: DEVICE-RELATED ACTIONS.
+
+	var devices = getSelectedDevices();
 
 	// Did somebody forget to select a device?
 	// If so, one cannot continue.
@@ -312,6 +402,8 @@ bt.ui = function() {
 	// Right now, we can only do 1 device at a time.  Make sure the
 	// user has only selected 1 device.
 	else if (devices.length > 1) {
+	    console.log("Please choose only one device bug?");
+	    console.log(devices);
 	    bt.ui.error("Please choose only one device.");
 	}
 
@@ -349,6 +441,18 @@ bt.ui = function() {
 		    bt.ui.error("No experiment has been configured.");
 		}
 		else {
+            var d = new Date();
+            var seconds = d.getSeconds();
+            var minutes = d.getMinutes();
+            var hours = d.getHours();
+            var date = d.getDate();
+            date++;
+            var month = d.getMonth();
+            var year = d.getFullYear();
+
+            var timestamp = month + "-" + date + "-" + year + "_" + hours + ":" + minutes + ":" +seconds;
+            bt.indexedDB.addExperiment(timestamp);
+            bt.runnable.configuration.name = timestamp
 		    bt.runnable.configuration.start();
 		}
 
@@ -387,6 +491,7 @@ bt.ui = function() {
 
     };
 
+    
     /**
      * addNode()
      * 
@@ -429,6 +534,63 @@ bt.ui = function() {
 
 	return;
     }
+
+    /**
+     * addDataTableNode()
+     * 
+     * Creates a new row in the data table. This function assumes
+     * that the data comes in from the DAQ in the comma seperated
+     * value format. It parses it up and sticks the appropriate data
+     * into the appropriate slots.
+     *
+     * @param text The text to add to the datatable
+     * @param logToDB If true or undefined, will be logged to the
+     *        indexedDB, if false it will just be added to the table
+     */
+    var addDataTableNode = function(text, logToDB) {
+    
+    var exp;
+    if (bt.runnable.configuration != undefined && 
+            bt.runnable.configuration.running) {
+        exp = getRunningExperiment();
+    }
+    else {
+        exp = getSelectedExperiment();
+    }
+
+    //If exp is undefined, then it there is no experiment and
+    //the user must just be testing the daq
+    if (exp == undefined) {
+        return;
+    }
+    if (logToDB === undefined || logToDB === true) {
+        bt.indexedDB.addMeasurementToExp(exp,text);
+    }
+
+    //Get a handle to the data table body
+	var dataTableBody = document.getElementById("data_table_body");
+
+
+	if(dataTableBody == undefined) {
+	    console.log("Cannot get data_table_body"); 
+	}
+    
+    //Parse the datum into an array
+    text = lineno + ',' +text;
+    lineno++;
+    var dataArr = text.split(',');
+
+    var tr = document.createElement("TR");
+    dataTableBody.appendChild(tr);
+
+    //Put the data into the appropriate table slots
+    dataArr.forEach(function(d) {
+        var td = document.createElement("TD");
+        td.innerText = d;
+        tr.appendChild(td);
+    });
+	
+    };
 
     // ************************************************************************
     // Methods provided by this module, visible to others via 
@@ -556,28 +718,31 @@ bt.ui = function() {
     /**
      * indicate()
      *
-     * Indicate the device with pathname, 'path', with the supplied state.  These
-     * are the possible states:
+     * Indicate the device with pathname, 'path', with the supplied
+     * state.  These are the possible states:
      *
-     * connected: The DAQ is connected to the application.  A dark, filled circle
-     *            appears to the left of the device.
+     * connected: The DAQ is connected to the application.  A dark,
+     *            filled circle appears to the left of the device.
      *
-     * disconnected:  The DAQ is registered with the application, but currently
-     *                not connected due to some problem that needs resolution.
-     *                An unfilled circle appears to the left of the device.
+     * disconnected: The DAQ is registered with the application, but
+     *                currently not connected due to some problem that
+     *                needs resolution.  An unfilled circle appears to
+     *                the left of the device.
      *
-     * experiment:    The DAQ is configured with an experiment.  An (e) appears
-     *                to the right of the device.
+     * experiment: The DAQ is configured with an experiment.  An (e)
+     *                appears to the right of the device.
      *
-     * disabled:      The DAQ is not connected to the application intentionally.
-     *                The device has no decoration.
+     * disabled: The DAQ is not connected to the application
+     *                intentionally.  There is no object for this
+     *                device; the device has no decoration.
      * 
-     * clear:         The DAQ is not configured with an experiment.  No (e) appears
-     *                to the right of the device.
+     * clear: The DAQ is not configured with an experiment.  No (e)
+     *                appears to the right of the device.
      *
      * @param path The pathname associated with the device.  
      *
-     * @param state The string 'disconnected', 'connected', 'registered', 'removed', or 'experiment'.
+     * @param state The string 'disconnected', 'connected',
+     * 'disabled', 'clear', or 'experiment'.
      *
      */
     bt.ui.indicate = function(path, state) {
@@ -642,23 +807,17 @@ bt.ui = function() {
     bt.ui.log = function(datum) {
 
 	if(datum === undefined) {
-
-	    // Grab the unique selector
-	    var s = document.getElementById('data_list');
-
-	    if(s == undefined) {
-		console.log("Cannot get " + sel); 
-	    }
-
-	    // Create an empty <li> element 
-	    var hr = document.createElement("HR");
-	    s.appendChild(hr);
+        // Now that the datatable is being used, this
+        // if statement is only used for gobbling up an
+        // undefined datum passed into this function
 	}
 	
 	else {
-	    addNode('data_list', lineno + ',' + datum, 'data');
-	    lineno++;
-	    infoWindows['data_window'].scroll();
+	    addDataTableNode(datum);
+
+        //scroll the data table to the bottom of the div
+	    var dataDiv = document.getElementById("exp_data_div");
+        dataDiv.scrollTop = dataDiv.scrollHeight;
 	}
 
 	return;
@@ -678,6 +837,22 @@ bt.ui = function() {
 
 	return;
     };
+
+
+    /**
+     * warning()
+     * 
+     * Display a warning message, m, to the user.
+     *
+     * @param m The message to display.
+     */
+    bt.ui.warning = function(m) {
+	addNode('alerts_list', m, 'warning');	
+	infoWindows['alerts'].scroll();
+
+	return;
+    };
+
 
     /**
      * info()
@@ -757,6 +932,71 @@ bt.ui = function() {
     };
 
     /**
+     * clearDataTable()
+     *
+     * Clears the text in the data window.
+     *
+     */
+    bt.ui.clearDataTable = function () {
+        var dt = document.getElementById("data_table");
+        var tb = document.getElementById("data_table_body");
+        var newTb = document.createElement("tbody");
+        newTb.id = "data_table_body";
+        dt.replaceChild(newTb,tb);
+    };
+    
+    /**
+     * selectExperiment()
+     *
+     * When an experiment in the experiments list is clicked, toggle its
+     * class between "selected" and "unselected". This function is used to
+     * determine what experiment is active and should be displayed.
+     */
+    bt.ui.selectExperiment = function(e) {
+    
+    var lastExpSelected = undefined;
+
+    if (e.target.tagName != "LI") {
+        return;
+    }
+
+    // get the name of the selected experiment. The idea behind
+    // the aproach of seleting the child nodes is to avoid
+    // getting the save and delete buttons in the string
+    if (e.target.childNodes != undefined) {
+        lastExpSelected = e.target.childNodes[0].data;   
+    }
+
+    // Don't allow selecting an experiment while another is running
+    if (bt.runnable.configuration != undefined &&
+            bt.runnable.configuration.name != lastExpSelected &&
+            bt.runnable.configuration.running) {
+        bt.ui.error("Cannot select another experiment, while a current one is running.");
+        return;
+    }
+
+    lineno = 0;
+    if (e.target.childNodes !== undefined) {
+        bt.ui.clearDataTable();
+
+        bt.indexedDB.getExperiment(lastExpSelected, function(lines) {
+            for (var i = 0; i < lines.length; i++) {
+                //Add to the table, but don't select this experiment
+                addDataTableNode(lines[i], false);
+            }
+        });
+    }
+
+    // Deselect any experiments that may be selected
+	var list = document.getElementById('exp_name_list').getElementsByTagName('li');
+	for(var i = 0; i < list.length; i++) {
+	    list[i].classList.remove("selected");
+	}
+
+	e.target.classList.toggle("selected");
+    };
+
+    /**
      * getData()
      *
      * Slurp all the data currently logged to the data window and
@@ -784,4 +1024,3 @@ bt.ui = function() {
 
 // Invoke module.
 bt.ui();
-

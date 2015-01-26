@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="data.js"></script>
+<script>
+function add() {
+    data.indexedDB.addExperiment("name", "test");
+
+}
+function get() {
+    var dat = data.indexedDB.getExperiment("name", function(exp) {
+        console.log(exp);
+    });
+}
+function del() {
+    data.indexedDB.deleteExperiment("name");
+}
+function addLine() {
+    data.indexedDB.addMeasurementToExp("name", "hi");
+}
+</script>
+</head>
+
+<body onload="data.indexedDB.open()">
+
+<button type="button" onclick="test()">Click Me!</button>
+
+</body>
+</html>
