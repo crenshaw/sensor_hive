@@ -1,7 +1,12 @@
 {
     "require": {
-        "silex/silex": "~1.1",
-        "symfony/yaml" : "2.3.*"
+        "symfony/yaml" : "2.3.*",
+        "silex/silex": "~1.2",
+        "twig/twig": ">=1.8,<2.0-dev",
+        "symfony/form": "*@stable",
+        "symfony/locale": "*@stable",
+        "symfony/twig-bridge": "*@stable",
+        "symfony/security": "*@stable"
     },
     "require-dev": {
         "pdepend/pdepend": "*@stable",

@@ -15,6 +15,27 @@ $config = $yaml->parse(file_get_contents(__DIR__ . "/../config/local.yml"));
 //Silex Application which will handle routing
 $app = new Application();
 
+$app['debug'] =true;
+
+//Register twig service provider (render engine)
+$app->register(new Silex\Provider\TwigServiceProvider(), array(
+    'twig.path' => __DIR__ . '/../views',
+));
+
+//Register Security provider (Temporary until a custom provider is designed)
+$app->register(new Silex\Provider\SecurityServiceProvider());
+
+$app['security.firewalls'] = array(
+    'admin' => array(
+        'pattern' => '^/api/addUser',
+        'http' => true,
+        'users' => array(
+            // raw password is foo
+            'admin' => array('ROLE_ADMIN', '5FZ2Z8QIkA7UTZ4BYkoC+GsReLf569mSKDsfods6LYQ8t+a8EW9oaircfMpmaLbPBh4FOBiiFyLfuZmTSUwzZg=='),
+        ),
+    ),
+);
+
 //Database Manager to handle DB interaction
 $dbm = new DatabaseManager();
 
@@ -65,8 +86,12 @@ $app->get('/api/experiments/names', function() use($app, $dbm) {
     return $app->json($result, 200);
 });
 
+$app->post('/api/addUser', function (Request $request) use ($app, $dbm) {
+   return $app->json('woohoo', 200);
+});
+
 $app->get('/', function() use($app) {
-    return $app->redirect(__DIR__ . '/index.html');
+    return $app['twig']->render('index.twig');
 });
 
 $app->after(function (Request $request, Response $response) {
