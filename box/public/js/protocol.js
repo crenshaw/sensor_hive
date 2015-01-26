@@ -25,6 +25,8 @@ bt.protocol = function() {
     // ************************************************************************
     // Variables local to this module.
     // ************************************************************************
+    var commandElement = 0;
+
     var ct = "!;"  // The command terminator
 
     // Identify the position of these common tokens in responses.
@@ -69,24 +71,33 @@ bt.protocol = function() {
 	this.last.type = "unknown";
 	this.last.address = -1;
 
-	// The last time this device got a response.
-	this.lasttime = -1;
+	// The last time each port on this device got a response.  For
+	// now, I shall assume that the maximum number of ports on a
+	// DAQ is 6 (where counting begins at 1).  At the start, a DAQ
+	// has 6 ports that have never reported to the application.
+	// Use -1 to indicate "never".
+	this.lasttime = [-1, -1, -1, -1, -1, -1, -1];
 
 	// The number of times the device has responded to the last
 	// command.  For many commands, the device only responds once.
 	// In others, there may be many responses to one command.
 	this.count = 0;
+
+	// Each protocol object keeps track of the commands to be
+	// issued to the underlying device in the commandQueue.
+	this.commandQueue = new Array();
     }
 
     /* 
      * To utilize a communication protocol for the devices in the SCIO
      * system, the following methods must be implemented.
      *
-     * configurePeriod(n)
-     * acknowledge(a)
+     * configurePeriod(n) 
+     * acknowledge(a) 
      * getMeasurements(n).  
      * startMeasurements()
      * getLoggedData()
+     * stop()
      *
      */
 
@@ -95,6 +106,7 @@ bt.protocol = function() {
     bt.protocol.miniSDI12.prototype.getMeasurements = getMeasurements;
     bt.protocol.miniSDI12.prototype.startMeasurements = startMeasurements;    
     bt.protocol.miniSDI12.prototype.getLoggedData = getLoggedData;
+    bt.protocol.miniSDI12.prototype.stop = stop;
 
     bt.protocol.miniSDI12.prototype.send = send;
     bt.protocol.miniSDI12.prototype.parse = parse;
@@ -103,10 +115,10 @@ bt.protocol = function() {
     /**
      * acknowledge()
      *
-     * This method issues a command to the underlying miniSDI-12 device
-     * to ask for an acknowledgement of a given address, 'a', on the 
-     * device.  On miniSDI-12 devices, 0 is the DAQ and numbers 1..n
-     * represent various ports.
+     * This method issues an `A` command to the underlying miniSDI-12
+     * device to ask for an acknowledgement of a given address, 'a',
+     * on the device.  On miniSDI-12 devices, 0 is the DAQ and numbers
+     * 1..n represent various ports.
      *
      * @param a The address to send an acknowledgement.  The address
      * must be a number between 0 and 3 inclusive.
@@ -125,7 +137,7 @@ bt.protocol = function() {
     /**
      * configurePeriod()
      *
-     * This method issues a command to the underlying miniSDI-12
+     * This method issues a `P` command to the underlying miniSDI-12
      * device to configure its period to 'n', where 'n' is expressed
      * in seconds.
      *
@@ -136,7 +148,14 @@ bt.protocol = function() {
      */
     function configurePeriod(n) {
 
-	if (typeof(n) === 'number' && n >= 1 && n <=30) {
+
+	// An experiment's period is stored in a signed 16-bit
+	// variable on the Arduino UNO.  Thus, the maximum possible
+	// period on the DAQ is currently 2^15 - 1. This maximum is
+	// enforced both by runnable.js and protocol.js.
+	var maximumPossiblePeriod = 32767;
+
+	if (typeof(n) === 'number' && n >= 1 && n <= maximumPossiblePeriod) {
 	    var command = "0P" + n + ct;
 	    return this.send(command, 0, "P", n);
 	}
@@ -145,7 +164,7 @@ bt.protocol = function() {
 	    return new Promise(function(resolve, reject) {
 		var ro = new bt.protocol.response();
 		ro.type = "NA";
-		ro.result = "Fail";
+		ro.result = "Badly Formed Command";
 		reject(ro);	
 	    });
 	}
@@ -154,7 +173,7 @@ bt.protocol = function() {
     /**
      * startMeasurements()
      *
-     * This method issues a command to the underlying miniSDI-12
+     * This method issues an `M` command to the underlying miniSDI-12
      * device to start taking measurements.
      *
      */
@@ -168,7 +187,7 @@ bt.protocol = function() {
     /** 
      * getMeasurements()
      * 
-     * This method issues a command to the underlying miniSDI-12 device
+     * This method issues an `R` command to the underlying miniSDI-12 device
      * to get 'n' measurements.  The measurements are reported without
      * explicitly asking for them, i.e. "continuous mode."
      *
@@ -186,7 +205,7 @@ bt.protocol = function() {
     /** 
      * getLoggedData()
      * 
-     * This method issues a command to the underlying miniSDI-12 device
+     * This method issues a `D` command to the underlying miniSDI-12 device
      * to get all data currently backed up to the device itself.
      *
      */
@@ -195,6 +214,22 @@ bt.protocol = function() {
 	var command = "0D0" + ct;
 	return this.send(command, 0, "D");	
     }
+
+
+    /**
+     * stop()
+     * 
+     * This method issues a break command to the underlying miniSDI-12
+     * device to get the device to stop its current M-style
+     * experiment.
+     */
+    function stop() {
+
+	var command = "    " + ct;
+	return this.send(command, 0, "B");
+    }
+     
+
 
     /**
      * parse(s)
@@ -302,9 +337,21 @@ bt.protocol = function() {
 		// are undistinguishable, but mean fairly
 		// the same thing.  Just use one type, for now.
 		else if (ro.a === 0) {
+
 		    ro.type = 'B';
-		    ro.result = "Abort";
 		    ro.terminated = true;
+
+		    // If this last command issued was a break command,
+		    // then this is the appropriate, and successful
+		    // response to a break command.
+		    if(ro.last.type === 'B') {
+			ro.result = "Success";
+		    }
+		    // Otherwise, something bad has happened.
+		    else {
+			console.log("Abort response!");
+			ro.result = "Abort";
+		    }
 		}
 		    
 	    }
@@ -404,34 +451,153 @@ bt.protocol = function() {
      * send()
      *
      * This method sends the physical device the supplied command.
+     * The optional parameters of send() help to articulate the nature
+     * of the command.
+     *
+     * For example to send `0D0!;` requires:
+     *
+     * c = "0P5"
+     * a = 0
+     * type = "P'
+     * n = 5
      *
      * @param c The command to send.
      *
+     * @param a The address used in the command.
+     *
      * @param type The type of command being sent.
+     *
+     * @param n The n-value used in the command (optional).
+     *
+     * @returns A promise that will be resolved when the response to
+     * the command is received.  The promise is rejected when the
+     * response times out.
+
      */
     function send(c, a, type, n){
 
-	this.last.command = c;
-	this.last.address = a;
-	this.last.type = type;
-	this.last.n = n;
+	console.log("Send()", c, a, type, n, this.path);
+	
+
+	// I can only send to the underlying device if:
+	//
+	// 1) The device is connected. A device is connected if its
+	// corresponding protocol object (this) has connection
+	// information that is a well-defined object.
+	//
+	// AND
+	//
+	// 2) The last command that was transmitted got a response.
+	//
+	// If the underlying device is not connected, that's 
+	// bad.  Return a rejected promise.
+	if (this.ci === undefined) {
+	    
+	    return new Promise(function(resolve, reject) {
+		var ro = new bt.protocol.response();
+		ro.type = "NA";
+		ro.result = "Not Connected";
+		reject(ro);	
+	    });
+	    
+	}
+
+	// OTHERWISE: I'm connected.  Now, affirm that the last command
+	// that was transmitted got a response.  
+	else {
+
+	    var cmd = new command(c,a,type,n);
+	    this.commandQueue.unshift(cmd);
+
+	    // Get a command from the tail of the command queue.
+	    var next = this.commandQueue.pop();	    
+
+	    // Did we pop what was just pushed?
+	    if(cmd.element === next.element) {
+		return sendHelper.call(this, next);
+	    }
+	    else {
+		return new Promise(function(resolve, reject) {
+		    console.log("protocol.js:  Command queue was overrun!");
+		    var ro = new bt.protocol.response();
+		    ro.type = "NA";
+		    ro.result = "Overrun";
+		    reject(ro);	
+		});
+		
+	    }
+	}
+    }
+
+    /** 
+     * sendHelper()
+     *
+     * This method, not public in the protocol object, transmits a
+     * command to an underlying device.
+     */
+    function sendHelper(cmd) {
+
+	//console.log(this);
+
+	this.last.command = cmd.c;
+	this.last.address = cmd.a;
+	this.last.type = cmd.type;
+	this.last.n = cmd.n;
+	
+	// Keep track of the last period value issued to the device 
+	if(this.last.type === "P") {
+	    this.last.period = cmd.n;
+	}
 	
 	// Log the raw serial command to the debug serial console.
-	bt.ui.serial(c);
+	bt.ui.serial(cmd.c);
 
 	// Create a message and place it in an ArrayBuffer.
-	var data = str2ab(c);	
+	var data = str2ab(cmd.c);	
 
-	var id = this.ci.connectionId;
+	// Declare some variables for the closure below.
+	var id = this.ci.connectionId;	
+	var last = this.last;
+	var sendInterval;
+	var d = this;
 	
 	// Every invocation of send() returns a new Promise.
 	return new Promise(function(resolve, reject) {
 
-	    // TODO: Put reject up here and set it for a reasonable
-	    // amount of time in which to expect a response.  If
-	    // there's timeout?.... I think that works, but I need to
-	    // read some more.
-    
+	    // I send a command and I expect a response in a certain
+	    // amount of time.  If I don't get a response, then I need
+	    // to reject this promise.
+	    var duration = 4000;
+
+	    // How long before I expect a response.  For R-style commands
+	    // this is a long time, but otherwise, it's pretty quick.
+	    if (last.type === "R") {
+		
+		// This might be a refresh command, 0R1:
+		if (last.n == 1) {
+		    duration = 1000;
+		}
+		// Otherwise, it's a longer experiment:
+		else {
+
+		    //There is some issue with the timer that the experiment
+		    //runs for 14/15 of the time the user sets it up to, so
+		    //multiplying the duration by 15/14 is a way to get around
+		    //this issue.
+		    duration = last.period * last.n * 1000 * (15/14);
+		}
+	    }
+
+	    // Set a timer to reject the promise in `duration`
+	    // milliseconds.
+	    sendInterval = setTimeout(function(){
+		var ro = new bt.protocol.response();
+		ro.type = "NA";
+		ro.result = "No Response";
+		reject(ro);	
+	    }, duration);
+
+	    
 	    chrome.serial.send(id, data, function(sendInfo) { });
 	    
 	    /**
@@ -487,14 +653,18 @@ bt.protocol = function() {
 		    bt.ui.serial(ro.raw);
 
 		    // Set the timestamp for "the last time we heard a
-		    // data report from the device."  Since the clock
-		    // on the desktop is not synchronized with the
-		    // clock on the device, I think it's best to use
-		    // the timestamp provided by the device.
+		    // data report from the particular address on the
+		    // device."  Since the clock on the desktop is not
+		    // synchronized with the clock on the device, I
+		    // think it's best to use the timestamp provided
+		    // by the device.
 		    if(ro.type === "D" || ro.type === "R") {
-			
-			if(ro.time > this.lasttime) {
-			    this.lasttime = ro.time;
+		
+			// If the time on the response is newer than the
+			// lasttime we heard from this particular address,
+			// then save this new time and log the data.
+			if(ro.time > this.lasttime[ro.a]) {
+			    this.lasttime[ro.a] = ro.time;
 
 			    // Moreover, log this data here, so that only
 			    // the freshest data is logged to the UI.  Some of
@@ -513,16 +683,9 @@ bt.protocol = function() {
 		    // We got a response from the command.  Resolve
 		    // the promise with the response object.
 		    if (ro.terminated == true) {
+			clearTimeout(sendInterval);
 			resolve(ro);
 		    }
-		}
-
-		// TODO: I need a proper error condition for handling
-		// the case where the promise is not fulfilled.  Right
-		// now, let's pretend a really long response is a
-		// reject case.
-		else if (this.response.length > 100) {
-		    reject(Error("reponse error")); 
 		}
 
 	    } // end receive()
@@ -536,6 +699,45 @@ bt.protocol = function() {
 	}); // end return new Promise()
     }
 
+    // *** COMMAND OBJECT DEFINITION ***
+
+    /**
+     * command()
+     * 
+     * This objects represents commands issued to the miniSDI-12
+     * device.
+     *
+     * To initialize an instance of this object requires:
+     *
+     * @param c The string representing the raw command.
+     *
+     * @param a The address used in the command, likely 0.
+     *
+     * @param type The type of command:
+     *
+     *     B - Break Response
+     *     A - Acknowledge Active
+     *     P - Configure Period
+     *     R - Continuous Measurement
+     *     M - Start Measurement
+     *     D - Get Data
+     *
+     * @param n The n-value used in the command.
+     *
+     */
+    function command(c, a, type, n) {
+	
+	this.c = c;
+	this.a = a;
+	this.type = type;
+	this.n = n;
+
+	// Provide a number to this command.
+	this.element = commandElement++;
+
+	// Mark this command as having no response received.
+	this.responseReceived = false;
+    };
 
 
     // *** RESPONSE OBJECT DEFINITION ***

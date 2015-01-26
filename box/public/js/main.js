@@ -30,8 +30,14 @@ bt.main = function() {
 	bt.ui.initialize();
 	bt.devices.initialize();
 
-	// Open the local database, creating the table if necessary.
-	bt.data.open();
+	// Open the local database
+	bt.indexedDB.open();
+    //TODO populate experiment list
+    bt.local.getExpNames(function (names) {
+        for (var i = 0; i < names.length; i++) {
+            bt.indexedDB.addToExpList(names[i]);
+        }
+    });
 
 	// Scan for local devices.
 	bt.devices.scan();	

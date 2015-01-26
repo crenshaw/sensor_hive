@@ -1,200 +1,390 @@
 /**
  * data.js
- * 
- * Defines the packaged app's functionality for locally storing data
- * (offline) received from local devices.
  *
+ * Description: Contains a set of functions that store information into
+ * the host computer's memory. The data structures used are the HTML5 
+ * indexed database and Chrome local storage.
+ *
+ * IndexedDB is a transactional asynchronous API, meaning that lots of
+ * callback functions are needed. There is a synchronous API, but no major
+ * browser implements it yet.
+ *
+ * @author Erik Paulson
+ * @since 10/6/2014
  */
 
-// Extend the namespace
+
+//Create namespaces
 var bt = bt || {};
-bt.data = {};
+
+bt.indexedDB = {};
+bt.local = {};
 
 /**
- * data()
- * 
- * Define the data module.
- * 
+ * indexedDB()
+ *
+ * Define the user interface module.
+ *
  */
-bt.data = function() {
-
-    // The intention of this approach is to be framework-agnostic
-    // and to avoid namespace pollution by encapsulating the contents of 
-    // the module in a function called bt.data().
-
-    // ************************************************************************
-    // Variables local to this module.
-    // ************************************************************************
-    var localDB = null;
-
-    // ************************************************************************
-    // Methods local to this module.
-    // ************************************************************************
-
-    onerror = function(e) {
-	console.log(e.value);
-    }
-
-    /**
-     * addData()
-     *
-     * Add some data to the database.
-     */
-    addData = function(data) {
-
-	// Get a handle to the local database.
-	var db = localDB;
-
-	// Construct a well-formed request to the local database.
-	var trans = db.transaction(["todo"], "readwrite");
-	var store = trans.objectStore("todo");
-	var request = store.put({
-	    "text" : data,
-	    "timeStamp" : new Date().getTime()
-	});
-
-	// Set the onsuccess callback function for 
-	// the request we've prepared.
-	request.onsuccess = function(e) {
-	    getData();
-	};
-
-	// Set the onerror callback function for
-	// the request we've prepared.
-	request.onerror = onerror;
-    };
-
-    /**
-     * getData()
-     *
-     */
-    getData = function() {
-
-	// Get a handle to the data window and clear it.
-	var data = document.getElementById('data_list');
-	data.innerHTML = "";
-
-	// Get a handle to the local database
-	var db = localDB;
-	var trans = db.transaction(["todo"], "readwrite");
-	var store = trans.objectStore("todo");
-
-	// Get everything in the store.
-	var keyRange = IDBKeyRange.lowerBound(0);
-	var cursorRequest = store.openCursor(keyRange);
-
-	// Set the onsuccess callback function for this
-	// request.
-	cursorRequest.onsuccess = function(e) {
-	    var result = e.target.result;
-	    if(!!result == false)
-		return;
-	    renderData(result.value);
-	    result.continue();
-	};
-
-	// Set the onerror callback function for this
-	// request.
-	cursorRequest.onerror = onerror;
-    }
-
-
-    /**
-     * renderData()
-     *
-     */
-    function renderData(row) {
-
-	// Get a handle to the data window.
-	var data = document.getElementById('data_list');
-
-	 var li = document.createElement("li");
-	var a = document.createElement("a");
-	var t = document.createTextNode();
-	t.data = row.text;
-
-	a.addEventListener("click", function(e) {
-	    html5rocks.indexedDB.deleteTodo(row.text);
-	});
-
-	a.textContent = " [Delete]";
-	li.appendChild(t);
-	li.appendChild(a);
-	data.appendChild(li);
-    }
-
-    // ************************************************************************
-    // Methods provided by this module, visible to others via 
-    // the bt namespace.
-    // ************************************************************************
+bt.indexedDB = function () {
+    //A reference to the database
+    bt.indexedDB.db = null;
 
     /**
      * open()
      *
-     * Open the local database, creating the table if necessary.
-     *
-     * Based on tutorial found at: 
-     *   http://www.html5rocks.com/en/tutorials/indexeddb/todo/
+     * Opens the connection to indexedDB. This function must be called
+     * before you can interact with the database.
      */
-    bt.data.open = function() {
-	var version = 1;
-	var request = indexedDB.open("todos", version);
-	
-	// Create an object store in a 'versionchange' transaction.
-	// If the open request is successful, and the database's
-	// version is higher than the existing database's version, the
-	// onupgradeneeded callback is executed.
-	//
-	// NOTE: This callback is the *only place* in our code were
-	// one may alter the structure of the database.
-	request.onupgradeneeded = function(e) {
-	    var db = e.target.result;
+    bt.indexedDB.open = function () {
+        var request = indexedDB.open("experiments", 1);
 
-	    e.target.transaction.onerror = onerror;
+        //onupgradeneeded is the only place where you can change
+        //the schema of the database
+        request.onupgradeneeded = function(e) {
 
-	    if(db.objectStoreNames.contains("todo")) {
-		db.deleteObjectStore("todo");
-	    }
+            var db = e.target.result;
 
-	    var store = db.createObjectStore("todo", {keyPath: "timeStamp"});
-	};
+            //TODO Add an error handler
+            //e.target.transaction.onerror = bt.indexedDB.onerror;
 
-	request.onsuccess = function(e) {
-	    localDB = e.target.result;
-	    // getData();
-	};
+            if (db.objectStoreNames.contains("experiments")) {
+                db.deleteObjectStore("experiments");
+            }
 
-	request.onerror = onerror;
+            var store = db.createObjectStore("experiments", {keyPath: "name"});
+        };
+
+        //On succesfully opening the database, initialize the handle
+        request.onsuccess = function(e) {
+            bt.indexedDB.db = e.target.result;
+        };
+    };
+
+    /**
+     * getExperiment()
+     *
+     * Retrieves the array of readings which constitutes an experiment
+     *
+     * @param expName The name of the experiment to retrieve
+     * @param callback A callback function which operates on the retrieved
+     *        experiment.
+     */
+    bt.indexedDB.getExperiment = function (expName, callback) {
+        var db = bt.indexedDB.db;
+        // Only need to do a readonly for getting experiments
+        // readonly is a lot faster (according to the Internet).
+        var trans = db.transaction(["experiments"], "readonly");
+        var store = trans.objectStore("experiments");
+
+        var request = store.get(expName);
+
+        request.onerror = function (e) {
+            console.log("Error accessing experiment: " + expName);
+            return;
+        };
+
+        request.onsuccess = function(e) {
+            // I'm not sure why the error callback isn't called in this
+            // case, but this works.
+            if (request.result == undefined) {
+                console.log(expName + " not found in local btbase.");
+                return;
+            }
+            //Execute the callback on the experiment's array
+            callback(request.result.measurements);
+        };
+
+    };
+
+    /**
+     * addExperiment()
+     *
+     * Adds a new experiment to the database.
+     *
+     * @param name The name of the experiment to add
+     */
+    bt.indexedDB.addExperiment = function (name) {
+        var db = bt.indexedDB.db;
+        var trans = db.transaction(["experiments"], "readwrite");
+        var store = trans.objectStore("experiments");
+
+        var request = store.put({
+            "name": name,
+            "measurements": []
+        });
+
+        trans.oncomplete = function(e) {
+            console.log(name + " added to database.");
+            //Save the experiment's name in the localstore
+            bt.local.saveExpName(name);
+
+            var expListElements = document.getElementById('exp_name_list').getElementsByTagName('li');
+            for (var i =0; i < expListElements.length; i++) {
+                expListElements[i].classList.remove("selected");
+            }
+
+            bt.indexedDB.addToExpList(name,true);
+        };
+
+        request.onerror = function (e) {
+            console.log(e.value);
+        };
+    };
+
+    /**
+     * addToExpList()
+     *
+     * Adds an entry in the experiment list for a given experiment.
+     *
+     * @param name The name of the experiment to add.
+     * @param isSelected if true, simulate clicking on this experiment
+     *      to select it
+     */
+    bt.indexedDB.addToExpList = function(name, isSelected) {
+            var expList = document.getElementById("exp_name_list");
+
+            var li = document.createElement("li");
+
+            li.onclick = bt.ui.selectExperiment;
+
+            // Select an experiment when it gets added to the list
+            var expListElements = document.getElementById('exp_name_list').getElementsByTagName('li');
+            for (var i =0; i < expListElements.length; i++) {
+                expListElements[i].classList.remove("selected");
+            }
+            li.textContent = name;
+            expList.appendChild(li);
+
+            //Simulate a click on the experiment listing
+            if (isSelected == true) {
+                li.click();
+            }
+
+    };
+
+    /**
+     * addMeasurementToExp()
+     *
+     * Adds a data reading to an experiment in the indexedDB.
+     *
+     * @param expName The name of the experiment to add to
+     * @param measurement The line of text to add to the database
+     *
+     */
+    bt.indexedDB.addMeasurementToExp = function (expName, measurement) {
+	// First, let's send our data to the cloud if the user
+    // wants it there
+    if (document.getElementById('cloud_storage').checked) {
+	    bt.cloud.postMeasurement(expName, measurement);
+    }
+
+	// Now, let's locally back it up
+        var db = bt.indexedDB.db;
+        var trans = db.transaction(["experiments"], "readwrite");
+        var store = trans.objectStore("experiments");
+
+        var request = store.get(expName);
+        request.onerror = function (e) {
+            console.log("Error accessing experiment: " + expName);
+            return undefined;
+        };
+
+        request.onsuccess = function (e) {
+            //Fetch the experiment's data and append the new line to it
+            var data = request.result;
+            data.measurements.push(measurement);
+            
+            //Push it to the database
+            var requestUpdate = store.put(data);
+
+            //Logging callbacks
+            requestUpdate.onerror = function(e) {
+                console.log("Error updating experiment: " + expName);
+            };
+            requestUpdate.onsuccess = function(e) {
+		// TLC: Omitting this logging element because it crowds the
+		// log during long-term experiments.
+                // console.log("Experiment "  + expName + " successfully updated.");
+            };
+        };
     };
 
 
     /**
-     * save()
+     * deleteExperiment()
      *
-     * Given the data, 'data', download it locally as a .csv file.
+     * Deletes an experiment from the indexed DB
+     *
+     * @param expName The name of the experiment to delete
      *
      */
-    bt.data.save = function(data) {
+    bt.indexedDB.deleteExperiment = function(expName) {
+        var db = bt.indexedDB.db;
+        var trans = db.transaction(["experiments"], "readwrite");
+        var store = trans.objectStore("experiments");
+
+        var request = store.delete(expName);
 
 
-	// Encode the data.
-	console.log(data);
+        //Logging callback
+        trans.oncomplete = function(e) {
+            console.log(expName + " succesfully deleted from database.");
+        };
+        request.onerror = function (e) {
+            console.log(e);
+            console.log("Error deleting database entry: " + expName);
+        };
+    };
 
-	/*
-	  Super janky, but it works.
-	*/
-	var link = document.getElementById('save_link');
-	console.log(link);
-	link.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(data);
-	var evt = document.createEvent("HTMLEvents");
-	evt.initEvent('click', true, true ); // event type,bubbling,cancelable
-	return !link.dispatchEvent(evt);
-	
-	
-    }
+    };
 
-} // end bt.data module
+bt.cloud = function() {
 
+    /**
+     * pushExperiment()
+     *
+     * Pushes the experiment to the cloud.
+     *
+     * @param expName The name of the experiment to push
+     * @param expString The full text of the experiment to push
+     */
+    bt.cloud.pushExperiment = function(expName, expString) {
 
-// Invoke module.
-bt.data();
+        //Retrieve the experiment from indexedDB
+        bt.indexedDB.getExperiment(expName, function (storedExp) {
+            for (var i = 0; i < storedExp.length; i++) {
+                bt.cloud.postMeasurement(expName, storedExp[i]);
+            }
+        });
+    };
+
+    bt.cloud.postMeasurement = function(expName,expString) {
+    var dataArr = expString.split(',');
+	var jsonObj = {
+		"experiment_name": expName,
+		"device_number":dataArr[0],
+		"port_number":dataArr[1],
+		"timestamp":(new Date()).toJSON(),
+		"value":dataArr[3].slice(1),
+		"unit":"Degrees"
+	};
+	var xhr = new XMLHttpRequest();
+	xhr.open('POST','http://ec2-54-69-58-101.us-west-2.compute.amazonaws.com/api/insert', true);
+	xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+	xhr.send(JSON.stringify(jsonObj));
+	xhr.onloadend = function () {
+		console.log("Line of data POSTed to external database");
+	}
+
+    };
+};
+
+/**
+ * local()
+ *
+ * Defiine the bt.local module
+ *
+ */
+bt.local = function () {
+    /**
+     * save()
+     *
+     * Saves an experiment to a .csv file. By default it saves
+     * as the experiment's name.
+     *
+     * @param expName The name of the experiment to save
+     */
+    bt.local.save = function (expName) {
+
+        var dataString = "";
+
+        //Retrieve the experiment from indexedDB
+        bt.indexedDB.getExperiment(expName, function (storedExp) {
+
+            //Build the string to save to CSV
+            dataString = storedExp[0];
+            for (var i = 1; i < storedExp.length; i++) {
+                dataString = dataString + "\n" + storedExp[i];
+            }
+            /*
+               Super janky, but it works.
+               */
+            var link = document.getElementById('save_link');
+            console.log(link);
+            link.download=expName + ".csv";
+            link.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(dataString);
+            link.click();
+        });
+    };
+
+    /**
+     * saveExpName()
+     *
+     * Save an experiment name to Chrome localStorage
+     *
+     * @param expName The name to save
+     * 
+     */
+    bt.local.saveExpName = function (expName) {
+        var data = [];
+        chrome.storage.local.get({expNames: []}, function(items) {
+            data = items.expNames;
+            data.push(expName);
+            console.log(data);
+            chrome.storage.local.set({expNames: data});
+        });
+
+    };
+
+    /**
+     * getExpNames()
+     *
+     * Gets the array of experiment names from local storage and
+     * calls a callback function on the array.
+     *
+     * @param callback A callback function that receives the array
+     * from local storage.
+     */
+    bt.local.getExpNames = function (callback) {
+        var data = [];
+        chrome.storage.local.get({expNames: []}, function(items) {
+            data = items.expNames;
+            callback(data);
+        });
+    };
+
+    /**
+     * removeExpName()
+     *
+     * Removes an experiment from localStorage. 
+     *
+     * Note that this assumes that there will be no duplicate experiment names. 
+     * This is reasonable right now as the experiment names are the start time
+     * of the experiment which is accurate to the second, and experiments take
+     * a minimum of 1 second to complete.
+     *
+     * @param expname The experiment to remove
+     */
+    bt.local.removeExpName = function (expName) {
+        var data = [];
+        chrome.storage.local.get({expNames: []}, function(items) {
+
+            //Find the experiment and splice it from the array
+            for (var i = 0; i < items.expNames.length; i++) {
+                if (items.expNames[i] == expName) {
+                    items.expNames.splice(i,1);
+                    break;
+                }
+            }
+
+            //Push the modified array to localStorage
+            chrome.storage.local.set(items);
+        });
+    };
+};
+
+// Initialize the modules
+bt.indexedDB();
+bt.cloud();
+bt.local();

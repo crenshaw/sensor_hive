@@ -7,8 +7,6 @@
   </head>
   <body>
     <div id = "wrap">
-      <h1>SCIO</h1>    
-
 	<!-- For each info window and menu, notice that the class of
 	     the p element matches the id of the associated info
 	     window.  This reduces DOM traversal.  -->
@@ -44,17 +42,12 @@
 	  </ul>
 	</div>
 
-
+	<div id = "advanced">
 	<h3>Serial Port Log:</h3>
 	<div class = "info" id = "serial"> 
 	  <ul id = "serial_list"></ul>
 	</div>
-	<div class = "menubar" >
-	  <ul class = "menu" id = "serial_menu">
-	    <li> <p class = "menuitem serial" id = "trash"><span>clear</span></p></li>
-	  </ul>
 	</div>
-
 
       </div>  <!-- end left subsection -->
 
@@ -84,6 +77,7 @@
 	  <ul class = "menu" id = "exp_menu">
 	    <li> <p class = "menuitem exp_window" id = "setup"><span>configure experiment</span></p></li>
 	    <li> <p class = "menuitem exp_window" id = "go"><span>start experiment</span></p></li>
+	    <li> <p class = "menuitem exp_window" id = "stop"><span>stop experiment</span></p></li>
 	    <li> <p class = "menuitem exp_window" id = "clearexp"><span>clear settings</span></p></li>
 	  </ul>
 	</div>
@@ -117,6 +111,13 @@
 	      <option value="pc">desktop only (short experiment)</option>
 	      <option value="daq">desktop and DAQ (long experiment)</option>
 	    </select>
+        
+        <br>
+        
+        Store experiment in cloud: 
+
+        <input type = "checkbox" id = "cloud_storage" checked>
+        </input>
 
 	    <div class = "buttons">
 	    <button type="button" id="cancel">cancel</button>
@@ -128,13 +129,34 @@
 	</div>
 	    
 	<h3>Data:</h3>
-	<div class = "info" id = "data_window"> 
-	  <ul id = "data_list"></ul>
-	</div>
+    <div class = "info" id = "data_window">
+        <div class="side-by-side" id="exp_data_div">
+            <table id="data_table" style="width: 100%">
+                <thead>
+                    <tr id="table_header">
+                        <th>Element</td>
+                        <th>DAQ #</td>
+                        <th>Port</td>
+                        <th>Time</td>
+                        <th>Temp</td>
+                    </tr>
+                </thead>
+                <tbody id="data_table_body">
+                </tbody>
+            </table>
+        </div>
+        <div class="side-by-side" id="exp_list_div">
+            <h4 class="no_top_margin">Experiments</h4>
+            <hr class="no_top_margin">
+            <ul id="exp_name_list" class="no_top_margin">
+            </ul>
+        </div>
+    </div>
 	<div class = "menubar" >
 	  <ul class = "menu" id = "data_menu">
-	    <li> <p class = "menuitem data_window" id = "trash"><span>clear</span></p></li>
-	    <li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">save</a></span></p></li>	    
+	    <li> <p class = "menuitem data_window" id = "trash"><span>delete experiment</span></p></li>
+	    <li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">save to csv</a></span></p></li>
+        <li> <p class = "menuitem data_window" id = "upload"><span>upload to cloud</span></p></li>
 	  </ul>
 	  </div>
       </div>
@@ -144,8 +166,8 @@
   </body>
   <script src ="./js/ui.js"></script>
   <script src ="./js/runnable.js"></script>
-  <script src ="./js/data.js"></script>
   <script src ="./js/protocol.js"></script>
   <script src ="./js/devices.js"></script>
   <script src ="./js/main.js"></script>
+  <script src ="./js/data.js"></script>
 </html>

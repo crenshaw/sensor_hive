@@ -15,3 +15,6 @@ vendor/
 
 #Configuration File
 local.yml
+
+*.swp
+serverInfo.txt
