@@ -87,7 +87,13 @@ $app->get('/api/experiments/names', function() use($app, $dbm) {
 });
 
 $app->post('/api/addUser', function (Request $request) use ($app, $dbm) {
-   return $app->json('woohoo', 200);
+    $post['username'] = $request->request->get('username');
+    $post['password'] = $request->request->get('password');
+
+
+    $result = $dbm->addUser($post);
+
+    return $app->json($result, 201);
 });
 
 $app->get('/', function() use($app) {
