@@ -3,6 +3,7 @@
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Encoder\MessageDigestPasswordEncoder;
 use Uplabs\DatabaseManager;
 
 //Require Autoloader
@@ -11,9 +12,29 @@ require_once __DIR__.'/../vendor/autoload.php';
 //Load Configuration File
 $yaml = new \Symfony\Component\Yaml\Parser();
 $config = $yaml->parse(file_get_contents(__DIR__ . "/../config/local.yml"));
-
+$encoder = new MessageDigestPasswordEncoder();
 //Silex Application which will handle routing
 $app = new Application();
+
+$app['debug'] =true;
+
+//Register twig service provider (render engine)
+$app->register(new Silex\Provider\TwigServiceProvider(), array(
+    'twig.path' => __DIR__ . '/../views',
+));
+
+//Register Security provider (Temporary until a custom provider is designed)
+$app->register(new Silex\Provider\SecurityServiceProvider());
+
+$app['security.firewalls'] = array(
+    'admin' => array(
+        'pattern' => '^/api/addUser',
+        'http' => true,
+        'users' => array(
+            $config['http-user'] => array('ROLE_ADMIN', $encoder->encodePassword($config['http-pass'], '')),
+        ),
+    ),
+);
 
 //Database Manager to handle DB interaction
 $dbm = new DatabaseManager();
@@ -65,8 +86,18 @@ $app->get('/api/experiments/names', function() use($app, $dbm) {
     return $app->json($result, 200);
 });
 
+$app->post('/api/addUser', function (Request $request) use ($app, $dbm) {
+    $post['username'] = $request->request->get('username');
+    $post['password'] = $request->request->get('password');
+
+
+    $result = $dbm->addUser($post);
+
+    return $app->json($result, 201);
+});
+
 $app->get('/', function() use($app) {
-    return $app->redirect(__DIR__ . '/index.html');
+    return $app['twig']->render('index.twig');
 });
 
 $app->after(function (Request $request, Response $response) {

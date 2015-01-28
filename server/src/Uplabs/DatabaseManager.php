@@ -55,6 +55,21 @@ class DatabaseManager
     }
 
     /**
+     * Adds a user to the `user` table
+     *
+     * @param $post
+     */
+    public function addUser($post)
+    {
+        $userName = $post['username'];
+        $password = $post['password'];
+
+        $hash = password_hash($password,PASSWORD_BCRYPT);
+
+        return $this->addItem('user', [$userName,$hash]);
+    }
+
+    /**
      * Retrieve all rows from experiment_data table
      *
      * @return array - All Experiment Data
