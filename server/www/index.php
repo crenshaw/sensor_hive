@@ -96,7 +96,7 @@ $app->post('/api/addUser', function (Request $request) use ($app, $dbm) {
     return $app->json($result, 201);
 });
 
-$app->get('/', function() use($app) {
+$app->get('/home', function() use($app) {
     return $app['twig']->render('index.twig');
 });
 
