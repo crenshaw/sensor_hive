@@ -3,6 +3,7 @@
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Encoder\MessageDigestPasswordEncoder;
 use Uplabs\DatabaseManager;
 
 //Require Autoloader
@@ -11,7 +12,7 @@ require_once __DIR__.'/../vendor/autoload.php';
 //Load Configuration File
 $yaml = new \Symfony\Component\Yaml\Parser();
 $config = $yaml->parse(file_get_contents(__DIR__ . "/../config/local.yml"));
-
+$encoder = new MessageDigestPasswordEncoder();
 //Silex Application which will handle routing
 $app = new Application();
 
@@ -30,8 +31,7 @@ $app['security.firewalls'] = array(
         'pattern' => '^/api/addUser',
         'http' => true,
         'users' => array(
-            // raw password is foo
-            'admin' => array('ROLE_ADMIN', '5FZ2Z8QIkA7UTZ4BYkoC+GsReLf569mSKDsfods6LYQ8t+a8EW9oaircfMpmaLbPBh4FOBiiFyLfuZmTSUwzZg=='),
+            $config['http-user'] => array('ROLE_ADMIN', $encoder->encodePassword($config['http-pass'], '')),
         ),
     ),
 );
