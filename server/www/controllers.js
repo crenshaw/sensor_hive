@@ -22,6 +22,29 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
         $scope.data = DataGather.get({},{'Name': $scope.currentExperiment.experiment_name});
     };
 
+    $scope.download = function() {
+        if($scope.hasOwnProperty('data')) {
+            var data = $scope.data;
+            var name = data[0].experiment_name;
+
+            var headers = "Name, Device, Port, Timestamp, Value";
+            var dataString = headers;
+
+            for(var i=0;i<data.length;i++) {
+                var dev = data[i].device_number;
+                var port = data[i].port_number;
+                var time = data[i].timestamp;
+                var value = data[i].value;
+
+                dataString = dataString + '\n' + name + ', ' + dev + ', ' + port + ', ' + time + ', ' + value;
+            }
+
+            var link = document.getElementById('save_link');
+            link.download=name + ".csv";
+            link.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(dataString);
+        }
+    };
+
     $scope.updateChart = function() {
         $scope.data.$promise.then(function(stuff) {
             var time1 = stuff[0].timestamp;
