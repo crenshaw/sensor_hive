@@ -100,6 +100,10 @@ $app->get('/home', function() use($app) {
     return $app['twig']->render('index.twig');
 });
 
+$app->get('/', function () use ($app) {
+   return $app->redirect('/home');
+});
+
 $app->after(function (Request $request, Response $response) {
     $response->headers->set('Access-Control-Allow-Origin', '*');
 });
