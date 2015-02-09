@@ -93,7 +93,22 @@ $app->post('/api/addUser', function (Request $request) use ($app, $dbm) {
 
     $result = $dbm->addUser($post);
 
-    return $app->json($result, 201);
+    if($result) {
+        return $app->json($result, 201);
+    }
+
+    return $app->json($result, 302);
+});
+
+$app->post('/api/authUser', function(Request $request) use ($app, $dbm) {
+    $post['user'] = $request->request->get('username');
+    $post['pass'] = $request->request->get('password');
+
+    $result = $dbm->authUser($post);
+
+
+    return $app->json($result,200);
+
 });
 
 $app->get('/home', function() use($app) {

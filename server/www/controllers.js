@@ -2,7 +2,12 @@ var scioWebApp = angular.module('scioWebApp', ["scioServices"]);
 
 scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, ExperimentNames) {
 
+    $scope.debugAuth = false;
+
     $scope.experiments = ExperimentNames.get({},{});
+
+    $scope.currentUser = '';
+    $scope.currentPass = '';
 
     $scope.currentExperiment = {};
     $scope.startDate = {};
@@ -20,6 +25,14 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
 
     $scope.getData = function() {
         $scope.data = DataGather.get({},{'Name': $scope.currentExperiment.experiment_name});
+    };
+
+    $scope.authenticUser = function () {
+        return $scope.debugAuth;
+    };
+
+    $scope.auth = function () {
+        $scope.debugAuth = true;
     };
 
     $scope.download = function() {
