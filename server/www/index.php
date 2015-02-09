@@ -106,9 +106,10 @@ $app->post('/api/authUser', function(Request $request) use ($app, $dbm) {
 
     $result = $dbm->authUser($post);
 
-
-    return $app->json($result,200);
-
+    if ($result) {
+        return $app->json([true],200);
+    }
+    return $app->json([$result],400);
 });
 
 $app->get('/home', function() use($app) {
