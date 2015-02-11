@@ -1,8 +1,15 @@
 var scioWebApp = angular.module('scioWebApp', ["scioServices"]);
 
-scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, ExperimentNames) {
+scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, ExperimentNames, AuthUser) {
+
+    $scope.Auth = false;
+
+    $scope.loading = false;
 
     $scope.experiments = ExperimentNames.get({},{});
+
+    $scope.currentUser = '';
+    $scope.currentPass = '';
 
     $scope.currentExperiment = {};
     $scope.startDate = {};
@@ -20,6 +27,26 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
 
     $scope.getData = function() {
         $scope.data = DataGather.get({},{'Name': $scope.currentExperiment.experiment_name});
+    };
+
+    $scope.authenticUser = function () {
+        return $scope.Auth;
+    };
+
+    $scope.auth = function () {
+        $scope.loading = true;
+        var data = {
+            username: $scope.currentUser,
+            password: $scope.currentPass
+        };
+        AuthUser.post({},data).$promise.then(function (result) {
+            if (result == 'true') {
+                $scope.Auth = true;
+            }
+            else {
+                $scope.loading = false;
+            }
+        });
     };
 
     $scope.download = function() {
@@ -156,5 +183,13 @@ scioServices.factory("ExperimentNames", function ($resource) {
         'http://54.69.58.101/api/experiments/names',
         {},
         {get : {method : 'GET', params : {}, isArray:true}}
+    )
+});
+
+scioServices.factory("AuthUser", function ($resource) {
+    return $resource(
+        'http://54.69.58.101/api/authUser',
+        {},
+        {post : {method : 'POST', params: {}, isArray:true}}
     )
 });

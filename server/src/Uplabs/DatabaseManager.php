@@ -61,12 +61,39 @@ class DatabaseManager
      */
     public function addUser($post)
     {
-        $userName = $post['username'];
+        $userName = strtolower($post['username']);
         $password = $post['password'];
 
         $hash = password_hash($password,PASSWORD_BCRYPT);
 
         return $this->addItem('user', [$userName,$hash]);
+    }
+
+    public function authUser($post)
+    {
+        $user = $post['user'];
+        $pass = $post['pass'];
+
+        error_log($pass);
+
+        $stmt = "SELECT * FROM user WHERE user_name=" . $this->pdo->quote(strtolower($user));
+
+        error_log("Statement: " . $stmt);
+
+        $sql = $this->pdo->prepare($stmt);
+
+        $sql->execute();
+
+        $result = $sql->fetchAll();
+
+        $hash = $result[0]['user_pass'];
+
+        $isValid = password_verify($pass,$hash);
+
+        return $isValid;
+
+
+
     }
 
     /**
