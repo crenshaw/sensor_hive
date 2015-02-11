@@ -261,13 +261,18 @@ bt.cloud = function() {
 
     bt.cloud.postMeasurement = function(expName,expString) {
     var dataArr = expString.split(',');
+
+    var unit = 'Celcius';
+    if (dataArr[1] == 6) {
+        unit = 'Lux';
+    }
 	var jsonObj = {
 		"experiment_name": expName,
 		"device_number":dataArr[0],
 		"port_number":dataArr[1],
 		"timestamp":(new Date()).toJSON(),
 		"value":dataArr[3].slice(1),
-		"unit":"Degrees"
+		"unit":unit
 	};
 	var xhr = new XMLHttpRequest();
 	xhr.open('POST','http://ec2-54-69-58-101.us-west-2.compute.amazonaws.com/api/insert', true);

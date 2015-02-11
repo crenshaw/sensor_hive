@@ -8,3 +8,7 @@ Doxyfile
 *~
 *.swp
 serverInfo.txt
+
+.idea
+
+server/
