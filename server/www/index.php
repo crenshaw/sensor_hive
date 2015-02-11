@@ -109,7 +109,7 @@ $app->post('/api/authUser', function(Request $request) use ($app, $dbm) {
     if ($result) {
         return $app->json([true],200);
     }
-    return $app->json([$result],400);
+    return $app->json([$result],200);
 });
 
 $app->get('/home', function() use($app) {

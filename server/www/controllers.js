@@ -4,6 +4,8 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
 
     $scope.Auth = false;
 
+    $scope.loading = false;
+
     $scope.experiments = ExperimentNames.get({},{});
 
     $scope.currentUser = '';
@@ -32,13 +34,17 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
     };
 
     $scope.auth = function () {
+        $scope.loading = true;
         var data = {
             username: $scope.currentUser,
             password: $scope.currentPass
         };
-        var stuff = AuthUser.post({},data).$promise.then(function (result) {
-            if (result) {
+        AuthUser.post({},data).$promise.then(function (result) {
+            if (result == 'true') {
                 $scope.Auth = true;
+            }
+            else {
+                $scope.loading = false;
             }
         });
     };
