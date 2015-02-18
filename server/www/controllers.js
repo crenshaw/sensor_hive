@@ -6,7 +6,10 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
 
     $scope.loading = false;
 
-    $scope.experiments = ExperimentNames.get({},{});
+    if ($scope.Auth == true) {
+        $scope.experiments = ExperimentNames.get({},{});
+    }
+
 
     $scope.currentUser = '';
     $scope.currentPass = '';

@@ -74,11 +74,7 @@ class DatabaseManager
         $user = $post['user'];
         $pass = $post['pass'];
 
-        error_log($pass);
-
         $stmt = "SELECT * FROM user WHERE user_name=" . $this->pdo->quote(strtolower($user));
-
-        error_log("Statement: " . $stmt);
 
         $sql = $this->pdo->prepare($stmt);
 
