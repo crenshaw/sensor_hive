@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="users">
+<head>
+    <meta charset="UTF-8">
+    <title>Scio Remote View</title>
+
+    <!--Style-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+    <!--Scripts-->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-resource.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha256.js"></script>
+
+    <script src="addUserController.js"></script>
+</head>
+<body ng-controller="userControl">
+    <form ng-submit="auth()">
+        <div class="col-md-4 col-md-offset-4">
+            <div class="panel panel-default panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Scio New User</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label>Username to Add</label>
+                        <input type="text" class="form-control" ng-model="currentUser" placeholder="New Username">
+                    </div>
+                    <div class="form-group">
+                        <label>Password to Add</label>
+                        <input type="password" class="form-control" ng-model="currentPass" placeholder="New Password">
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <button type="submit" class="btn btn-default">
+                        <span ng-hide="loading">Submit</span>
+                        <span ng-show="loading"><i class="fa fa-spinner fa-spin"></i></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</body>

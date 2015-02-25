@@ -28,7 +28,7 @@ $app->register(new Silex\Provider\SecurityServiceProvider());
 
 $app['security.firewalls'] = array(
     'admin' => array(
-        'pattern' => '^/api/addUser',
+        'pattern' => 'addUser',
         'http' => true,
         'users' => array(
             $config['http-user'] => array('ROLE_ADMIN', $encoder->encodePassword($config['http-pass'], '')),
@@ -94,10 +94,10 @@ $app->post('/api/addUser', function (Request $request) use ($app, $dbm) {
     $result = $dbm->addUser($post);
 
     if($result) {
-        return $app->json($result, 201);
+        return $app->json([$result], 201);
     }
 
-    return $app->json($result, 302);
+    return $app->json([$result], 302);
 });
 
 $app->post('/api/authUser', function(Request $request) use ($app, $dbm) {
@@ -110,6 +110,10 @@ $app->post('/api/authUser', function(Request $request) use ($app, $dbm) {
         return $app->json([true],200);
     }
     return $app->json([$result],200);
+});
+
+$app->get('/addUser', function () use ($app) {
+   return $app['twig']->render('addUser.twig');
 });
 
 $app->get('/home', function() use($app) {
