@@ -19,15 +19,18 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
 
     $scope.changeCurrentPort = function($port) {
         $scope.currentPort = $port;
+        $scope.updateChart();
     };
 
     $scope.updateCurrentExperiment = function($experiment) {
         $scope.currentExperiment = $experiment;
+        $scope.data = DataGather.get({},{'Name': $scope.currentExperiment.experiment_name});
+        $scope.updateChart();
     };
 
-    $scope.getData = function() {
-        $scope.data = DataGather.get({},{'Name': $scope.currentExperiment.experiment_name});
-    };
+    //$scope.getData = function() {
+    //    $scope.data = DataGather.get({},{'Name': $scope.currentExperiment.experiment_name});
+    //};
 
     $scope.authenticUser = function () {
         return $scope.Auth;

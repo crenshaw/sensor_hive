@@ -21,64 +21,82 @@
 </head>
 <body ng-controller="ExperimentDataCtrl">
 <div ng-show="authenticUser()">
-    <div class="dropdown">
-        <button class="btn btn-default dropdown-toggle" type="button" id="expDropdown" data-toggle="dropdown">
-            {% verbatim %} {{currentExperiment.experiment_name}} {% endverbatim %}
-            <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-            <li role="presentation">
-                <a role="menuitem" tabindex="-1" ng-repeat="experiment in experiments" ng-click="updateCurrentExperiment(experiment)">
-                    {% verbatim %} {{experiment.experiment_name}} {% endverbatim %}
-                </a>
-            </li>
-        </ul>
-        <button type="button" class="btn btn-default" ng-click="getData();">Get Data</button>
-        <a ng-click="download();" id="save_link">Download</a>
-    </div>
-    <div class="panel panel-default">
-        <div class="panel-heading">{% verbatim %} {{currentExperiment.experiment_name}} {% endverbatim %} Data</div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="row">
+                <div class="span4"></div>
+                <div class="span4">
+                    <h1 class="text-center">Scio</h1>
+                </div>
+                <div class="span4"></div>
+            </div>
+            <div class="row">
+                <div class="span4"></div>
+                <div class="span4"><img class="center-block" src="128-lightbulb.png" /></div>
+                <div class="span4"></div>
+            </div>
+        </div>
+        <div class="panel-body">
+            <h5>Experiment: </h5>
+            <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" id="expDropdown" data-toggle="dropdown">
+                    {% verbatim %} {{currentExperiment.experiment_name}} {% endverbatim %}
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" ng-repeat="experiment in experiments" ng-click="updateCurrentExperiment(experiment)">
+                            {% verbatim %} {{experiment.experiment_name}} {% endverbatim %}
+                        </a>
+                    </li>
+                </ul>
+                {#<button type="button" class="btn btn-default" ng-click="getData();">Get Data</button>#}
+                <a ng-click="download();" id="save_link">Download</a>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">{% verbatim %} {{currentExperiment.experiment_name}} {% endverbatim %} Data</div>
 
-        <!-- Table -->
-        <table class="table">
-            <thead>
-            <tr>
-                <th>Name</th>
-                <th>Device Number</th>
-                <th>Port Number</th>
-                <th>Timestamp</th>
-                <th>Value</th>
-                <th>Unit</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="line in data">
-                <td>{% verbatim %} {{line.experiment_name}} {% endverbatim %}</td>
-                <td>{% verbatim %} {{line.device_number}} {% endverbatim %}</td>
-                <td>{% verbatim %} {{line.port_number}} {% endverbatim %}</td>
-                <td>{% verbatim %} {{line.timestamp}} {% endverbatim %}</td>
-                <td>{% verbatim %} {{line.value}} {% endverbatim %}</td>
-                <td>{% verbatim %} {{line.unit}} {% endverbatim %}</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-    <div class="dropdown">
-        <button class="btn btn-default dropdown-toggle" type="button" id="portDropdown" data-toggle="dropdown">
-            {% verbatim %} {{currentPort}} {% endverbatim %}
-            <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-            <li role="presentation" ng-repeat="port in ports">
-                <a role="menuitem" tabindex="-1"  ng-click="changeCurrentPort(port)">
-                    {% verbatim %} {{port}} {% endverbatim %}
-                </a>
-            </li>
-        </ul>
-        <button type="button" class="btn btn-default" ng-click="updateChart()">Show Data</button>
-    </div>
-    <div class="panel panel-default" id="highcharts">
-
+                <!-- Table -->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Device Number</th>
+                        <th>Port Number</th>
+                        <th>Timestamp</th>
+                        <th>Value</th>
+                        <th>Unit</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="line in data">
+                        <td>{% verbatim %} {{line.experiment_name}} {% endverbatim %}</td>
+                        <td>{% verbatim %} {{line.device_number}} {% endverbatim %}</td>
+                        <td>{% verbatim %} {{line.port_number}} {% endverbatim %}</td>
+                        <td>{% verbatim %} {{line.timestamp}} {% endverbatim %}</td>
+                        <td>{% verbatim %} {{line.value}} {% endverbatim %}</td>
+                        <td>{% verbatim %} {{line.unit}} {% endverbatim %}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <h5>Port: </h5>
+            <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" id="portDropdown" data-toggle="dropdown">
+                    {% verbatim %} {{currentPort}} {% endverbatim %}
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li role="presentation" ng-repeat="port in ports">
+                        <a role="menuitem" tabindex="-1"  ng-click="changeCurrentPort(port)">
+                            {% verbatim %} {{port}} {% endverbatim %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="panel panel-default" id="highcharts">
+            </div>
+        </div>
     </div>
 </div>
 <div ng-hide="authenticUser()">
