@@ -162,12 +162,12 @@
 		<h3>Cloud Login:</h3>
 		<div class = "info" id = "cloud_login">
 			<div class="side-by-side" id="cloud_login_window">
-				<form id="login_form" onsubmit=" return bt.cloudLogin()">
+				<div id="login_form">
 					Username: <input type="text" style="width: 100px " name="username" id="cloud_user"></br>
 					Password: <input type="password" style="width: 100px" name="password" id="cloud_pass"></br>
 
 					<input type="submit" style="width: 50px" id="cloud_submit">
-				</form>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -182,6 +182,6 @@
 <script src ="./js/main.js"></script>
 <script src ="./js/data.js"></script>
 <script src ="./js/cloud.js"></script>
-<script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha256.js"></script>
+<script src ="./js/sha256.js"></script>
 
 </html>
