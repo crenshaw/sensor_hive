@@ -104,6 +104,20 @@ $app->post('/api/authUser', function(Request $request) use ($app, $dbm) {
     $post['user'] = $request->request->get('username');
     $post['pass'] = $request->request->get('password');
 
+    if(!$post['user'] && !$post['pass']) {
+        $lines = explode(PHP_EOL, $request);
+
+        foreach ($lines as $line) {
+            preg_match('/^{"username":"([A-Za-z]*)","password":"([[:word:]]*)"}/',$line,$matches);
+
+            if ($matches) {
+                $post['user'] = $matches[1];
+                $post['pass'] = $matches[2];
+            }
+
+        }
+    }
+
     $result = $dbm->authUser($post);
 
     if ($result) {
