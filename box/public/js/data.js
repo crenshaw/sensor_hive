@@ -265,7 +265,7 @@ bt.cloud = function() {
 		"experiment_name": expName,
 		"device_number":dataArr[0],
 		"port_number":dataArr[1],
-		"timestamp":(new Date()).toJSON(),
+		"timestamp":new Date(parseInt(dataArr[2])*1000),
 		"value":dataArr[3].slice(1),
 		"unit":"Degrees"
 	};
