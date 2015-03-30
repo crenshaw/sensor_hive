@@ -12,14 +12,33 @@ cloudForm.addEventListener('click', function() {
         password: pass
     };
 
-    console.log(JSON.stringify(data));
-
     var xhr = new XMLHttpRequest();
     xhr.open('POST','http://ec2-54-69-58-101.us-west-2.compute.amazonaws.com/api/authUser', true);
     xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     xhr.send(JSON.stringify(data));
     xhr.onloadend = function () {
-        console.log(xhr.responseText);
+        var currentUserDisplay = document.getElementById('current_user');
+        if (xhr.responseText === "[true]") {
+            currentUserDisplay.innerHTML = "Logged in as: " + user;
+
+            bt.currentUser = user;
+            bt.currentPass = pass;
+
+            console.log(bt.currentUser, bt.currentPass);
+            document.getElementById('cloud_storage').style.opacity=1;
+            document.getElementById('upload').style.opacity=1;
+        }
+        else {
+            currentUserDisplay.innerHTML = "";
+
+            bt.currentUser = null;
+            bt.currentPass = null;
+
+            console.log("Invalid user/pass combination");
+
+            document.getElementById('cloud_storage').style.opacity=0;
+            document.getElementById('upload').style.opacity=0;
+        }
     };
 
     return false;

@@ -115,30 +115,38 @@ bt.ui = function() {
     var toggleSetup = function() {
 	
 
-	// Either we are trying to hide the experiment setup menu or
-	// we are trying to show it.
-	
-	var d = document.getElementById('setup_experiment');
-	var b = document.getElementById('setup');
+		// Either we are trying to hide the experiment setup menu or
+		// we are trying to show it.
 
-	/*
-	 * TODO: Create css classes to implement this instead of
-	 * using code to alter style!
-	 */
+		var d = document.getElementById('setup_experiment');
+		var b = document.getElementById('setup');
 
-	// If it's hidden, show it.
-	if(d.style.opacity == 0) {
-	    d.style.border = '1px solid silver';
-	    d.style.opacity = 1;
-	    d.style.height = '93px';
-	    b.style.border = '2px solid #ff0066';
-	    
-	}
-	else {
-	    d.style.opacity = 0;
-	    d.style.height = 0;	    
-	    b.style.border = '2px solid gray';
-	}
+		/*
+		 * TODO: Create css classes to implement this instead of
+		 * using code to alter style!
+		 */
+
+		// If it's hidden, show it.
+		if(d.style.opacity == 0) {
+			d.style.border = '1px solid silver';
+			d.style.opacity = 1;
+			d.style.height = '93px';
+			b.style.border = '2px solid #ff0066';
+
+			if (bt.currentUser == null) {
+				var checkBox = document.getElementById('cloud_storage');
+				checkBox.style.opacity = 0;
+			}
+
+		}
+		else {
+			d.style.opacity = 0;
+			d.style.height = 0;
+			b.style.border = '2px solid gray';
+		}
+
+
+
     };
 
     /**
@@ -392,7 +400,7 @@ bt.ui = function() {
 	// SECTION 2: DEVICE-RELATED ACTIONS.
 
 	var devices = getSelectedDevices();
-
+	console.log(devices);
 	// Did somebody forget to select a device?
 	// If so, one cannot continue.
 	if(devices === undefined) {
@@ -409,19 +417,20 @@ bt.ui = function() {
 
 	// Right now, we must select at least 1 device.  Make sure the
 	// user has selected exactly 1 device.
-	else if (devices.length != 1) {
-	    bt.ui.error("Please select a device.");
-	}
-	   
+	//else if (devices.length != 1) {
+	//    bt.ui.error("Please select a device.");
+	//}
+
 	else {
 	   
 	    if(action === 'setup') {
+
 
 		// Perform a lookup for each device and affirm that it
 		// is connected before allowing the user to configure
 		// the device.
 		for(var i = 0; i < devices.length; i++) {
-		    
+
 		    var d = bt.devices.lookup(devices[i]);
 		    if (d == undefined || !d.connected ) {
 			var path = devices[i];
@@ -617,6 +626,10 @@ bt.ui = function() {
 
 	// Grab the data menubar and add an event handler to it.
 	menu = document.getElementById('data_menu');
+		if (bt.currentUser == null) {
+			document.getElementById('upload').style.opacity=0;
+		}
+
 	menu.onclick = dataMenu;
 
 	// Grab the alerts menubar and add an event handler to it.

@@ -56,6 +56,8 @@ $app->before(function (Request $request) use($dbm,$config) {
 
 $app->post('/api/insert', function(Request $request) use($app, $dbm) {
 
+    error_log($request->request->get('timestamp'));
+
     $post['experimentName'] = $request->request->get('experiment_name');
     $post['deviceNumber'] = intval($request->request->get('device_number'));
     $post['portNumber'] = intval($request->request->get('port_number'));
