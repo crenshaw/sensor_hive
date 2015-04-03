@@ -1,3 +1,9 @@
+/**
+Memory.h
+  Class definiton for the Memory class.
+@author: Zak Pearson
+@since: January 2015
+**/
 #if (ARDUINO >= 100)
  #include "Arduino.h"
 #else
@@ -7,6 +13,8 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 #include "EEPROMex.h"
+
+// global constants for this class. All constants contributed to this class will begin with MEMORY_
 #define MEMORY_SIZE 1024
 #define MEMORY_BLOCK_ADDRESS 0
 #define EXPERIMENT_BLOCK_ADDRESS 4
@@ -17,7 +25,8 @@ typedef struct MemoryBlock_TAG{
     uint16_t tailPtr;              // 2 bytes
 }MemoryBlock;
 
-//this struct is 12 bytes
+//This struck holds all of the experiment parameters.
+//This struct is 12 bytes
 typedef struct ExperimentBlock_TAG{
     boolean isRunning;             // 1 byte
     uint8_t port;                  // 1 byte

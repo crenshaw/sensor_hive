@@ -1,3 +1,10 @@
+/**
+miniSDI_12.h
+Provides the function prototypes for the miniSDI_12 protocol used to use communicate with the DAQ
+@author: Zak Pearson
+@since: January 2015
+**/
+
 #if (ARDUINO >= 100)
  #include "Arduino.h"
 #else
@@ -7,9 +14,7 @@
 #ifndef MINISDI_12_H
 #define MINISDI_12_H
 #define SDI_DAQ_ID 2
-#define ABORT 0
-//todo: add in the daq id definition here since it is only sent with a communication
-//      add an abort that way in the code you jsut type sendAbort easier to read.
+#define SDI_ABORT 0
 
 void respond(int a);
 void respond(int a, uint32_t n);

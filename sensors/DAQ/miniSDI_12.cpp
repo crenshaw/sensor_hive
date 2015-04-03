@@ -1,14 +1,16 @@
-
+/**
+miniSDI_12.cpp
+@author: Zak Pearson
+@since: January 2015
+**/
 #include "miniSDI_12.h"
 
 /**
-void respond(int iii, int a, int ttt, int n)
+void respond(int a)
     Uses UART port and Serial communication to respond to an A command request from the Master 
       or an abort response per miniSDI 12 communication protocal as outlined here:
       https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
       iii,a<CR><LF>
-@param int iii.
-    Uniquie daq id.
 @param int a.
     Port address.
 @return void
@@ -21,16 +23,14 @@ void respond(int a){
 }
 
 /**
-void respond(int iii, int a, int ttt, int n)
+void respond(int a, uint32_t n)
     Uses UART port and Serial communication to respond to a P command request from the Master 
       per miniSDI 12 communication protocal as outlined here:
       https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
     iii,a,n<CR><LF>
-@param int iii.
-    Uniquie daq id.
 @param int a.
     Port address.
-@param int n
+@param uint32_t n
     The new period length in seconds.
 @return void
 **/
@@ -44,18 +44,16 @@ void respond(int a, uint32_t n){
 }
 
 /**
-void respond(int iii, int a, int ttt, int n)
+void respond(int a, uint32_t ttt, uint32_t n)
     Uses UART port and Serial communication to respond to an M command request from the Master 
       per miniSDI 12 communication protocal as outlined here:
       https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
     iii,a,ttt,n<CR><LF>
-@param int iii.
-    Uniquie daq id.
 @param int a.
     Port address.
-@param int ttt
+@param uint32_t ttt
     A length of time, in seconds, untill the measurments have been completly taken.
-@param int n
+@param uint32_t n
     The number of measurements to be taken.
 @return void
 **/
@@ -69,22 +67,31 @@ void respond(int a, uint32_t ttt, uint32_t n){
     Serial.print(F(","));
     Serial.println(n);
 }
-
+/**
+void endLine(void)
+    Uses UART port and Serial communication to send <CR><LF>
+@param void
+@return void
+**/
 void endLine(void){
     Serial.println();
 }
 
+/**
+void endLine(void)
+    Uses UART port and Serial communication to send response terminator ":"
+@param void
+@return void
+**/
 void terminate(void){
     Serial.print(":");
 }
 
 /**
-void dataReport(int iii, int a, uint32_t time, double value, boolean lastVal)
-    Uses UART port and Serial communication to send a data reports to the Master 
+void dataReport(int a, uint32_t time, double value, boolean lastVal)
+    Uses UART port and Serial communication to send a data as type double to the Master 
       per miniSDI 12 communication protocal as outlined here:
       https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
-@param int iii.
-    Uniquie daq id
 @param int a.
     Port address
 @param unit32_t time
@@ -115,6 +122,22 @@ void dataReport(int a, uint32_t time, double value, boolean lastVal){
 //        endLine();
 //    }
 }
+
+/**
+void dataReport(int a, uint32_t time, uint32_t value, boolean lastVal)
+    Uses UART port and Serial communication to send a data as type uint32_t to the Master 
+      per miniSDI 12 communication protocal as outlined here:
+      https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
+@param int a.
+    Port address
+@param unit32_t time
+    Unix time stamp.
+@param uint32_t value
+    The data measured from the port.
+@param boolean lastVal
+    Optional parameter the if true places a semi colon at the end of a report.
+@return void
+**/
 void dataReport(int a, uint32_t time, uint32_t value, boolean lastVal){
     Serial.print(F("00"));
     Serial.print(SDI_DAQ_ID);
@@ -140,7 +163,7 @@ boolean readNewCmd( char* command, int* port, int* numMeasures)
     https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
     Returns true for following commands where int > 0:
     <____>!;
-      Where command = -1, port = -1, numMeasures = -1.
+      Where command = 'B', port = -1, numMeasures = -1.
     <int1><char><int2>!;
       Where command = char, port = int1, numMeasures = int2.
     <int3>!;
@@ -189,15 +212,10 @@ boolean readNewCmd( char* command, uint8_t* port, uint32_t* numMeasures){
     if (cmdPtr == inputEnd){
         return false;
     }
-    //I can rewirte thsi to make it a little more smooth
-    //put the parints inside the noCmd if statement
-    //return false right there if they come back neg 1.
     
     //parse the ints to the left of cmdPtr
     //returns -1 if error
     *port = parInt(inputHead, cmdPtr-1 );
-    
-    
     
     //parse the ints to the right of cmdPtr
     //returns -1 if error
@@ -225,10 +243,11 @@ boolean readNewCmd( char* command, uint8_t* port, uint32_t* numMeasures){
     Serial.println(*numMeasures);
     #endif
     
+    
     if (!noCmd && (*port < 0 || *numMeasures < 0)){
+        //command is not formatted correctly return false
         return false;
     }
-    
     return true;
 }
 

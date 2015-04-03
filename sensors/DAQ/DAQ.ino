@@ -5,9 +5,13 @@
 #include "Memory.h"
 #include "miniSDI_12.h"
 
+//#include "RTClib.h"
+
 Memory memory;
 Port ports;
 Experiment experiment;
+
+//RTC_DS1307 RTC;
 
 boolean newCmd;
 char command;
@@ -26,17 +30,18 @@ void loop(){
     if (Serial.available() > 0){
         newCmd = readNewCmd (&command, &port,  &targetMeasurment);
         if (!newCmd){
-            respond(ABORT);
+            respond(SDI_ABORT);
         }
     }
     if (newCmd){
+        //Serial.println(RTC.now().unixtime());
         switch (command){
             case 0:
-                ports.isActive (port) ? respond(port) : respond (ABORT);
+                ports.isActive (port) ? respond(port) : respond (SDI_ABORT);
             break;
             case 'B':
                 experiment.stopExperiment();
-                respond(ABORT);
+                respond(SDI_ABORT);
             break;
             case 'P':
                 experiment.setPeriod (targetMeasurment);
@@ -51,8 +56,9 @@ void loop(){
                 ports.sendSavedData (targetMeasurment);
             break;
             default:
-              respond(ABORT);
+              respond(SDI_ABORT);
         }
+        //Serial.println(RTC.now().unixtime());
     }
     newCmd = false;
 }

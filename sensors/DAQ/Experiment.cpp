@@ -63,7 +63,7 @@ void Experiment::startR (uint8_t port, uint32_t targetMeasurment){
 
 void Experiment::startM (uint8_t port, uint32_t targetMeasurment){
     if (experimentBlock.isRunning || (!(*ports).isActive(port) && port !=0) || port > PORT_MAX || port < 0){
-        respond(ABORT);
+        respond(SDI_ABORT);
     }
     else {
         currentPeriod = 0;
