@@ -260,35 +260,42 @@ bt.cloud = function() {
     };
 
     bt.cloud.postMeasurement = function(expName,expString) {
-    var dataArr = expString.split(',');
-    var units;
-    if (dataArr[1] == "6") {
-        units = "lux";
-    }
-    else {
-        units = "celcius";
-    }
-	var jsonObj = {
-		"experiment_name": expName,
-		"device_number":dataArr[0],
-		"port_number":dataArr[1],
-		"timestamp":new Date(parseInt(dataArr[2])*1000),
-		"value":dataArr[3].slice(1),
-		"unit":units
-	};
-	var xhr = new XMLHttpRequest();
-	xhr.open('POST','http://ec2-54-69-58-101.us-west-2.compute.amazonaws.com/api/insert', true);
-	xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-	xhr.send(JSON.stringify(jsonObj));
-	xhr.onload = function () {
-		console.log("Line of data POSTed to external database");
-	}
-    xhr.onerror = function () {
-        console.log("Cannot POST to external database. There may \
-             be no internet connection.");
-        bt.ui.warning("Failed to post to external database. Check \
-            your internet connection. Manually upload results later.");
-    }
+        var dataArr = expString.split(',');
+        var units;
+
+        if (dataArr[1] == "6") {
+            units = "lux";
+        }
+        else {
+            units = "celcius";
+        }
+        var jsonObj = {
+            "experiment_name": expName,
+            "device_number":dataArr[0],
+            "port_number":dataArr[1],
+            "timestamp":new Date(parseInt(dataArr[2])*1000),
+            "value":dataArr[3].slice(1),
+            "unit":units,
+            "user":bt.currentUser,
+            "pass":bt.currentPass
+        };
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.open('POST','http://ec2-54-69-58-101.us-west-2.compute.amazonaws.com/api/insert', true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        xhr.send(JSON.stringify(jsonObj));
+
+        xhr.onload = function () {
+            console.log("Line of data POSTed to external database");
+        };
+
+        xhr.onerror = function () {
+            console.log("Cannot POST to external database. There may \
+                 be no internet connection.");
+            bt.ui.warning("Failed to post to external database. Check \
+                your internet connection. Manually upload results later.");
+        }
 
     };
 };

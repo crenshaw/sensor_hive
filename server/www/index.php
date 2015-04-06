@@ -65,7 +65,18 @@ $app->post('/api/insert', function(Request $request) use($app, $dbm) {
     $post['value'] = floatval($request->request->get('value'));
     $post['unit'] = $request->request->get('unit');
 
-    $result = $dbm->insert($post);
+    $auth['user'] = $request->request->get('user');
+    $auth['pass'] = $request->request->get('pass');
+
+    $isAuthentic = $dbm->authUser($auth);
+
+    if($isAuthentic) {
+        $result = $dbm->insert($post);
+    }
+    else {
+        $result = false;
+    }
+
 
     return $app->json($result, 201);
 });

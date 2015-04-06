@@ -15,6 +15,8 @@ scioWebApp.controller('userControl', function ($scope, AddUser) {
         var hash = CryptoJS.SHA256($scope.currentPass);
         var pass = hash.toString(CryptoJS.enc.Hex);
 
+        console.log(pass);
+
         var data = {
             username: $scope.currentUser,
             password: pass
