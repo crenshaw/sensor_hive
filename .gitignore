@@ -21,3 +21,6 @@ serverInfo.txt
 
 #Tmp folder
 */tmp
+vendor/
+.idea/
+

@@ -113,8 +113,6 @@ bt.ui = function() {
      *
      */
     var toggleSetup = function() {
-	
-
 		// Either we are trying to hide the experiment setup menu or
 		// we are trying to show it.
 
@@ -144,9 +142,6 @@ bt.ui = function() {
 			d.style.height = 0;
 			b.style.border = '2px solid gray';
 		}
-
-
-
     };
 
     /**
@@ -449,14 +444,27 @@ bt.ui = function() {
 		    bt.ui.error("No experiment has been configured.");
 		}
 		else {
+            //Javascript doesn't have a date function that I like 
+            //so I'll just generate my own date
             var d = new Date();
-            var seconds = d.getSeconds();
-            var minutes = d.getMinutes();
+            var seconds = d.getSeconds()+1;
+            var minutes = d.getMinutes()+1;
             var hours = d.getHours();
             var date = d.getDate();
-            date++;
-            var month = d.getMonth();
+            var month = d.getMonth()+1;
             var year = d.getFullYear();
+
+            // This adds a zero infront of the value if
+            // the value only has a single digit
+            if (seconds < 10) {
+                seconds = "0" + seconds;
+            }
+            if (minutes < 10) {
+                minutes = "0" + minutes;
+            }
+            if (hours < 10) {
+                hours = "0" + hours;
+            }
 
             var timestamp = month + "-" + date + "-" + year + "_" + hours + ":" + minutes + ":" +seconds;
             bt.indexedDB.addExperiment(timestamp);
@@ -587,6 +595,9 @@ bt.ui = function() {
     text = lineno + ',' +text;
     lineno++;
     var dataArr = text.split(',');
+    var portNumber = parseInt(dataArr[2]);
+    var port = document.getElementById("port" + portNumber).value;
+    dataArr[2] = port;
 
     var tr = document.createElement("TR");
     dataTableBody.appendChild(tr);
