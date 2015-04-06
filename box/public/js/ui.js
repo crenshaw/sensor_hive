@@ -400,7 +400,6 @@ bt.ui = function() {
 	// SECTION 2: DEVICE-RELATED ACTIONS.
 
 	var devices = getSelectedDevices();
-	console.log(devices);
 	// Did somebody forget to select a device?
 	// If so, one cannot continue.
 	if(devices === undefined) {
@@ -417,9 +416,9 @@ bt.ui = function() {
 
 	// Right now, we must select at least 1 device.  Make sure the
 	// user has selected exactly 1 device.
-	//else if (devices.length != 1) {
-	//    bt.ui.error("Please select a device.");
-	//}
+	else if (devices.length != 1) {
+	    bt.ui.error("Please select a device.");
+	}
 
 	else {
 	   
