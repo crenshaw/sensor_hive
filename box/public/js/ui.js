@@ -128,7 +128,7 @@ bt.ui = function() {
 		if(d.style.opacity == 0) {
 			d.style.border = '1px solid silver';
 			d.style.opacity = 1;
-			d.style.height = '93px';
+			d.style.height = '120px';
 			b.style.border = '2px solid #ff0066';
 
 			if (bt.currentUser == null) {
