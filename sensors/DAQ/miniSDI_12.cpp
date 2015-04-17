@@ -1,16 +1,19 @@
 /**
 miniSDI_12.cpp
+
+Implements the nessesary functions for responding to a request from the 
+Master via the miniSDI_12 protocol as outlined here:
+https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
+
 @author: Zak Pearson
 @since: January 2015
 **/
 #include "miniSDI_12.h"
 
 /**
-void respond(int a)
-    Uses UART port and Serial communication to respond to an A command request from the Master 
-      or an abort response per miniSDI 12 communication protocal as outlined here:
-      https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
-      iii,a<CR><LF>
+void respond(int)
+    Uses UART port and Serial communication to respond to an "A" command request.
+    iii,a<CR><LF>
 @param int a.
     Port address.
 @return void
@@ -23,10 +26,8 @@ void respond(int a){
 }
 
 /**
-void respond(int a, uint32_t n)
-    Uses UART port and Serial communication to respond to a P command request from the Master 
-      per miniSDI 12 communication protocal as outlined here:
-      https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
+void respond(int, uint32_t)
+    Uses UART port and Serial communication to respond to a "P" command request. 
     iii,a,n<CR><LF>
 @param int a.
     Port address.
@@ -44,10 +45,8 @@ void respond(int a, uint32_t n){
 }
 
 /**
-void respond(int a, uint32_t ttt, uint32_t n)
-    Uses UART port and Serial communication to respond to an M command request from the Master 
-      per miniSDI 12 communication protocal as outlined here:
-      https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
+void respond(int, uint32_t, uint32_t)
+    Uses UART port and Serial communication to respond to an "M" command request. 
     iii,a,ttt,n<CR><LF>
 @param int a.
     Port address.
@@ -69,7 +68,8 @@ void respond(int a, uint32_t ttt, uint32_t n){
 }
 /**
 void endLine(void)
-    Uses UART port and Serial communication to send <CR><LF>
+    Supporting function for the miniSDI_12 protocol.
+    Uses UART port and Serial communication to send <CR><LF>.
 @param void
 @return void
 **/
@@ -79,6 +79,7 @@ void endLine(void){
 
 /**
 void endLine(void)
+    Supporting function for the miniSDI_12 protocol.
     Uses UART port and Serial communication to send response terminator ":"
 @param void
 @return void
@@ -88,10 +89,8 @@ void terminate(void){
 }
 
 /**
-void dataReport(int a, uint32_t time, double value, boolean lastVal)
-    Uses UART port and Serial communication to send a data as type double to the Master 
-      per miniSDI 12 communication protocal as outlined here:
-      https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
+void dataReport(int, uint32_t, double, boolean)
+    Uses UART port and Serial communication to send a data as type double to the Master.
 @param int a.
     Port address
 @param unit32_t time
@@ -124,10 +123,8 @@ void dataReport(int a, uint32_t time, double value, boolean lastVal){
 }
 
 /**
-void dataReport(int a, uint32_t time, uint32_t value, boolean lastVal)
-    Uses UART port and Serial communication to send a data as type uint32_t to the Master 
-      per miniSDI 12 communication protocal as outlined here:
-      https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
+void dataReport(int, uint32_t, uint32_t, boolean)
+    Uses UART port and Serial communication to send a data as type uint32_t to the Master. 
 @param int a.
     Port address
 @param unit32_t time
@@ -158,10 +155,9 @@ void dataReport(int a, uint32_t time, uint32_t value, boolean lastVal){
 
 
 /**
-boolean readNewCmd( char* command, int* port, int* numMeasures)
-    Parses commands received on a daq device using miniSDI 12 communication protocal as outlined here:
-    https://github.com/crenshaw/sensor_hive/wiki/miniSDI-12
-    Returns true for following commands where int > 0:
+boolean readNewCmd( char* Command, int* port, int* numMeasurs)
+    Parses commands received from master on a daq device.
+    Returns true for following commands.
     <____>!;
       Where command = 'B', port = -1, numMeasures = -1.
     <int1><char><int2>!;
@@ -176,11 +172,13 @@ boolean readNewCmd( char* command, int* port, int* numMeasures)
 @param int* numMeasures
     Pointer to the location to store the number of measurments to be taken
 @return boolean
-    If the commands recieved was parsed succesfully returns true
+    If the commands recieved was parsed succesfully returns true otherwise the command is invalid
+    and function returns false.
 **/
 boolean readNewCmd( char* command, uint8_t* port, uint32_t* numMeasures){
-    char buffer[17];
-    int numChars = Serial.readBytesUntil(';', buffer, 17);
+    char buffer[17];                                                  //max size of command able to receive
+    int numChars = Serial.readBytesUntil(';', buffer, 17);            //read from serial buffer untill ";"
+                                                                      //or 17 characters
     //check if command ends with '!'.
     if (buffer[numChars -1] != '!'){
         return false;

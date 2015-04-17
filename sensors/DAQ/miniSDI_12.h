@@ -13,8 +13,8 @@ Provides the function prototypes for the miniSDI_12 protocol used to use communi
 
 #ifndef MINISDI_12_H
 #define MINISDI_12_H
-#define SDI_DAQ_ID 2
-#define SDI_ABORT 0
+#define SDI_DAQ_ID 2  //ID for the Specific DAQ. Should be changed for each DAQ in a system
+#define SDI_ABORT 0   //The abort code
 
 void respond(int a);
 void respond(int a, uint32_t n);

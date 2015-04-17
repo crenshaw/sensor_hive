@@ -30,7 +30,8 @@ Class: Sensor
   that will be implemented on the DAQ.This class should contain the functions
   that are common to all sensors as well as a virtual function for each individual sensor.
   The purpose of this classs is to be able to iterate over all sensors regardless of type.
-  The state and type of the sensor are stored in the state and type variables.
+  The state and type of the sensor are stored in the state and type variables. The type
+  of sensor needs to be store to accomidate different return types.
 Constructor: Sensor(void)
   Creates a sensor object
   Postcondition: state and type are undeclared. These will be declared in child classes.
