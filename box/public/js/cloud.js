@@ -1,4 +1,12 @@
+/**
+ * cloud.js
+ * 
+ * Defines the packaged app's functionality for passing the user's
+ * credentials to the remote server for logging in from the app.
+ *
+ */
 var cloudForm = document.getElementById('cloud_submit');
+
 cloudForm.addEventListener('click', function() {
     //Get login info
     var user = document.getElementById('cloud_user').value;
