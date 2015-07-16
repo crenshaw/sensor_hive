@@ -3,10 +3,26 @@
 #include "RTClib.h"
 #include <Wire.h>
 
+/**
+Experiment::Experiment (void)
+  Creates the object. Does not initialize the object. Allows the initalization to be called later.
+  
+  @param void
+*/
 Experiment::Experiment (void){
     
 }
 
+/**
+void Experiment::experimentSetup (Port* portsPtr, Memory* memPtr)
+  Stores pointers to memory and ports, calls intialization functions for hardware timers and RTC,
+  recovers previous experiment.
+
+  @param Port* portsPtr    A pointer to a ports object
+  @param Memory* memPtr    A pointer to a memory object
+  
+  @return void
+*/
 void Experiment::experimentSetup (Port* portsPtr, Memory* memPtr){
   ports = portsPtr;
   memory = memPtr;
@@ -20,7 +36,15 @@ void Experiment::experimentSetup (Port* portsPtr, Memory* memPtr){
   #endif
 }
 
-
+/**
+void Experiment::setPeriod (uint32_t newPeriod)
+  Takes a newPeriod and checks boundry condidtions. Saves newPeriod to IRC1 register, 
+  the compare register for hardware timer/counter1. Experiment max is 2^16-1
+  
+  @param uint32_t newPeriod    The new period.
+  
+  @return void
+*/
 void Experiment::setPeriod (uint32_t newPeriod){
     if (newPeriod > EXPERIMENT_MAX_PERIOD || experimentBlock.isRunning){
         respond(0);
@@ -31,6 +55,15 @@ void Experiment::setPeriod (uint32_t newPeriod){
     }
 }
 
+/**
+uint32_t Experiment::updateCurrentPeriod (void)
+  Updates the current period of the experiment and saves experiment block to EEPROM.
+  if it was the last period calls stop experiment.
+  
+  @param void
+  
+  @return uint32_t   the current period of the experiment.
+*/
 uint32_t Experiment::updateCurrentPeriod (void){
     currentPeriod ++;
     (*memory).updateExperimentBlock(experimentBlock);
@@ -40,7 +73,20 @@ uint32_t Experiment::updateCurrentPeriod (void){
     return currentPeriod;
 }
 
+/**
+void Experiment::startR (uint8_t port, uint32_t targetMeasurment)
+  Starts an R experiment. Checks running conditions. Uses Arduino delay function
+  to clock the experiment. Sends port data after every measurment. WARNING: this
+  function cannot be inturrupted - it will finish all requested measurments before
+  returning to the main program. This should only be used for a small number of measurments.
+  
+  @param uint8_t port    The desired port to measure. 0 for all ports.
+  @param uint32_t targetMeasurment    The desired number of measurments.
+  
+  @return void
+*/
 void Experiment::startR (uint8_t port, uint32_t targetMeasurment){
+    //running conditions.
     if (experimentBlock.isRunning && targetMeasurment != 1){
         respond(0);
     }
@@ -61,7 +107,19 @@ void Experiment::startR (uint8_t port, uint32_t targetMeasurment){
     }
 }
 
+/**
+void Experiment::startM (uint8_t port, uint32_t targetMeasurment)
+  Starts and M experiment. Checks running conditions and parameters.
+  Creates a new experiment block and updates the EEPROM. Clears EEPROM of old experiment data.
+  WARMING: sucsussfully calling this function will result in the loss of old experiment data.
+  
+  @param uint8_t port    The desired port to measure. 0 for all ports.
+  @param uint32_t targetMeasurment    The desired number of measurments.
+  
+  @return void
+*/
 void Experiment::startM (uint8_t port, uint32_t targetMeasurment){
+    //running conditions and parameter check.
     if (experimentBlock.isRunning || (!(*ports).isActive(port) && port !=0) || port > PORT_MAX || port < 0){
         respond(SDI_ABORT);
     }
@@ -88,7 +146,15 @@ void Experiment::startM (uint8_t port, uint32_t targetMeasurment){
     }
 }
 
-
+/**
+void Experiment::stopExperiment (void)
+  Stops experiments by turning off gloabl inturrupts. Updates experiment block and writes it to 
+  memory.
+  
+  @param void
+  
+  @return void
+*/
 void Experiment::stopExperiment (void){
     // set timer interupt off
     TIMSK1 &= (0 << ICIE1);
@@ -98,6 +164,17 @@ void Experiment::stopExperiment (void){
     (*memory).updateExperimentBlock(experimentBlock);
 }
 
+/**
+void Experiment::recoverExperiment (void)
+  Loads the last experiment from memory. If the running curretnlyRunning bit is set
+  calculates what the current period would be and starts experiment running. If the calculated
+  current period exceedes the desired number of measurments then the experiment is stopped.
+  Updates the experiment block in memory.
+  
+  @param void
+  
+  @return
+*/
 void Experiment::recoverExperiment (void){
     (*memory).loadExperimentBlock(&experimentBlock);
     if (experimentBlock.isRunning){
@@ -112,6 +189,15 @@ void Experiment::recoverExperiment (void){
     }
 }
 
+/**
+void Experiment::timerSetup (void)
+  set timer/counter1 to clock on external 1hz sqw from rtc on arduino pin 5
+  sets the default period length to 1s
+  
+  @param void
+  
+  @return void
+*/
 void Experiment::timerSetup (void){
    //set timer/counter 1 to clock on external 1hz sqw from rtc on arduino pin 5
     TCCR1B |= (1 << CS12);
@@ -132,6 +218,15 @@ void Experiment::timerSetup (void){
     TIMSK1 &= (0 << ICIE1);
 }
 
+/**
+void Experiment::startClock (void)
+  Uses I2C communication to set pin modes and begin communication with
+  RTC.
+  
+  @param void
+  
+  @return void
+*/
 void Experiment::startClock (void){
      #ifdef BEBUGsqw
      Serial.println("transmitting");

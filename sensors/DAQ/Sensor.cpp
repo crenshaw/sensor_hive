@@ -1,5 +1,8 @@
 /**
 Sensors.cpp
+
+Implements functions avalible to interact with sensors on DAQ.
+
 @author: Zak Pearson
 @since: January 2015
 **/
