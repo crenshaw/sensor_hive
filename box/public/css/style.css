@@ -202,7 +202,7 @@ span.local_device:hover {
 
 /* For the menubar, set the images for * specific menu elements */
 p#clearexp {
-    background-image:url('../icons/disable.png');
+    background-image:url('../icons/trash.png');
 }
 
 p#connect {
@@ -210,7 +210,7 @@ p#connect {
 }
 
 p#disable {
-    background-image:url('../icons/disable.png');
+    background-image:url('../icons/subtract.png');
 }
 
 p#go {
@@ -230,7 +230,7 @@ p#save {
 }
 
 p#setup {
-    background-image:url('../icons/setup.png');
+    background-image:url('../icons/configure.png');
 }
 
 p#stop {
@@ -329,10 +329,13 @@ div#setup_experiment {
     overflow: hidden;*/
 }
 
-div#local_devices.info.col-sm-4 {
+div#local_devices.info {
     background-color: white;
 }
 
+div#exp_window.info {
+    background-color: white;
+}
 
 /* ULS */
 

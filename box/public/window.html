@@ -12,15 +12,14 @@
 	<!-- For each info window and menu, notice that the class of
 	     the p element matches the id of the associated info
 	     window.  This reduces DOM traversal.  -->
-    
-	<!-- <div class = "subsection" id = "menus"> -->
 		
         <div class="row"><h3>Connect</h3></div>
 		
         <div class="row">
-            <div class="info col-sm-4">Local DAQs</div>
-            <div class="info col-sm-4">Enabled DAQ</div>
+            <div class="button-bar col-sm-4">Local DAQs</div>
+            <div class="button-bar col-sm-4">Enabled DAQ</div>
         </div>
+        
            <div class="row">
                 <div class = "info col-sm-4" id = "local_devices">
                     <ul id = "local_devices_list">
@@ -38,22 +37,22 @@
 
                    <li> <p class = "menuitem" id = "register"><span>register</span></p></li>
                 -->
-                <!-- <div class="row"> -->
-                    <div class="menubar button-bar col-xs-1">
+                    <div class="menubar button-bar col-sm-1">
                         <li ><p class = "menuitem local_devices" id = "connect"><span>enable daq</span></p></li>
                     </div>
-                    <div class="menubar button-bar col-xs-1">
+                    <div class="menubar button-bar col-sm-1">
                         <li ><p class = "menuitem local_devices" id = "disable"><span>disable daq</span></p></li>
                     </div>
-                    <div class="menubar button-bar col-xs-1">
+                    <div class="menubar button-bar col-sm-1">
                         <li> <p class = "menuitem local_devices" id = "refresh"><span>test daq</span></p></li>
                     </div>
-                <!-- </div> -->
 			</ul>
             
 		</div>
 
- <div class="row"><h3>Experiment Configuration:</h3></div>
+ <div class="row"><h3>Configure:</h3></div>
+ 
+ <div class="row"><div class="button-bar col-sm-6">Current Configuration</div></div>
 <div class="row">
 <div class = "info col-sm-6" id = "exp_window">
     <ul id = "exp_list"></ul>
@@ -75,16 +74,25 @@
 </div>
 </div>
 
-<div class="row">
-<div class = "menubar" >
+
+<div class = "row menubar" >
     <ul class = "menu" id = "exp_menu">
-        <li> <p class = "menuitem exp_window" id = "setup"><span>configure experiment</span></p></li>
-        <li> <p class = "menuitem exp_window" id = "go"><span>start experiment</span></p></li>
-        <li> <p class = "menuitem exp_window" id = "stop"><span>stop experiment</span></p></li>
-        <li> <p class = "menuitem exp_window" id = "clearexp"><span>clear settings</span></p></li>
+        <div class="button-bar col-sm-1">
+            <li> <p class = "menuitem exp_window" id = "go"><span>start experiment</span></p></li>
+        </div>
+        <div class="button-bar col-sm-1">
+            <li> <p class = "menuitem exp_window" id = "stop"><span>stop experiment</span></p></li>
+        </div>
+        <div class="button-bar col-sm-1">
+            <li> <p class = "menuitem exp_window" id = "setup"><span>configure experiment</span></p></li>
+        </div>
+        <div class="button-bar col-sm-1">
+            <li> <p class = "menuitem exp_window" id = "clearexp"><span>clear settings</span></p></li>
+        </div>
+        <div class="button-bar col-sm-2"></div>
     </ul>
 </div>
-</div>
+
 
 <div class = "info" id = "setup_experiment">
     
@@ -142,63 +150,70 @@
     
 </div>
 
-		<h3>System Logs:</h3>
-		<div class = "info" id = "alerts">
+<div class="row"><h3>Data:</h3></div>
+<div class="row">
+    <div class="col-sm-8">
+    <div class = "info" id = "data_window">
+        <div class="side-by-side" id="exp_data_div">
+            <table id="data_table" style="width: 100%">
+                <thead>
+                    <tr id="table_header">
+                        <th>Line</td>
+                            <th>DAQ #</td>
+                            <th>Port</td>
+                            <th>Time</td>
+                            <th>Value</td>
+                    </tr>
+                </thead>
+                <tbody id="data_table_body">
+                </tbody>
+            </table>
+        </div>
+        <div class="side-by-side" id="exp_list_div">
+            <h4 class="no_top_margin">Experiments</h4>
+            <hr class="no_top_margin">
+            <ul id="exp_name_list" class="no_top_margin"></ul>
+        </div>
+    </div>
+    </div>
+</div>
+
+<div class = "menubar row" >
+    <ul class = "menu" id = "data_menu">
+        <li> <p class = "menuitem data_window" id = "trash"><span>delete experiment</span></p></li>
+        <li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">save to csv</a></span></p></li>
+        <li> <p class = "menuitem data_window" id = "upload"><span>upload to cloud</span></p></li>
+    </ul>
+</div>
+
+<div class="row"><h3>System Logs:</h3></div>
+<div class="row">
+		<div class = "info col-sm-8" id = "alerts">
 			<ul id = "alerts_list"></ul>
 		</div>
+</div>
+<div class="row">
 		<div class = "menubar" >
 			<ul class = "menu" id = "alerts_menu">
 				<li> <p class = "menuitem alerts" id = "trash"><span>clear</span></p></li>
 			</ul>
 		</div>
+</div>
 
-		<div id = "advanced">
-			<h3>Serial Port Log:</h3>
-			<div class = "info" id = "serial">
+    <div class="row">
+        <div id = "advanced">
+            <h3>Serial Port Log:</h3>
+			<div class = "info col-sm-8" id = "serial">
 				<ul id = "serial_list"></ul>
-			</div>
-		</div>
-
-	  <!--  </div> end left subsection -->
-
-	<!-- <div class = "subsection" id = "data"> -->
-
-
-		<h3>Data:</h3>
-		<div class = "info" id = "data_window">
-			<div class="side-by-side" id="exp_data_div">
-				<table id="data_table" style="width: 100%">
-					<thead>
-					<tr id="table_header">
-						<th>Line</td>
-						<th>DAQ #</td>
-						<th>Port</td>
-						<th>Time</td>
-						<th>Value</td>
-					</tr>
-					</thead>
-					<tbody id="data_table_body">
-					</tbody>
-				</table>
-			</div>
-			<div class="side-by-side" id="exp_list_div">
-				<h4 class="no_top_margin">Experiments</h4>
-				<hr class="no_top_margin">
-				<ul id="exp_name_list" class="no_top_margin">
-				</ul>
-			</div>
-		</div>
-		<div class = "menubar" >
-			<ul class = "menu" id = "data_menu">
-				<li> <p class = "menuitem data_window" id = "trash"><span>delete experiment</span></p></li>
-				<li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">save to csv</a></span></p></li>
-				<li> <p class = "menuitem data_window" id = "upload"><span>upload to cloud</span></p></li>
-			</ul>
-		</div>
-		<h3>Cloud Login:</h3>
-		<div class = "info" id = "cloud_login">
-			<div class="side-by-side" id="cloud_login_window">
-				<div id="login_form">
+            </div>
+        </div>
+    </div>
+            
+    <div class="row"><h3>Cloud Login:</h3></div>
+        <div class="col-sm-8">
+            <div class = "info" id = "cloud_login">
+                <div class="side-by-side" id="cloud_login_window">
+                    <div id="login_form">
 					Username: <input type="text" style="width: 100px " name="username" id="cloud_user"></br>
 					Password: <input type="password" style="width: 100px" name="password" id="cloud_pass"></br>
 
@@ -207,7 +222,7 @@
 				<h3 id="current_user"></h3>
 			</div>
 		</div>
-	<!-- </div> -->
+	</div>
 
  <!-- -->
 </div>
