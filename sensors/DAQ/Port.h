@@ -12,10 +12,10 @@ Port.h
 
 #ifndef PORT_H
 #define PORT_H
-#include <Wire.h>
-#include "RTClib.h"
-#include "Sensor.h"
-#include "Memory.h"
+#include <Wire.h>              //I2C library used to communicate with RTC
+#include "RTClib.h"            //RTC library from Adafruit
+#include "Sensor.h"            //Sensor library used to interface with sensors
+#include "Memory.h"            //Memory library used to interface with EEPROM on DAQ
 // max ports avalibale
 #define PORT_MAX 6
 // global constants for this class. All constants contributed to this class will begin with PORT_
@@ -36,16 +36,21 @@ Port.h
 
 /**
 Class: Port
-  The port class manages all of the ports on the DAQ. It consists of an array of Sensor pointers
-  that point to the different sensor objects implemented in the Sensor class, a pointer to the 
-  memory class, a real time clock object. It also stores the number of active ports in activePorts 
-  and the last port in the array in lastPort. To make it easier to interface with the Experiment class 
-  the Sensors* array is left public.
+  The port class manages all of the ports on the DAQ. The purpose of this class is to 
+  maintain the ports array. It consists of an array of Sensor pointers that point to 
+  the different sensor objects implemented in the Sensor class, a pointer to the memory 
+  class, a real time clock object. It also stores the number of active ports in activePorts 
+  and the last port in the array in lastPort. To make it easier to interface with the 
+  Experiment class the Sensors* array is left public.
 Constructor: Port(void)
   Postcondition: All sensors are decalred on the heap and pointers to sensor objects are stored 
   in the Sensors array.
+Public Varibales:
+  Sensor* Ports[]
+     An array of ports objects that must be maintained by this class.
 Public Functions:
   void portSetup (Memory* memoryPtr):
+    precondistion: memoryPtr must not be null.
     postcondition: Memory contains a pointer to the memory class. Active ports contains the number
     of active ports. The highest array value with an active port is stored in lastPort.
   boolean isActive (uint8_t portAddress):
