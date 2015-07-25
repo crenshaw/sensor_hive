@@ -1,238 +1,269 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<title>Sensor Browser</title>
-    <link rel="stylesheet" href="./bootstrap/bootstrap-3.3.5-dist/css/bootstrap.css">
-	<link rel="stylesheet" type="text/css" href="./css/style.css" />
-	<link rel="stylesheet" type="text/css" href="./css/fonts.css" />
-</head>
-<body>
-<div class="container" id = "wrap">
-    
-	<!-- For each info window and menu, notice that the class of
-	     the p element matches the id of the associated info
-	     window.  This reduces DOM traversal.  -->
-		
-        <div class="row"><h3>Connect</h3></div>
-		
-        <div class="row">
-            <div class="button-bar col-sm-4">Local DAQs</div>
-            <div class="button-bar col-sm-4">Enabled DAQ</div>
-        </div>
-        
-           <div class="row">
-                <div class = "info col-sm-4" id = "local_devices">
-                    <ul id = "local_devices_list">
-                    </ul>
-                </div>
-                <div class="info col-sm-4" id="local_devices"></div>
-           </div>
-       
-       <div class="row">
-		<div class = "button-bar col-xs-5" >
-        </div>
-			<ul class = "menu" id = "local_devices_menu">
-
-				<!-- Comment out buttons that haven't been implemented yet
-
-                   <li> <p class = "menuitem" id = "register"><span>register</span></p></li>
-                -->
-                    <div class="menubar button-bar col-sm-1">
-                        <li ><p class = "menuitem local_devices" id = "connect"><span>enable daq</span></p></li>
-                    </div>
-                    <div class="menubar button-bar col-sm-1">
-                        <li ><p class = "menuitem local_devices" id = "disable"><span>disable daq</span></p></li>
-                    </div>
-                    <div class="menubar button-bar col-sm-1">
-                        <li> <p class = "menuitem local_devices" id = "refresh"><span>test daq</span></p></li>
-                    </div>
-			</ul>
+    <head>
+        <title>Sensor Browser</title>
+        <link rel="stylesheet" href="./bootstrap/bootstrap-3.3.5-dist/css/bootstrap.css">
+            <link rel="stylesheet" type="text/css" href="./css/style.css" />
+            <link rel="stylesheet" type="text/css" href="./css/fonts.css" />
+    </head>
+    <body>
+        <div class="container" id = "wrap">
             
-		</div>
-
- <div class="row"><h3>Configure:</h3></div>
- 
- <div class="row"><div class="button-bar col-sm-6">Current Configuration</div></div>
-<div class="row">
-<div class = "info col-sm-6" id = "exp_window">
-    <ul id = "exp_list"></ul>
-    
-    <div id = "exp_settings">
-        <div class = "settings" id = "exp_period">
-            Period: <p id = "exp_period_setting"></p>
-        </div>
-        
-        <div class = "settings" id = "exp_duration">
-            Duration: <p id = "exp_duration_setting"></p>
-        </div>
-        
-        <div class = "settings" id = "exp_logging">
-            Logging: <p id = "exp_logging_setting"></p>
-        </div>
-    </div>
-    
-</div>
-</div>
-
-
-<div class = "row menubar" >
-    <ul class = "menu" id = "exp_menu">
-        <div class="button-bar col-sm-1">
-            <li> <p class = "menuitem exp_window" id = "go"><span>start experiment</span></p></li>
-        </div>
-        <div class="button-bar col-sm-1">
-            <li> <p class = "menuitem exp_window" id = "stop"><span>stop experiment</span></p></li>
-        </div>
-        <div class="button-bar col-sm-1">
-            <li> <p class = "menuitem exp_window" id = "setup"><span>configure experiment</span></p></li>
-        </div>
-        <div class="button-bar col-sm-1">
-            <li> <p class = "menuitem exp_window" id = "clearexp"><span>clear settings</span></p></li>
-        </div>
-        <div class="button-bar col-sm-2"></div>
-    </ul>
-</div>
-
-
-<div class = "info" id = "setup_experiment">
-    
-    <form>
-        Period: <input type="text" name="period" id="period">
-            
-            <select id = "period_units">
-                <option value="seconds">seconds</option>
-                <option value="minutes">minutes</option>
-                <option value="hours">hours</option>
-            </select>
-            
-            <br>
-            
-            Duration: <input type="text" name="duration" id="duration">
+            <!-- For each info window and menu, notice that the class of
+             the p element matches the id of the associated info
+             window.  This reduces DOM traversal.  -->
+            <div class="container" id="connect">
+                <div class="row"><h3>Connect</h3></div>
                 
-                <select id = "duration_units" >
-                    <option value="seconds">seconds</option>
-                    <option value="minutes">minutes</option>
-                    <option value="hours">hours</option>
-                </select>
-                
-                <br>
-                
-                Data Logging:
-                
-                <select id = "logging">
-                    <option value="pc">desktop only (short experiment)</option>
-                    <option value="daq">desktop and DAQ (long experiment)</option>
-                </select>
-                
-                <br>
-                
-                Port Names:
-                <input type = "text" id = "port1" value="1"> </input>
-                <input type = "text" id = "port2" value="2"> </input>
-                <input type = "text" id = "port3" value="3"> </input>
-                <input type = "text" id = "port4" value="4"> </input>
-                <input type = "text" id = "port5" value="5"> </input>
-                <input type = "text" id = "port6" value="6"> </input>
-                
-                <br>
-                
-                Store experiment in cloud:
-                
-                <input type = "checkbox" id = "cloud_storage" checked>
-                </input>
-                
-                <div class = "buttons">
-                    <button type="button" id="cancel">cancel</button>
-                    <button type="button" id="done">done</button>
+                <div class="row">
+                    <div class="title-bar col-sm-4">Local DAQs</div>
+                    <div class="title-bar col-sm-4">Enabled DAQ</div>
                 </div>
                 
-                </form>
-    
-</div>
-
-<div class="row"><h3>Data:</h3></div>
-<div class="row">
-    <div class="col-sm-8">
-    <div class = "info" id = "data_window">
-        <div class="side-by-side" id="exp_data_div">
-            <table id="data_table" style="width: 100%">
-                <thead>
-                    <tr id="table_header">
-                        <th>Line</td>
-                            <th>DAQ #</td>
-                            <th>Port</td>
-                            <th>Time</td>
-                            <th>Value</td>
-                    </tr>
-                </thead>
-                <tbody id="data_table_body">
-                </tbody>
-            </table>
-        </div>
-        <div class="side-by-side" id="exp_list_div">
-            <h4 class="no_top_margin">Experiments</h4>
-            <hr class="no_top_margin">
-            <ul id="exp_name_list" class="no_top_margin"></ul>
-        </div>
-    </div>
-    </div>
-</div>
-
-<div class = "menubar row" >
-    <ul class = "menu" id = "data_menu">
-        <li> <p class = "menuitem data_window" id = "trash"><span>delete experiment</span></p></li>
-        <li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">save to csv</a></span></p></li>
-        <li> <p class = "menuitem data_window" id = "upload"><span>upload to cloud</span></p></li>
-    </ul>
-</div>
-
-<div class="row"><h3>System Logs:</h3></div>
-<div class="row">
-		<div class = "info col-sm-8" id = "alerts">
-			<ul id = "alerts_list"></ul>
-		</div>
-</div>
-<div class="row">
-		<div class = "menubar" >
-			<ul class = "menu" id = "alerts_menu">
-				<li> <p class = "menuitem alerts" id = "trash"><span>clear</span></p></li>
-			</ul>
-		</div>
-</div>
-
-    <div class="row">
-        <div id = "advanced">
-            <h3>Serial Port Log:</h3>
-			<div class = "info col-sm-8" id = "serial">
-				<ul id = "serial_list"></ul>
+                <div class="row">
+                    <div class = "info col-sm-4" id = "local_devices">
+                        <ul id = "local_devices_list">
+                        </ul>
+                    </div>
+                    <div class="info col-sm-4" id="local_devices"></div>
+                </div>
+                
+                <div class="row">
+                    <div class = "button-bar col-sm-8" >
+                        
+                        <ul class = "menu" id = "local_devices_menu">
+                            
+                            <!-- Comment out buttons that haven't been implemented yet
+                             
+                             <li> <p class = "menuitem" id = "register"><span>register</span></p></li>
+                             -->
+                            
+                            <li><p class = "menuitem local_devices r" id = "connect"><span>enable daq</span></p></li>
+                            
+                            <li><p class = "menuitem local_devices r" id = "disable"><span>disable daq</span></p></li>
+                            
+                            
+                            <li><p class = "menuitem local_devices r" id = "refresh"><span>test daq</span></p></li>
+                            
+                        </ul>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
             
-    <div class="row"><h3>Cloud Login:</h3></div>
-        <div class="col-sm-8">
-            <div class = "info" id = "cloud_login">
-                <div class="side-by-side" id="cloud_login_window">
-                    <div id="login_form">
-					Username: <input type="text" style="width: 100px " name="username" id="cloud_user"></br>
-					Password: <input type="password" style="width: 100px" name="password" id="cloud_pass"></br>
+            <div class="container" id="configure">
+                <div class="row"><h3>Configure</h3></div>
+                
+                    <div class="row">
+                        <div class="title-bar col-sm-4">Current Configuration</div>
+                        <div class="title-bar col-sm-4">Edit Configuration</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class = "info col-sm-4" id = "exp_window">
+                            <ul id = "exp_list"></ul>
+                            
+                            <div id = "exp_settings">
+                                <div class = "settings" id = "exp_period">
+                                    Period: <p id = "exp_period_setting"></p>
+                                </div>
+                                
+                                <div class = "settings" id = "exp_duration">
+                                    Duration: <p id = "exp_duration_setting"></p>
+                                </div>
+                                
+                                <div class = "settings" id = "exp_logging">
+                                    Logging: <p id = "exp_logging_setting"></p>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                        <div class = "info col-sm-4" id = "setup_experiment">
+                            
+                            <form>
+                                Period: <input type="text" name="period" id="period">
+                                    
+                                    <select id = "period_units">
+                                        <option value="seconds">seconds</option>
+                                        <option value="minutes">minutes</option>
+                                        <option value="hours">hours</option>
+                                    </select>
+                                    
+                                    <br>
+                                    
+                                    Duration: <input type="text" name="duration" id="duration">
+                                        
+                                        <select id = "duration_units" >
+                                            <option value="seconds">seconds</option>
+                                            <option value="minutes">minutes</option>
+                                            <option value="hours">hours</option>
+                                        </select>
+                                        
+                                        <br>
+                                        
+                                        Data Logging:
+                                        
+                                        <select id = "logging">
+                                            <option value="pc">desktop only (short experiment)</option>
+                                            <option value="daq">desktop and DAQ (long experiment)</option>
+                                        </select>
+                                        
+                                        <br>
+                                        
+                                        Port Names:
+                                        <input type = "text" id = "port1" value="1"> </input>
+                                        <input type = "text" id = "port2" value="2"> </input>
+                                        <input type = "text" id = "port3" value="3"> </input>
+                                        <input type = "text" id = "port4" value="4"> </input>
+                                        <input type = "text" id = "port5" value="5"> </input>
+                                        <input type = "text" id = "port6" value="6"> </input>
+                                        
+                                        <br>
+                                        
+                                        Store experiment in cloud:
+                                        
+                                        <input type = "checkbox" id = "cloud_storage" checked>
+                                        </input>
+                                        
+                                        <div class = "buttons">
+                                            <!-- <button type="button" id="cancel">cancel</button> -->
+                                            <button type="button" id="done">done</button>
+                                        </div>
+                                        
+                                        </form>
+                            
+                        </div>
+                        
 
-					<input type="submit" style="width: 50px" id="cloud_submit">
-				</div>
-				<h3 id="current_user"></h3>
-			</div>
-		</div>
-	</div>
-
- <!-- -->
-</div>
-</body>
-<script src ="./js/ui.js"></script>
-<script src ="./js/runnable.js"></script>
-<script src ="./js/protocol.js"></script>
-<script src ="./js/devices.js"></script>
-<script src ="./js/main.js"></script>
-<script src ="./js/data.js"></script>
-<script src ="./js/cloud.js"></script>
-<script src ="./js/sha256.js"></script>
+                    </div>
+                    
+                    <div class="row">
+                        <div class = "col-sm-8 button-bar" >
+                            <ul class = "menu" id = "exp_menu">
+                                <li> <p class = "menuitem exp_window" id = "go"><span>start experiment</span></p></li>
+                                
+                                <li> <p class = "menuitem exp_window" id = "stop"><span>stop experiment</span></p></li>
+                                
+                                <!-- <li> <p class = "menuitem exp_window" id = "setup"><span>configure experiment</span></p></li> -->
+                                
+                                <li> <p class = "menuitem exp_window" id = "clearexp"><span>clear settings</span></p></li>
+                                
+                        </div>
+                    </div>
+                
+                
+            </div> <!-- end configure -->
+            
+            <div class="container" id="data">
+                <div class="row"><h3>Data</h3></div>
+                <div class="row">
+                    
+                    <div class="info col-sm-2">
+                        <div class="side-by-side" id="exp_list_div">
+                            <h5 class="no_top_margin">Experiments</h5>
+                            <hr class="no_top_margin">
+                            <ul id="exp_name_list" class="no_top_margin"></ul>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class = "info" id = "data_window">
+                            <div class="side-by-side" id="exp_data_div">
+                                <table id="data_table" style="width: 100%">
+                                    <thead>
+                                        <tr id="table_header">
+                                            <th>Line</td>
+                                            <th>DAQ #</td>
+                                            <th>Port</td>
+                                            <th>Time</td>
+                                            <th>Value</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="data_table_body"></tbody>
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class = "button-bar col-sm-2">
+                        
+                        <ul class = "menu" id = "data_menu">
+                            
+                            <li> <p class = "menuitem data_window" id = "trash"><span>delete experiment</span></p></li>
+                            
+                            <li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">save to csv</a></span></p></li>
+                            
+                            <li> <p class = "menuitem data_window" id = "upload"><span>upload to cloud</span></p></li>
+                            
+                        </ul>
+                    </div>
+                </div>
+            </div> <!-- end data -->
+            
+            <div class="container" id="logs">
+                
+                <div class="row"><h3>Logs</h3></div>
+                
+                <!-- <div class="container" id="system_log"> -->
+                <div class="row"><div class="title-bar col-sm-12">System Log</div></div>
+                    
+                    <div class="row">
+                        <div class = "info col-sm-12" id = "alerts">
+                            <ul id = "alerts_list"></ul>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class = "button-bar" >
+                            <ul class = "menu" id = "alerts_menu">
+                                <li> <p class = "menuitem alerts" id = "trash"><span>clear</span></p></li>
+                            </ul>
+                        </div>
+                    </div>
+                   <!-- </div> <!-- end system log -->
+                
+            
+               <!-- <div class="container" id="serial_port_log"> -->
+                    <div class="row"><div class="title-bar col-sm-12">Serial Port Log</div></div>
+                    <div class="row">
+                        <div id = "advanced">
+                            <div class = "info col-sm-12" id = "serial">
+                                <ul id = "serial_list"></ul>
+                            </div>
+                        </div>
+                    </div>
+                <!--</div> <!-- end serial port log -->
+                    
+            </div> <!-- end logs -->
+            
+            
+            <div class="container" id="cloud_login">
+                <div class="row"><h3>Cloud Login:</h3></div>
+                
+                <div class="container" id="login">
+                    <div class = "info" id = "cloud_login">
+                        <div class="side-by-side" id="cloud_login_window">
+                            <div id="login_form">
+                                Username: <input type="text" style="width: 100px " name="username" id="cloud_user"></br>
+                                Password: <input type="password" style="width: 100px" name="password" id="cloud_pass"></br>
+                                        
+                                <input type="submit" style="width: 50px" id="cloud_submit"></br>
+                            </div>
+                            <h3 id="current_user"></h3>
+                        </div>
+                    </div>
+                </div>
+            </div> <!--end cloud login -->
+            
+        </div>
+    </body>
+    <script src ="./js/ui.js"></script>
+    <script src ="./js/runnable.js"></script>
+    <script src ="./js/protocol.js"></script>
+    <script src ="./js/devices.js"></script>
+    <script src ="./js/main.js"></script>
+    <script src ="./js/data.js"></script>
+    <script src ="./js/cloud.js"></script>
+    <script src ="./js/sha256.js"></script>
 </html>

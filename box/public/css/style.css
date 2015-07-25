@@ -46,6 +46,38 @@ div {
  * CLASSES
  */
 
+#half-left {
+    width: 40%;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-top: 0;
+    padding: 0;
+    border: 0;
+    float: left;
+}
+
+#half-right {
+    width: 50%;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-top: 0;
+    padding: 0;
+    border: 0;
+    float: right;
+}
+
+#system_logs {
+    width:70%;
+    float: left;
+}
+
+#serial_port_log {
+    width: 20%;
+    float: right;
+}
+
 /* DIVS */
 
 div.buttons {
@@ -74,20 +106,34 @@ div.subsection {
     /*margin-left: 10px;*/
 }
 
-div.menubar {
+/*div.menubar {
     height: 30px;
     overflow-y: hidden;
-}
+}*/
 
 div.side-by-side {
     float: left;
 }
 
 div.button-bar {
-    height: 30px;
+    height: 22px;
     border: 1px solid silver;
     background-color: #f5f5f5;
     overflow: hidden;
+    padding-left:0;
+    padding-right:0;
+}
+
+
+div.title-bar {
+    height: 18px;
+    border: 1px solid silver;
+    background-color: #f5f5f5;
+    overflow: hidden;
+}
+
+div#setup_experiment.info {
+    /*float: right;*/
 }
 
 
@@ -98,14 +144,20 @@ ul.menu {
     margin: 0;
     padding-left:0;
     height: 0;
+    padding-right: 0;
 }
 
+ul#local_devices_menu.menu {
+    text-align: right;
+}
+
+
 ul.menu li {
-    display: inline-block;
+    display: inline;
     margin-left: 0;
     margin-top: 0.5em;
     margin-bottom: 0;
-    margin-right: 37px;
+    padding-right:22px;
 }
 
 li.selected {
@@ -117,6 +169,8 @@ li.disconnected {
     list-style-type: circle;
 }
 
+
+
 /* ---------------------------------------------------------- */
 
 /* PARAGRAPHS */
@@ -127,10 +181,15 @@ p.menuitem {
     width: 20px;
     height: 20px;
     margin: 0;
-    /*border: 2px solid gray;*/
+    border-right: 1px solid silver;
+    /*border: 2px solid gray;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     /*border-radius: 3px;*/
+}
+p.menuitem.r {
+    border-left: 1px solid silver;
+    border-right: none;
 }
 
 p.menuitem:hover, .shadow {
@@ -207,6 +266,7 @@ p#clearexp {
 
 p#connect {
     background-image:url('../icons/add.png');
+    background-position: top;
 }
 
 p#disable {
@@ -256,7 +316,7 @@ div#local_devices, div#alerts, div#setup_experiment {
 
 div#exp_window, div#local_devices {
     /*height: 110px;*/
-    height: 75px;
+    height: 110px;
 }
 
 div#serial {
@@ -284,13 +344,13 @@ div#data_window {
 
 div#exp_list_div {
     margin-left: 1%;
-    width:29%;
+    width:100%;
     height: 100%;
     overflow: auto;
 }
 
 div#exp_data_div {
-    width: 70%;
+    width: 100%;
     height: 100%;
     overflow: auto;
 }
@@ -306,10 +366,10 @@ div#data_window, div#alerts {
 }
 
 div#setup_experiment {
-    border: 1px solid white;
+    border: 1px solid silver;
     padding-top: 0;
     background-color: #ffeef5;
-    height: 0;
+    /*height: 0;*/
     font-size: 90%
     opacity: 0;
 
@@ -336,6 +396,8 @@ div#local_devices.info {
 div#exp_window.info {
     background-color: white;
 }
+
+
 
 /* ULS */
 
@@ -365,6 +427,7 @@ ul#exp_list {
 
 /* Data table header */
 table,th,td {
+    
     border: 1px solid black;
     border-collapse: collapse;
 }
