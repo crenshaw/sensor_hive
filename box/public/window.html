@@ -25,11 +25,14 @@
                         <ul id = "local_devices_list">
                         </ul>
                     </div>
-                    <div class="info col-sm-4" id="local_devices"></div>
+                    <div class="info col-sm-4" id="connected_devices">
+                        <ul id = "connected_devices_list">
+                        </ul>
+                    </div>
                 </div>
                 
                 <div class="row">
-                    <div class = "button-bar col-sm-8" >
+                    <div class = "menubar col-sm-8" >
                         
                         <ul class = "menu" id = "local_devices_menu">
                             
@@ -80,7 +83,7 @@
                         
                         <div class = "info col-sm-4" id = "setup_experiment">
                             
-                            <form>
+                            <form id="setup_form">
                                 Period: <input type="text" name="period" id="period">
                                     
                                     <select id = "period_units">
@@ -125,10 +128,10 @@
                                         <input type = "checkbox" id = "cloud_storage" checked>
                                         </input>
                                         
-                                        <div class = "buttons">
-                                            <!-- <button type="button" id="cancel">cancel</button> -->
-                                            <button type="button" id="done">done</button>
-                                        </div>
+                                        <!-- <div class = "buttons">
+                                             <button type="button" id="cancel">cancel</button>
+                                             <button type="button" id="done">done</button>
+                                        </div> -->
                                         
                                         </form>
                             
@@ -138,7 +141,7 @@
                     </div>
                     
                     <div class="row">
-                        <div class = "col-sm-8 button-bar" >
+                        <div class = "col-sm-8 menubar" >
                             <ul class = "menu" id = "exp_menu">
                                 <li> <p class = "menuitem exp_window" id = "go"><span>start experiment</span></p></li>
                                 
@@ -147,6 +150,7 @@
                                 <!-- <li> <p class = "menuitem exp_window" id = "setup"><span>configure experiment</span></p></li> -->
                                 
                                 <li> <p class = "menuitem exp_window" id = "clearexp"><span>clear settings</span></p></li>
+                                <li><p class="menuitem exp_window" id="lock"><span>save settings</span></p></li>
                                 
                         </div>
                     </div>
@@ -187,7 +191,7 @@
                 </div>
                 
                 <div class="row">
-                    <div class = "button-bar col-sm-2">
+                    <div class = "menubar col-sm-2">
                         
                         <ul class = "menu" id = "data_menu">
                             
@@ -215,7 +219,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class = "button-bar" >
+                        <div class = "menubar" >
                             <ul class = "menu" id = "alerts_menu">
                                 <li> <p class = "menuitem alerts" id = "trash"><span>clear</span></p></li>
                             </ul>

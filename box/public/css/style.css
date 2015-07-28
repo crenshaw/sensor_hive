@@ -35,7 +35,6 @@ ul {
 
 li span {
     position: relative;
-    left: -5px;
 }
 
 div {
@@ -115,11 +114,11 @@ div.side-by-side {
     float: left;
 }
 
-div.button-bar {
+div.menubar {
     height: 22px;
     border: 1px solid silver;
     background-color: #f5f5f5;
-    overflow: hidden;
+    overflow-y: hidden;
     padding-left:0;
     padding-right:0;
 }
@@ -147,7 +146,7 @@ ul.menu {
     padding-right: 0;
 }
 
-ul#local_devices_menu.menu {
+ul#local_devices_menu.menu, ul#connected_devices_menu.menu {
     text-align: right;
 }
 
@@ -168,7 +167,6 @@ li.selected {
 li.disconnected {
     list-style-type: circle;
 }
-
 
 
 /* ---------------------------------------------------------- */
@@ -234,6 +232,8 @@ p.serial {
    user-select: auto;
 }
 
+
+
 /* local_device class */
 span.local_device {
     color: gray;
@@ -253,6 +253,11 @@ span.local_device:hover {
 .no_top_margin {
     margin-top:0;
     margin-bottom:0;
+}
+
+span.connected_device {
+    color: gray;
+    cursor: default;
 }
 
 /* ---------------------------------------------------------- 
@@ -304,6 +309,10 @@ p#upload {
     background-image:url('../icons/push.png');
 }
 
+p#lock {
+    background-image:url('../icons/lock.png');
+}
+
 
 /* DIVS */
 
@@ -314,9 +323,9 @@ div#local_devices, div#alerts, div#setup_experiment {
     /*width: 320px;*/
 }
 
-div#exp_window, div#local_devices {
+div#exp_window, div#local_devices, div#connected_devices {
     /*height: 110px;*/
-    height: 110px;
+    height: 106px;
 }
 
 div#serial {
@@ -368,10 +377,8 @@ div#data_window, div#alerts {
 div#setup_experiment {
     border: 1px solid silver;
     padding-top: 0;
-    background-color: #ffeef5;
-    /*height: 0;*/
-    font-size: 90%
-    opacity: 0;
+    background-color: #f5f5f5;
+    
 
     /*-webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -389,7 +396,7 @@ div#setup_experiment {
     overflow: hidden;*/
 }
 
-div#local_devices.info {
+div#local_devices.info, div#connected_devices.info {
     background-color: white;
 }
 
@@ -401,7 +408,7 @@ div#exp_window.info {
 
 /* ULS */
 
-ul#local_devices_list {
+ul#local_devices_list, ul#connected_devices_list {
     padding-left: 1em;
 }
 

@@ -919,12 +919,12 @@ bt.devices = function() {
 		p.then(function(response) {
 
 		    if (response.result === "Success") {
-			// Indicate that the recently connected pathname is connected.
-			bt.ui.indicate(path,'connected');
-			bt.ui.info(path + ' is enabled.');	
+               // Indicate that the recently connected pathname is connected.
+               bt.ui.indicate(path,'connected');
+               bt.ui.info(path + ' is enabled.');
 		    }
 		    else {
-			bt.ui.error(path + ' cannot be enabled.');
+               bt.ui.error(path + ' cannot be enabled.');
 		    }
 
 		}, function(error) {

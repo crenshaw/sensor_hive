@@ -116,13 +116,20 @@ bt.ui = function() {
 		// Either we are trying to hide the experiment setup menu or
 		// we are trying to show it.
 
+        //get setup experiment container
 		var d = document.getElementById('setup_experiment');
-		var b = document.getElementById('setup');
+        //get lock button
+		var b = document.getElementById('lock');
+        //get form elements
+        var form = document.getElementById('setup_form');
+        var elements = form.elements;
+        //get form selectors
+        var selectorLists = form.getElementsByTagName('select');
 
 		/*
 		 * TODO: Create css classes to implement this instead of
 		 * using code to alter style!
-		 */
+		 
 
 		// If it's hidden, show it.
 		if(d.style.opacity == 0) {
@@ -130,7 +137,6 @@ bt.ui = function() {
 			d.style.opacity = 1;
 			d.style.height = '120px';
 			b.style.border = '2px solid #ff0066';
-
 			if (bt.currentUser == null) {
 				var checkBox = document.getElementById('cloud_storage');
 				checkBox.style.opacity = 0;
@@ -141,9 +147,52 @@ bt.ui = function() {
 			d.style.opacity = 0;
 			d.style.height = 0;
 			b.style.border = '2px solid gray';
-		}
+		}*/
+        
+        if(d.style.backgroundColor == "rgb(245, 245, 245)"){
+            //"unlock" edit function (ie white background and set unlock button)
+            d.style.backgroundColor = "rgb(255, 255, 255)";
+            b.style.backgroundImage = "url('../icons/unlock.png')";
+            //enable form elements
+            for (i = 0; i < elements.length; i++){
+                elements[i].readOnly = false;
+            }
+            
+            //enable form selector lists
+            for (i = 0; i < selectorLists.length; i++) {
+                selectorLists[i].disabled = false;
+            }
+            var checkBox = document.getElementById('cloud_storage');
+            if (bt.currentUser == null) {
+                checkBox.style.opacity = 0;
+            }
+            else {
+                checkBox.disabled = false;
+            }
+        }
+        else {
+            //"lock" edit function (ie gray background and set lock button)
+            d.style.backgroundColor = "rgb(245, 245, 245)";
+            b.style.backgroundImage = "url('../icons/lock.png')";
+            
+            //disable form elements
+            for (i = 0; i < elements.length; i++){
+                elements[i].readOnly = true;
+            }
+            
+            //disable form selector lists
+            for (i = 0; i < selectorLists.length; i++) {
+                selectorLists[i].disabled = true;
+            }
+            if (bt.currentUser == null) {
+                var checkBox = document.getElementById('cloud_storage');
+                checkBox.disabled = true;
+            }
+            
+        }
     };
-
+    
+    
     /**
      * dispatchSetup()
      *
@@ -187,6 +236,7 @@ bt.ui = function() {
 
     };
 
+   
 
     /**
      * alertsMenu
@@ -417,24 +467,25 @@ bt.ui = function() {
 
 	else {
 	   
-	    if(action === 'setup') {
+	    if(action === 'lock') {
 
 
-		// Perform a lookup for each device and affirm that it
-		// is connected before allowing the user to configure
-		// the device.
-		for(var i = 0; i < devices.length; i++) {
+            // Perform a lookup for each device and affirm that it
+            // is connected before allowing the user to configure
+            // the device.
+            for(var i = 0; i < devices.length; i++) {
 
-		    var d = bt.devices.lookup(devices[i]);
-		    if (d == undefined || !d.connected ) {
-			var path = devices[i];
-			bt.ui.error(devices[i] + " is not enabled.  Please enable the device before configuring an experiment.");
-			return;
-		    }
+                var d = bt.devices.lookup(devices[i]);
+                
+                if (d == undefined || !d.connected ) {
+                    var path = devices[i];
+                    bt.ui.error(devices[i] + " is not enabled.  Please enable the device before configuring an experiment.");
+                    return;
+                }
 
 		}
 
-		toggleSetup();
+            toggleSetup();
 	    }
 		
 	    // The 'go' action is related to the application's experiment object.
@@ -623,7 +674,6 @@ bt.ui = function() {
      */
     bt.ui.initialize = function() {
 
-
 	// Part 1 -- Setup Menus.
 
 	// Grab the local devices menubar <ul> and add an event handler to it.
@@ -673,12 +723,44 @@ bt.ui = function() {
 	// Part 4 -- Setup Configuration Menu.
 
 	// Setup the buttons in the setup_experiment div.
-	var button = document.getElementById('cancel');
+	/** var button = document.getElementById('cancel');
 	button.onclick = toggleSetup;
 
 	button = document.getElementById('done');
-	button.onclick = dispatchSetup;
+	button.onclick = dispatchSetup;*/
+        
+    //Lock Edit Config Form
+        
+    //Get setup_experiment elements
+    var d = document.getElementById('setup_experiment');
+    var b = document.getElementById('lock');
+    //Get form elements
+    var form = document.getElementById('setup_form');
+    var elements = form.elements;
+    var selectorLists = form.getElementsByTagName('select');
 	
+        
+        //disable form
+        
+        //set gray background and set button to lock image
+        d.style.backgroundColor = "rgb(245, 245, 245)";
+        b.style.backgroundImage = "url('../icons/lock.png')";
+        
+        //disable form elements
+        for (i = 0; i < elements.length; i++){
+            elements[i].readOnly = true;
+        }
+        //disable form selectors
+        for (i = 0; i < selectorLists.length; i++) {
+            selectorLists[i].disabled = true;
+        }
+        
+        if (bt.currentUser == null) {
+            var checkBox = document.getElementById('cloud_storage');
+            checkBox.disabled = true;
+        }
+        
+        
     };
 
     /** 
@@ -953,6 +1035,7 @@ bt.ui = function() {
 	    }
 	}
     };
+   
 
     /**
      * clearDataTable()
