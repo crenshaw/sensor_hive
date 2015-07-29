@@ -938,6 +938,29 @@ bt.devices = function() {
     } // end bt.devices.connect
 
     /**
+     * getRegistry
+     *
+     * Based on the contents of the locals object, return 
+     * an array of all paths for registered devices.
+     *
+     */
+    bt.devices.getRegistry = function() {
+	
+	retVal = [];
+	
+	var i = 0;
+	
+	for(var path in locals) {
+	    
+	    retVal[i] = path;
+	    i++
+	} 
+
+	return retVal;
+
+    }
+
+    /**
      *
      * register
      *
