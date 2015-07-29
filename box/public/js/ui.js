@@ -171,6 +171,8 @@ bt.ui = function() {
             }
         }
         else {
+            dispatchSetup();
+            
             //"lock" edit function (ie gray background and set lock button)
             d.style.backgroundColor = "rgb(245, 245, 245)";
             b.style.backgroundImage = "url('../icons/lock.png')";
@@ -184,10 +186,18 @@ bt.ui = function() {
             for (i = 0; i < selectorLists.length; i++) {
                 selectorLists[i].disabled = true;
             }
+            
+            var checkBox = document.getElementById('cloud_storage');
             if (bt.currentUser == null) {
-                var checkBox = document.getElementById('cloud_storage');
+                checkBox.style.opacity = 0;
+            }
+            else {
                 checkBox.disabled = true;
             }
+            
+            //if button is unlocked, lock and save, if locked, unlock and edit
+            //button = document.getElementById('lock'); //REDO ---- Issues after trash button
+            
             
         }
     };
@@ -231,7 +241,7 @@ bt.ui = function() {
 	    // and from there, create an experiment object.  Call
 	    // toggleSetup() when all done, as indicated by final
 	    // parameter.
-	    bt.runnable.createExperiment(logging, devices, period, p_units, duration, d_units, toggleSetup);
+	    bt.runnable.createExperiment(logging, devices, period, p_units, duration, d_units);
 	}
 
     };
@@ -725,9 +735,9 @@ bt.ui = function() {
 	// Setup the buttons in the setup_experiment div.
 	/** var button = document.getElementById('cancel');
 	button.onclick = toggleSetup;
-
-	button = document.getElementById('done');
-	button.onclick = dispatchSetup;*/
+     */
+    
+    
         
     //Lock Edit Config Form
         
@@ -755,10 +765,15 @@ bt.ui = function() {
             selectorLists[i].disabled = true;
         }
         
+        var checkBox = document.getElementById('cloud_storage');
         if (bt.currentUser == null) {
-            var checkBox = document.getElementById('cloud_storage');
+            checkBox.disabled = true;
+            checkBox.style.opacity = 0;
+        }
+        else {
             checkBox.disabled = true;
         }
+        
         
         
     };
