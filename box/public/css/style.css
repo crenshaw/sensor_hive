@@ -146,9 +146,11 @@ ul.menu {
     padding-right: 0;
 }
 
-ul#local_devices_menu.menu, ul#connected_devices_menu.menu {
+ul#local_devices_menu.menu, ul#registered_devices_menu.menu, ul#lock_exp_menu.menu{
     text-align: right;
 }
+
+
 
 
 ul.menu li {
@@ -323,7 +325,7 @@ div#local_devices, div#alerts, div#setup_experiment {
     /*width: 320px;*/
 }
 
-div#exp_window, div#local_devices, div#connected_devices {
+div#exp_window, div#local_devices, div#registered_devices {
     /*height: 110px;*/
     height: 106px;
 }
@@ -396,13 +398,22 @@ div#setup_experiment {
     overflow: hidden;*/
 }
 
-div#local_devices.info, div#connected_devices.info {
+div#local_devices.info, div#registered_devices.info {
     background-color: white;
 }
 
 div#exp_window.info {
     background-color: white;
 }
+
+div#login {
+    padding: 0;
+}
+
+input#cloud_submit {
+    margin-top: 5px;
+}
+
 
 
 

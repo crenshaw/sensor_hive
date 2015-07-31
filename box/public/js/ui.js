@@ -567,6 +567,42 @@ bt.ui = function() {
 	e.target.classList.toggle("selected");
 
     };
+    
+    /**
+     * displayRegistered()
+     *
+     * When called, display all registered devices in container
+     * registered_devices_list.
+     *
+     */
+    var displayRegistered = function(){
+        var registered = bt.devices.getRegistry();
+        
+        // Grab the local device list container
+        var list = document.getElementById('registered_devices_list');
+        
+        // Affirm that we have what we need to do the work.
+        if(registered != undefined && list != undefined) {
+            
+            for(var i = 0; i < array.length; i++) {
+                
+                // Create an empty <li><p class = "local_device"> element
+                var node = document.createElement("LI");
+                var p = document.createElement("SPAN");
+                p.classList.add("registered_device");
+                node.appendChild(p);
+                
+                // Give it some contents.
+                var contents = document.createTextNode(registered[i]);
+                p.appendChild(contents);	
+                
+                // Add the new <li> element to the list.
+                list.appendChild(node);
+                
+            }
+        }
+        
+    };
 
     
     /**
