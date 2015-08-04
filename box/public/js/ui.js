@@ -480,7 +480,6 @@ bt.ui = function() {
 	   
 	    if(action === 'lock') {
 
-
             // Perform a lookup for each device and affirm that it
             // is connected before allowing the user to configure
             // the device.
@@ -494,7 +493,7 @@ bt.ui = function() {
                     return;
                 }
 
-		}
+            }
 
             toggleSetup();
 	    }
@@ -736,6 +735,10 @@ bt.ui = function() {
 	// Grab the experiment menubar and add an event handler to it.
 	menu = document.getElementById('exp_menu');
 	menu.onclick = delegateMenu;
+        
+    // Grab the experiment configuration menubar and add an event handler to it
+    menu = document.getElementById('exp_config_menu');
+    menu.onclick = delegateMenu;
 
 	// Grab the data menubar and add an event handler to it.
 	menu = document.getElementById('data_menu');

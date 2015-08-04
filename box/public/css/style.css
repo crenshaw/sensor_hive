@@ -92,7 +92,7 @@ div.info {
     /*-webkit-border-radius: 3px;*/
     /*border-radius: 3px;*/
     border: 1px solid silver;
-    background-color: #f5f5f5;
+    background-color: white;
     overflow: auto;
 }
 
@@ -146,7 +146,7 @@ ul.menu {
     padding-right: 0;
 }
 
-ul#local_devices_menu.menu, ul#registered_devices_menu.menu, ul#lock_exp_menu.menu{
+ul#local_devices_menu.menu, ul#registered_devices_menu.menu, ul#exp_config_menu.menu{
     text-align: right;
 }
 
@@ -372,7 +372,7 @@ div#exp_settings {
     display: block;
 }
 
-div#data_window, div#alerts {
+div#data_window, div#alerts, div#exp_list_div {
     height: 200px;
 }
 
@@ -398,12 +398,8 @@ div#setup_experiment {
     overflow: hidden;*/
 }
 
-div#local_devices.info, div#registered_devices.info {
-    background-color: white;
-}
-
-div#exp_window.info {
-    background-color: white;
+div#cloud_login.info {
+    background-color: #f5f5f5;
 }
 
 div#login {
