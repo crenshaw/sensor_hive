@@ -392,6 +392,7 @@ bt.ui = function() {
      */
     var delegateMenu = function(e) {
 
+        bt.ui.displayRegistered();
 	// Get the id of the target that was clicked and deploy
 	// the corresponding action.
 	var action = e.target.id
@@ -565,7 +566,7 @@ bt.ui = function() {
 	}
 
 	e.target.classList.toggle("selected");
-
+        
     };
     
     /**
@@ -575,29 +576,35 @@ bt.ui = function() {
      * registered_devices_list.
      *
      */
-    var displayRegistered = function(){
-        var registered = bt.devices.getRegistry();
+    bt.ui.displayRegistered = function(){
         
-        // Grab the local device list container
+        var registered = bt.devices.getRegistry();
+
         var list = document.getElementById('registered_devices_list');
+        
+         //clear window before adding more registered devices
+        infoWindows[registeredDevices].clear();
         
         // Affirm that we have what we need to do the work.
         if(registered != undefined && list != undefined) {
             
-            for(var i = 0; i < array.length; i++) {
-                
-                // Create an empty <li><p class = "local_device"> element
-                var node = document.createElement("LI");
-                var p = document.createElement("SPAN");
-                p.classList.add("registered_device");
-                node.appendChild(p);
-                
-                // Give it some contents.
-                var contents = document.createTextNode(registered[i]);
-                p.appendChild(contents);	
-                
-                // Add the new <li> element to the list.
-                list.appendChild(node);
+            for(var i = 0; i < registered.length; i++) {
+                var curDaq = bt.devices.lookup(registered[i]);
+                console.log(curDaq.path);
+                if (curDaq.connected){
+                    // Create an empty <li><p class = "local_device"> element
+                    var node = document.createElement("LI");
+                    var p = document.createElement("SPAN");
+                    p.classList.add("registered_device");
+                    node.appendChild(p);
+                    
+                    // Give it some contents.
+                    var contents = document.createTextNode(curDaq.path);
+                    p.appendChild(contents);
+                    
+                    // Add the new <li> element to the list.
+                    list.appendChild(node);
+                }
                 
             }
         }
@@ -1061,10 +1068,10 @@ bt.ui = function() {
      * the container local_devices_list.
      */
     bt.ui.displayLocals = function(array) {
-
+        
 	// Grab the local device list container
 	var list = document.getElementById('local_devices_list');
-
+        
 	// Affirm that we have what we need to do the work.
 	if(array != undefined && list != undefined) {
 

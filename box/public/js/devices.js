@@ -617,6 +617,7 @@ bt.devices = function() {
 	    }
 
 	    bt.ui.displayLocals(pruned);
+        
 	});
     };
 
