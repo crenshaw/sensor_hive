@@ -392,7 +392,7 @@ bt.ui = function() {
      */
     var delegateMenu = function(e) {
 
-        bt.ui.displayRegistered();
+        
 	// Get the id of the target that was clicked and deploy
 	// the corresponding action.
 	var action = e.target.id
@@ -581,9 +581,8 @@ bt.ui = function() {
         var registered = bt.devices.getRegistry();
 
         var list = document.getElementById('registered_devices_list');
-        
-         //clear window before adding more registered devices
-        infoWindows[registeredDevices].clear();
+       
+        list.innerHTML = '';
         
         // Affirm that we have what we need to do the work.
         if(registered != undefined && list != undefined) {
@@ -591,6 +590,7 @@ bt.ui = function() {
             for(var i = 0; i < registered.length; i++) {
                 var curDaq = bt.devices.lookup(registered[i]);
                 console.log(curDaq.path);
+                
                 if (curDaq.connected){
                     // Create an empty <li><p class = "local_device"> element
                     var node = document.createElement("LI");

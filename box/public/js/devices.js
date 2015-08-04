@@ -248,6 +248,9 @@ bt.devices = function() {
 
 	    // Delete it from the local registry.
 	    locals[d.path] = undefined;
+        
+        //display all currently registered devices
+        bt.ui.displayRegistered();
 	}
 
 	// If the device isn't already disconnected, disconnect it and
@@ -923,6 +926,7 @@ bt.devices = function() {
                // Indicate that the recently connected pathname is connected.
                bt.ui.indicate(path,'connected');
                bt.ui.info(path + ' is enabled.');
+               bt.ui.displayRegistered();
 		    }
 		    else {
                bt.ui.error(path + ' cannot be enabled.');
