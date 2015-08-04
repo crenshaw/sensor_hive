@@ -1,7 +1,7 @@
 /**
  * main.js
  * 
- * Defines the packaged app's behavior upon loading the
+ * Defines the packaged app's behaviour upon loading the
  * window.  
  *
  */

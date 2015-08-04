@@ -953,13 +953,35 @@ bt.devices = function() {
 	
 	for(var path in locals) {
 	    
-	    retVal[i] = path;
+	    if(locals[path] != undefined) {
+		retVal[i] = path;
+	    }
 	    i++
 	} 
 
 	return retVal;
 
     }
+
+    /**
+     * getState
+     * 
+     * Based on the contents of the locals object, log to
+     * console the current state of all devices registered
+     * to the app.
+     *
+     */
+    bt.devices.getState = function() {
+
+	for(var path in locals) {
+
+	    if(locals[path] != undefined) {
+		console.log(path);
+		console.log(bt.devices.lookup(path));
+	    }
+	}
+    }
+    
 
     /**
      *
