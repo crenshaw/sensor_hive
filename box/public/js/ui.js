@@ -708,6 +708,7 @@ bt.ui = function() {
     //Put the data into the appropriate table slots
     dataArr.forEach(function(d) {
         var td = document.createElement("TD");
+        
         td.innerText = d;
         tr.appendChild(td);
     });

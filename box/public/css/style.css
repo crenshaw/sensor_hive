@@ -19,7 +19,7 @@ input {
 
 p {
     display: inline;
-    margin-left: 0.6em;
+    
 }
 
 h1 {
@@ -129,6 +129,7 @@ div.title-bar {
     border: 1px solid silver;
     background-color: #f5f5f5;
     overflow: hidden;
+    padding-left: 5px;
 }
 
 div#setup_experiment.info {
@@ -151,14 +152,27 @@ ul#local_devices_menu.menu, ul#registered_devices_menu.menu, ul#exp_config_menu.
 }
 
 
-
-
 ul.menu li {
     display: inline;
     margin-left: 0;
     margin-top: 0.5em;
     margin-bottom: 0;
     padding-right:22px;
+}
+
+ul.menu.data-table-titles li {
+    border-right: 1px solid silver;
+    padding-right: 0;
+    padding-left:0;
+    text-align: center;
+    width: 73px;
+    margin: 0;
+    
+}
+
+ul.menu.data-table-titles li:last-child {
+    border-right: none;
+    width: 60px;
 }
 
 li.selected {
@@ -190,6 +204,13 @@ p.menuitem {
 p.menuitem.r {
     border-left: 1px solid silver;
     border-right: none;
+}
+
+li.data-table-title {
+    width: 30px;
+    height: 20px;
+    margin: 0;
+    float: left;
 }
 
 p.menuitem:hover, .shadow {
@@ -445,10 +466,25 @@ ul#exp_list {
 table,th,td {
     
     border: 1px solid silver;
-    border-top: none;
-    border-bottom: none;
+    /*border-top: none;*/
+    border-bottom: 1px solid silver;
+    /*border-right: none;*/
+    /*border-left: none;*/
     border-collapse: collapse;
     height: 16px;
+    table-layout: fixed;
+    
 }
+
+table col:first-child {
+    width: 25px;
+}
+
+th, td {
+    overflow: hidden;
+    width: 45px;
+    text-align: center;
+}
+
 
 
