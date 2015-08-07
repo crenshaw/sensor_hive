@@ -204,6 +204,30 @@ bt.ui = function() {
     
     
     /**
+     * delegateLogin()
+     *
+     * Display/Hide login screen when user clicks login button.
+     *
+     */
+    var delegateLogin = function(){
+        
+        var loginBox = document.getElementById('login');
+        
+        
+        if(loginBox.style.opacity == 0) {
+            loginBox.style.opacity = 1;
+            loginBox.style.height = '96px';
+            
+        }
+        else {
+            loginBox.style.opacity = 0;
+            loginBox.style.height = 0;
+        }
+        
+    }
+    
+    
+    /**
      * dispatchSetup()
      *
      * Obtain the user-entered information for the experiment and
@@ -728,7 +752,7 @@ bt.ui = function() {
     bt.ui.initialize = function() {
 
 	// Part 1 -- Setup Menus.
-
+        
 	// Grab the local devices menubar <ul> and add an event handler to it.
 	var menu = document.getElementById('local_devices_menu');
 	menu.onclick = delegateMenu;
@@ -753,8 +777,10 @@ bt.ui = function() {
 	menu = document.getElementById('alerts_menu');
 	menu.onclick = alertsMenu;
 
+        var login = document.getElementById('login_link');
+        login.onclick = delegateLogin;
 
-
+        
 	// Part 2 -- Setup selection highlighting
 
 	// Grab the local devices list and add an event handler to it.

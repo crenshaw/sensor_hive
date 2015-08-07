@@ -9,8 +9,6 @@ html {
 body {
     font-family: 'Lato', san-serif;
     font-size: 100%;
-    
-    
 }
 
 input {
@@ -26,6 +24,13 @@ h1 {
     font-family: 'Varela Round', san-serif;
     font-size: 200%;
 }
+
+/*h3 {
+    color: #ff0066;
+    font-family: "Pacifico";
+    font-style: normal;
+    font-weight: 400;
+}*/
 
 ul {
     list-style: none;
@@ -72,10 +77,6 @@ div {
     float: left;
 }
 
-#serial_port_log {
-    width: 20%;
-    float: right;
-}
 
 /* DIVS */
 
@@ -117,7 +118,7 @@ div.side-by-side {
 div.menubar {
     height: 22px;
     border: 1px solid silver;
-    background-color: #f5f5f5;
+    background-color: #f0f0f0;
     overflow-y: hidden;
     padding-left:0;
     padding-right:0;
@@ -130,10 +131,16 @@ div.title-bar {
     background-color: #f5f5f5;
     overflow: hidden;
     padding-left: 5px;
+    font-weight: bold;
 }
 
 div#setup_experiment.info {
     /*float: right;*/
+    height: match-par
+}
+
+div#serial_port_log.container {
+    padding-top: 15px;
 }
 
 
@@ -200,6 +207,7 @@ p.menuitem {
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     /*border-radius: 3px;*/
+    background-color: #f6f6f6;
 }
 p.menuitem.r {
     border-left: 1px solid silver;
@@ -253,6 +261,12 @@ p.serial {
    -webkit-user-select: auto ;
    -ms-user-select: auto;
    user-select: auto;
+}
+
+a#login_link {
+    color: white;
+    font-size: 15px;
+    padding-right: 15px;
 }
 
 
@@ -339,7 +353,27 @@ p#lock {
 
 /* DIVS */
 
+section#top_banner {
+    background: #ff0066;
+    text-align: right;
+}
+
+
+div.container.banner {
+    width: 100%;
+    height: 25px;
+}
+
+div.container.section {
+    padding: 0;
+}
+
 div#advanced {
+}
+
+div#wrap.container {
+    margin-left: 3%;
+    margin-right: 3%;
 }
 
 div#local_devices, div#alerts, div#setup_experiment {
@@ -353,7 +387,7 @@ div#exp_window, div#local_devices, div#registered_devices {
 
 div#serial {
     /*height: 150px;*/
-    height:50px
+    height:70px
 }
 
 div#alerts p {
@@ -374,6 +408,10 @@ div#data_window {
     overflow:visible;
 }
 
+div#configure.container {
+    float: bottom;
+}
+
 div#exp_list_div {
     margin-left: 1%;
     width:100%;
@@ -387,6 +425,8 @@ div#exp_data_div {
     width: 100%;
     height: 100%;
     overflow: auto;
+    padding-right: 10px;
+    padding-left: 10px;
 }
 
 div#exp_settings {
@@ -426,7 +466,27 @@ div#cloud_login.info {
 }
 
 div#login {
-    padding: 0;
+    padding: auto;
+    margin: 20px;
+    margin-bottom:0;
+    opacity: 0;
+    height: 0;
+}
+
+div#cloud_login_row.container.section {
+    
+}
+
+div#scio {
+    /*font-family: "Pacifico";*/
+    line-height: 40px;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 32px;
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom; 0;
+    color: #ff0066;
 }
 
 input#cloud_submit {
@@ -473,7 +533,6 @@ table,th,td {
     border-collapse: collapse;
     height: 16px;
     table-layout: fixed;
-    
 }
 
 table col:first-child {

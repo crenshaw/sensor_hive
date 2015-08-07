@@ -3,37 +3,84 @@
     <head>
         <title>Sensor Browser</title>
         <link rel="stylesheet" href="./bootstrap/bootstrap-3.3.5-dist/css/bootstrap.css">
-            <link rel="stylesheet" type="text/css" href="./css/style.css" />
-            <link rel="stylesheet" type="text/css" href="./css/fonts.css" />
+        <link rel="stylesheet" type="text/css" href="./css/style.css" />
+        <link rel="stylesheet" type="text/css" href="./css/fonts.css" />
+        
+            
     </head>
     <body>
+        
+        <header id="title-head">
+            <section id="top_banner">
+                <div class="container banner">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <a id="login_link">Login</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </header>
+        
+        <div class="container section" id="cloud_login_row">
+            <div class="row col-sm-12">
+                
+                
+                <div class="container col-sm-3 section" id="cloud_login">
+                    <div class="row">
+                        <div class="col-sm-12" id="login">
+                            <div class = "info" id = "cloud_login">
+                                <div id="cloud_login_window">
+                                    <div id="login_form">
+                                        Username: <input type="text" style="width: 100px " name="username" id="cloud_user"></br>
+                                            Password: <input type="password" style="width: 100px" name="password" id="cloud_pass"></br>
+                                                
+                                                <input type="submit" style="width: 50px" id="cloud_submit"></br>
+                                                    </div>
+                                    <h5 id="current_user"></h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!--end cloud login -->
+                
+                
+            </div>
+        </div>
+        
         <div class="container" id = "wrap">
+            
             
             <!-- For each info window and menu, notice that the class of
              the p element matches the id of the associated info
              window.  This reduces DOM traversal.  -->
-            <div class="row">
-            <div class="container col-sm-8" id="connect">
+            
+            <div class="row col-sm-12" id="top_menus">
+                
+            <div class="container col-sm-7 section" id="connect_configure">
+                
+            <div class="row col-sm-11">
+            <div class="container col-sm-12 section" id="connect">
                 <div class="row"><h3>Connect</h3></div>
                 
                 <div class="row">
-                    <div class="title-bar col-sm-5">Local DAQs</div>
-                    <div class="title-bar col-sm-5">Registered DAQs</div>
+                    <div class="title-bar col-sm-6">Local DAQs</div>
+                    <div class="title-bar col-sm-6">Registered DAQs</div>
                 </div>
                 
                 <div class="row">
-                    <div class = "info col-sm-5" id = "local_devices">
+                    <div class = "info col-sm-6" id = "local_devices">
                         <ul id = "local_devices_list">
                         </ul>
                     </div>
-                    <div class="info col-sm-5" id="registered_devices">
+                    <div class="info col-sm-6" id="registered_devices">
                         <ul id = "registered_devices_list">
                         </ul>
                     </div>
                 </div>
                 
                 <div class="row">
-                    <div class = "menubar col-sm-10" >
+                    <div class = "menubar" >
                         
                         <ul class = "menu" id = "local_devices_menu">
                             
@@ -53,39 +100,21 @@
                     </div>
                 </div>
             </div> <!-- end connect -->
-            
-            <div class="container col-sm-3" id="cloud_login">
-                <div class="row"><h3>Sign In</h3></div>
-                <div class="row">
-                <div class="col-sm-12" id="login">
-                    <div class = "info" id = "cloud_login">
-                        <div id="cloud_login_window">
-                            <div id="login_form">
-                                Username: <input type="text" style="width: 100px " name="username" id="cloud_user"></br>
-                                    Password: <input type="password" style="width: 100px" name="password" id="cloud_pass"></br>
-                                        
-                                        <input type="submit" style="width: 50px" id="cloud_submit"></br>
-                                            </div>
-                            <h5 id="current_user"></h5>
-                        </div>
-                    </div>
-                </div>
-                </div>
-            </div> <!--end cloud login -->
         </div>
-            
-            
-            <div class="row">
-            <div class="container" id="configure">
+         
+         
+         
+            <div class="row col-sm-11">
+            <div class="container col-sm-12 section" id="configure">
                 <div class="row"><h3>Configure</h3></div>
                 
                     <div class="row">
-                        <div class="title-bar col-sm-4">Current Configuration</div>
-                        <div class="title-bar col-sm-4">Edit Configuration</div>
+                        <div class="title-bar col-sm-6">Current Configuration</div>
+                        <div class="title-bar col-sm-6">Edit Configuration</div>
                     </div>
                     
                     <div class="row">
-                        <div class = "info col-sm-4" id = "exp_window">
+                        <div class = "info col-sm-6" id = "exp_window">
                             <ul id = "exp_list"></ul>
                             
                             <div id = "exp_settings">
@@ -104,7 +133,7 @@
                             
                         </div>
                         
-                        <div class = "info col-sm-4" id = "setup_experiment">
+                        <div class = "info col-sm-6" id = "setup_experiment">
                             
                             <form id="setup_form">
                                 Period: <input type="text" name="period" id="period">
@@ -164,7 +193,7 @@
                     </div>
                     
                     <div class="row">
-                        <div class = "col-sm-4 menubar" >
+                        <div class = "col-sm-6 menubar" >
                             <ul class = "menu" id = "exp_menu">
                                 <li> <p class = "menuitem exp_window" id = "go"><span>start experiment</span></p></li>
                                 
@@ -176,7 +205,7 @@
                                 
                             </ul>
                         </div>
-                        <div class = "col-sm-4 menubar">
+                        <div class = "col-sm-6 menubar">
                             <ul class = "menu" id="exp_config_menu">
                                 <li><p class="menuitem exp_window r" id="lock"><span>save settings</span></p></li>
                             </ul>
@@ -185,13 +214,54 @@
                 
             </div> <!-- end configure -->
         </div>
+        </div>
+            
+            <div class="row col-sm-5" id="log_menu">
+                <div class="container col-sm-12 section" id="logs">
+                    
+                    <div class="row"><h3>Logs</h3></div>
+                    
+                    <div class="container col-sm-12 section" id="system_log">
+                    <div class="row"><div class="title-bar col-sm-12">System Log</div></div>
+                    
+                    <div class="row">
+                        <div class = "info col-sm-12" id = "alerts">
+                            <ul id = "alerts_list"></ul>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class = "menubar" >
+                            <ul class = "menu" id = "alerts_menu">
+                                <li> <p class = "menuitem alerts" id = "trash"><span>clear</span></p></li>
+                            </ul>
+                        </div>
+                    </div>
+                    </div> <!-- end system log -->
+                    
+                    
+                    <div class="container col-sm-12 section" id="serial_port_log">
+                    <div class="row"><div class="title-bar col-sm-12">Serial Port Log</div></div>
+                    <div class="row">
+                        <div id = "advanced">
+                            <div class = "info col-sm-12" id = "serial">
+                                <ul id = "serial_list"></ul>
+                            </div>
+                        </div>
+                    </div>
+                 </div> <!-- end serial port log -->
+                    
+                </div> <!-- end logs -->
+            </div>
+        </div>
         
-        <div class="row">
-            <div class="container" id="data">
-                <div class="row"><h3>Data</h3></div>
+        
+        <div class="row col-sm-12" id="data_login">
+        <div class="row col-sm-8" id="view_data_menu">
+            <div class="col-sm-12 section container" id="data">
+                <div class="row"><h3>View Data</h3></div>
                 <div class="row">
-                    <div class="title-bar col-sm-2">Saved Experiments</div>
-                    <div class="title-bar col-sm-6">
+                    <div class="title-bar col-sm-4">Saved Experiments</div>
+                    <div class="title-bar col-sm-8">
                     
                     <ul class="menu data-table-titles">
                        <li class="data-table-title">Line</li>
@@ -206,12 +276,12 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="info col-sm-2">
+                    <div class="info col-sm-4">
                         <div id="exp_list_div">
                             <ul class="no_top_margin" id="exp_name_list"></ul>
                         </div>
                     </div>
-                        <div class = "info col-sm-6" id = "data_window">
+                        <div class = "info col-sm-8" id = "data_window">
                             <div id="exp_data_div">
                                 <table id="data_table" style="width: 100%">
                                     <thead>
@@ -225,7 +295,7 @@
                 </div>
                 
                 <div class="row">
-                    <div class = "menubar col-sm-2">
+                    <div class = "menubar col-sm-4">
                         
                         <ul class = "menu" id = "data_menu">
                             
@@ -237,49 +307,17 @@
                             
                         </ul>
                     </div>
-                    <div class="menubar col-sm-6"></div>
+                    <div class="menubar col-sm-8"></div>
                 </div>
             </div> <!-- end data -->
         </div>
         
-        <div class="row">
-            <div class="container" id="logs">
-                
-                <div class="row"><h3>Logs</h3></div>
-                
-                <!-- <div class="container" id="system_log"> -->
-                <div class="row"><div class="title-bar col-sm-12">System Log</div></div>
-                    
-                    <div class="row">
-                        <div class = "info col-sm-12" id = "alerts">
-                            <ul id = "alerts_list"></ul>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class = "menubar" >
-                            <ul class = "menu" id = "alerts_menu">
-                                <li> <p class = "menuitem alerts" id = "trash"><span>clear</span></p></li>
-                            </ul>
-                        </div>
-                    </div>
-                   <!-- </div> <!-- end system log -->
-                
-            
-               <!-- <div class="container" id="serial_port_log"> -->
-                    <div class="row"><div class="title-bar col-sm-12">Serial Port Log</div></div>
-                    <div class="row">
-                        <div id = "advanced">
-                            <div class = "info col-sm-12" id = "serial">
-                                <ul id = "serial_list"></ul>
-                            </div>
-                        </div>
-                    </div>
-                <!--</div> <!-- end serial port log -->
-                    
-            </div> <!-- end logs -->
-           </div>
-            
-            
+        
+        
+        
+        
+        </div>
+        
             
         </div>
     </body>
