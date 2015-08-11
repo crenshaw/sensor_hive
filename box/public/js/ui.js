@@ -203,28 +203,6 @@ bt.ui = function() {
     };
     
     
-    /**
-     * delegateLogin()
-     *
-     * Display/Hide login screen when user clicks login button.
-     *
-     */
-    var delegateLogin = function(){
-        
-        var loginBox = document.getElementById('login');
-        
-        
-        if(loginBox.style.opacity == 0) {
-            loginBox.style.opacity = 1;
-            loginBox.style.height = '96px';
-            
-        }
-        else {
-            loginBox.style.opacity = 0;
-            loginBox.style.height = 0;
-        }
-        
-    }
     
     
     /**
@@ -778,7 +756,7 @@ bt.ui = function() {
 	menu.onclick = alertsMenu;
 
         var login = document.getElementById('login_link');
-        login.onclick = delegateLogin;
+        login.onclick = bt.ui.delegateLogin;
 
         
 	// Part 2 -- Setup selection highlighting
@@ -851,6 +829,32 @@ bt.ui = function() {
         
     };
 
+    
+    /**
+     * delegateLogin()
+     *
+     * Display/Hide login screen when user clicks login button.
+     *
+     */
+    bt.ui.delegateLogin = function(){
+        
+        var loginBox = document.getElementById('login');
+        
+        
+        if(loginBox.style.opacity == 0) {
+            loginBox.style.opacity = 1;
+            loginBox.style.height = '96px';
+            
+        }
+        else {
+            loginBox.style.opacity = 0;
+            loginBox.style.height = 0;
+        }
+        
+    }
+
+    
+    
     /** 
      * experiment()
      *

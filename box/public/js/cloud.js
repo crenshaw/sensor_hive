@@ -25,10 +25,12 @@ cloudForm.addEventListener('click', function() {
     xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     xhr.send(JSON.stringify(data));
     xhr.onloadend = function () {
-        var currentUserDisplay = document.getElementById('current_user');
+        //var currentUserDisplay = document.getElementById('current_user');
+          var currentUserDisplay = document.getElementById('login_link');
         if (xhr.responseText === "[true]") {
-            currentUserDisplay.innerHTML = "Logged in as: " + user;
-
+            //currentUserDisplay.innerHTML = "Logged in as: " + user;
+            currentUserDisplay.innerHTML = "Welcome " + user + ", (Logout)";
+            bt.ui.delegateLogin();
             bt.currentUser = user;
             bt.currentPass = pass;
 
@@ -37,7 +39,7 @@ cloudForm.addEventListener('click', function() {
             document.getElementById('upload').style.opacity=1;
         }
         else {
-            currentUserDisplay.innerHTML = "";
+            currentUserDisplay.innerHTML = "Login";
 
             bt.currentUser = null;
             bt.currentPass = null;

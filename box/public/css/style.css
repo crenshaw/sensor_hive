@@ -8,7 +8,7 @@ html {
 }
 body {
     font-family: 'Lato', san-serif;
-    font-size: 100%;
+    font-size: 120%;
 }
 
 input {
@@ -87,8 +87,8 @@ div.buttons {
 
 div.info {
     padding-top:3px;
-    padding-right: 5px;
-    padding-left: 5px;
+    padding-right: 1%;
+    padding-left: 1%;
     /*-moz-border-radius: 3px;*/
     /*-webkit-border-radius: 3px;*/
     /*border-radius: 3px;*/
@@ -130,13 +130,14 @@ div.title-bar {
     border: 1px solid silver;
     background-color: #f5f5f5;
     overflow: hidden;
-    padding-left: 5px;
+    padding-left: 3%;
+    padding-right: 3%;
     font-weight: bold;
 }
 
 div#setup_experiment.info {
     /*float: right;*/
-    height: match-par
+    /*height: 100%;*/
 }
 
 div#serial_port_log.container {
@@ -172,7 +173,7 @@ ul.menu.data-table-titles li {
     padding-right: 0;
     padding-left:0;
     text-align: center;
-    width: 73px;
+    width: 20%;
     margin: 0;
     
 }
@@ -308,7 +309,6 @@ p#clearexp {
 
 p#connect {
     background-image:url('../icons/add.png');
-    background-position: top;
 }
 
 p#disable {
@@ -350,6 +350,14 @@ p#lock {
     background-image:url('../icons/lock.png');
 }
 
+img#scio_logo {
+    background-image: url('../icons/16-lightbulb.png');
+    height: 16px;
+    width: 16px;
+}
+a#scio_remote_viewer {
+    float:left;
+}
 
 /* DIVS */
 
@@ -372,7 +380,7 @@ div#advanced {
 }
 
 div#wrap.container {
-    margin-left: 3%;
+    margin-left: 4%;
     margin-right: 3%;
 }
 
@@ -380,9 +388,9 @@ div#local_devices, div#alerts, div#setup_experiment {
     /*width: 320px;*/
 }
 
-div#exp_window, div#local_devices, div#registered_devices {
+div#local_devices, div#registered_devices, div#exp_window.info, div#setup_experiment {
     /*height: 110px;*/
-    height: 106px;
+    height:124px;
 }
 
 div#serial {
@@ -394,14 +402,6 @@ div#alerts p {
     display: block;
     margin-top: 0px;
     margin-bottom: 0px;
-}
-
-div#exp_window {
-    /*width: 430px;*/
-}
-
-div#data_window, div#setup_experiment {
-    /*width: 430px;*/
 }
 
 div#data_window {
@@ -425,8 +425,8 @@ div#exp_data_div {
     width: 100%;
     height: 100%;
     overflow: auto;
-    padding-right: 10px;
-    padding-left: 10px;
+    padding-right: 2%;
+    padding-left: 2%;
 }
 
 div#exp_settings {
@@ -463,6 +463,11 @@ div#setup_experiment {
 
 div#cloud_login.info {
     background-color: #f5f5f5;
+    float:right;
+}
+
+div#cloud_login.container{
+    float:right;
 }
 
 div#login {
@@ -471,10 +476,11 @@ div#login {
     margin-bottom:0;
     opacity: 0;
     height: 0;
+    padding-right:25px;
 }
 
 div#cloud_login_row.container.section {
-    
+    text-align: right;
 }
 
 div#scio {
@@ -491,6 +497,7 @@ div#scio {
 
 input#cloud_submit {
     margin-top: 5px;
+    width: 65px;
 }
 
 
