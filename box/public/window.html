@@ -15,8 +15,15 @@
                 <div class="container banner">
                     <div class="row">
                         <div class="col-sm-12">
-                            <a id="scio_remote_viewer" href="http://54.69.58.101/home" target="blank"><img id="scio_logo"></img></a>
-                            <a id="login_link">Login</a>
+                            <div class="col-sm-3">
+                                <a id="scio_remote_viewer" href="http://54.69.58.101/home" target="blank">
+                                <img id="scio_logo" src="../icons/27-lightbulb-clear.png"></img>
+                                </a>
+                            </div>
+                            <div class="col-sm-6" id="scio_title">Scio</div>
+                            <div class="col-sm-3" id="login_link">
+                                <a id="login_logout">Login</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -33,12 +40,11 @@
                             <div class = "info" id = "cloud_login">
                                 <div id="cloud_login_window">
                                     <div id="login_form">
-                                        Username: <input type="text" style="width: 100px " name="username" id="cloud_user"></br>
-                                            Password: <input type="password" style="width: 100px" name="password" id="cloud_pass"></br>
-                                                
-                                                <input type="submit" style="width: 50px" id="cloud_submit"></br>
+                                        Username: <input type="text" name="username" id="cloud_user"></br>
+                                        Password: <input type="password" name="password" id="cloud_pass"></br>
+                                                <input type="button" value="Cancel" id="cancel_login">
+                                                <input type="submit" id="cloud_submit"></br>
                                                     </div>
-                                    <!--<h5 id="current_user"></h5> -->
                                 </div>
                             </div>
                         </div>
@@ -62,7 +68,7 @@
                 
             <div class="row col-sm-11">
             <div class="container col-sm-12 section" id="connect">
-                <div class="row"><h3>Connect</h3></div>
+                <div class="row"><h3 id="top_title">Connect</h3></div>
                 
                 <div class="row">
                     <div class="title-bar col-sm-6">Local DAQs</div>
@@ -90,12 +96,12 @@
                              <li> <p class = "menuitem" id = "register"><span>register</span></p></li>
                              -->
                             
-                            <li><p class = "menuitem local_devices r" id = "connect"><span>enable daq</span></p></li>
+                            <li><p class = "menuitem local_devices r" id = "connect"><span>add</span></p></li>
                             
-                            <li><p class = "menuitem local_devices r" id = "disable"><span>disable daq</span></p></li>
+                            <li><p class = "menuitem local_devices r" id = "disable"><span>remove</span></p></li>
                             
                             
-                            <li><p class = "menuitem local_devices r" id = "refresh"><span>test daq</span></p></li>
+                            <li><p class = "menuitem local_devices r" id = "refresh"><span>test</span></p></li>
                             
                         </ul>
                     </div>
@@ -194,21 +200,21 @@
                     </div>
                     
                     <div class="row">
-                        <div class = "col-sm-6 menubar" >
+                        <div class = "menubar" id="half">
                             <ul class = "menu" id = "exp_menu">
-                                <li> <p class = "menuitem exp_window" id = "go"><span>start experiment</span></p></li>
+                                <li> <p class = "menuitem exp_window" id = "go"><span>start</span></p></li>
                                 
-                                <li> <p class = "menuitem exp_window" id = "stop"><span>stop experiment</span></p></li>
+                                <li> <p class = "menuitem exp_window" id = "stop"><span>stop</span></p></li>
                                 
                                 <!-- <li> <p class = "menuitem exp_window" id = "setup"><span>configure experiment</span></p></li> -->
                                 
-                                <li> <p class = "menuitem exp_window" id = "clearexp"><span>clear settings</span></p></li>
+                                <li> <p class = "menuitem exp_window" id = "clearexp"><span>clear</span></p></li>
                                 
                             </ul>
                         </div>
-                        <div class = "col-sm-6 menubar">
+                        <div class = "menubar" id="half">
                             <ul class = "menu" id="exp_config_menu">
-                                <li><p class="menuitem exp_window r" id="lock"><span>save settings</span></p></li>
+                                <li><p class="menuitem exp_window r" id="lock"><span>save</span></p></li>
                             </ul>
                         </div>
                     </div>
@@ -220,10 +226,12 @@
             <div class="row col-sm-5" id="log_menu">
                 <div class="container col-sm-12 section" id="logs">
                     
-                    <div class="row"><h3>Logs</h3></div>
+                    <div class="row"><h3 id="top_title">Logs</h3></div>
                     
                     <div class="container col-sm-12 section" id="system_log">
-                    <div class="row"><div class="title-bar col-sm-12">System Log</div></div>
+                        <div class="row"><div class="title-bar col-sm-12">System Log</div>
+                    </div>
+                    
                     
                     <div class="row">
                         <div class = "info col-sm-12" id = "alerts">
@@ -241,12 +249,23 @@
                     
                     
                     <div class="container col-sm-12 section" id="serial_port_log">
-                    <div class="row"><div class="title-bar col-sm-12">Serial Port Log</div></div>
+                    <div class="row"><div class="title-bar">Serial Port Log</div></div>
                     <div class="row">
                         <div id = "advanced">
-                            <div class = "info col-sm-12" id = "serial">
+                            <div class = "info" id = "serial">
                                 <ul id = "serial_list"></ul>
                             </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="menubar">
+                            <ul class="menu" id="alerts_menu">
+                                <li>
+                                    <p class="menuitem alerts" id="trash">
+                                        <span>clear</span>
+                                    </p>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                  </div> <!-- end serial port log -->
@@ -256,7 +275,7 @@
         </div>
         
         
-        <div class="row col-sm-12" id="data_login">
+        <div class="row col-sm-12" id="data">
         <div class="row col-sm-10" id="view_data_menu">
             <div class="col-sm-12 section container" id="data">
                 <div class="row"><h3>View Data</h3></div>
@@ -296,11 +315,11 @@
                 </div>
                 
                 <div class="row">
-                    <div class = "menubar col-sm-3">
+                    <div class = "menubar">
                         
                         <ul class = "menu" id = "data_menu">
                             
-                            <li> <p class = "menuitem data_window" id = "trash"><span>delete experiment</span></p></li>
+                            <li> <p class = "menuitem data_window" id = "delete"><span>delete experiment</span></p></li>
                             
                             <li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">save to csv</a></span></p></li>
                             
@@ -308,7 +327,7 @@
                             
                         </ul>
                     </div>
-                    <div class="menubar col-sm-9"></div>
+                   
                 </div>
             </div> <!-- end data -->
         </div>

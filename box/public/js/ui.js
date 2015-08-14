@@ -126,28 +126,6 @@ bt.ui = function() {
         //get form selectors
         var selectorLists = form.getElementsByTagName('select');
 
-		/*
-		 * TODO: Create css classes to implement this instead of
-		 * using code to alter style!
-		 
-
-		// If it's hidden, show it.
-		if(d.style.opacity == 0) {
-			d.style.border = '1px solid silver';
-			d.style.opacity = 1;
-			d.style.height = '120px';
-			b.style.border = '2px solid #ff0066';
-			if (bt.currentUser == null) {
-				var checkBox = document.getElementById('cloud_storage');
-				checkBox.style.opacity = 0;
-			}
-
-		}
-		else {
-			d.style.opacity = 0;
-			d.style.height = 0;
-			b.style.border = '2px solid gray';
-		}*/
         
         if(d.style.backgroundColor == "rgb(245, 245, 245)"){
             //"unlock" edit function (ie white background and set unlock button)
@@ -266,6 +244,7 @@ bt.ui = function() {
 	if (action === 'trash') {
 	    bt.ui.clear(target);
 	}
+    
     }
     
     /**
@@ -283,7 +262,7 @@ bt.ui = function() {
 
     var currentExp = getSelectedExperiment();
 
-	if (action === 'trash') {
+	if (action === 'delete') {
         if (currentExp === undefined) {
             return;
         }
@@ -755,9 +734,9 @@ bt.ui = function() {
 	menu = document.getElementById('alerts_menu');
 	menu.onclick = alertsMenu;
 
-        var login = document.getElementById('login_link');
+        var login = document.getElementById('login_logout');
         login.onclick = bt.ui.delegateLogin;
-
+        
         
 	// Part 2 -- Setup selection highlighting
 
@@ -840,19 +819,53 @@ bt.ui = function() {
         
         var loginBox = document.getElementById('login');
         
-        
-        if(loginBox.style.opacity == 0) {
+        //if it's hidden, show it
+        /*if(loginBox.style.opacity == 0) {
             loginBox.style.opacity = 1;
             loginBox.style.height = '96px';
             
         }
+        //if its showing, hide it
         else {
             loginBox.style.opacity = 0;
             loginBox.style.height = 0;
+        }*/
+        
+        var loginLink = document.getElementById('login_logout');
+        
+        if (loginLink.innerHTML === 'Login'){
+            bt.ui.showLogin();
+        }
+        else {
+            loginLink.innerHTML = "Login";
+            document.getElementById('cloud_user').value = null;
+            document.getElementById('cloud_pass').value = null;
+            
+            bt.currentUser = null;
+            bt.currentPass = null;
+            
+            bt.ui.hideLogin;
+            
+            document.getElementById('cloud_storage').style.opacity=0;
+            document.getElementById('upload').style.opacity=0;
         }
         
     }
+    
+    bt.ui.showLogin = function() {
+        var loginBox = document.getElementById('login');
+        
+        loginBox.style.opacity = 1;
+        loginBox.style.height = '96px';
 
+    }
+    
+    bt.ui.hideLogin = function(){
+        var loginBox = document.getElementById('login');
+
+        loginBox.style.opacity = 0;
+        loginBox.style.height = 0;
+    }
     
     
     /** 

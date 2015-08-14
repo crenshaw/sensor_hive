@@ -20,17 +20,28 @@ p {
     
 }
 
+div#scio_title {
+    color: white;
+    font-family: "Pacifico";
+    font-style: normal;
+    font-weight: 400;
+    text-align: center;
+    font-size: 200%;
+}
+
 h1 {
     font-family: 'Varela Round', san-serif;
     font-size: 200%;
 }
 
-/*h3 {
-    color: #ff0066;
-    font-family: "Pacifico";
-    font-style: normal;
-    font-weight: 400;
-}*/
+h3#top_title {
+    margin-top:0px;
+}
+
+h3 {
+    margin-top: 10px;
+}
+
 
 ul {
     list-style: none;
@@ -122,6 +133,7 @@ div.menubar {
     overflow-y: hidden;
     padding-left:0;
     padding-right:0;
+    margin:0px;
 }
 
 
@@ -141,7 +153,7 @@ div#setup_experiment.info {
 }
 
 div#serial_port_log.container {
-    padding-top: 15px;
+    padding-top: 35px;
 }
 
 
@@ -233,9 +245,9 @@ p.menuitem span {
 }
 
 p.menuitem:hover span {
-    display: block;
-    position: absolute;
-    top: 40px;
+    display: inline-block;
+    position: relative;
+    top: 28px;
     padding: 3px;
     border: 1px solid #f06;    
     background-color: #f5f5f5;
@@ -264,10 +276,21 @@ p.serial {
    user-select: auto;
 }
 
-a#login_link {
+div#login_link {
+    padding-right: 10px;
+    padding-top:5px;
+    margin-top:5px;
+    text-align: right;
+}
+
+a#login_logout {
     color: white;
     font-size: 15px;
-    padding-right: 15px;
+}
+
+div#half.menubar {
+    width: 50%;
+    margin: 0px;
 }
 
 
@@ -315,6 +338,10 @@ p#disable {
     background-image:url('../icons/subtract.png');
 }
 
+p#delete {
+    background-image:url('../icons/subtract.png');
+}
+
 p#go {
     background-image:url('../icons/go.png');
 }
@@ -351,12 +378,14 @@ p#lock {
 }
 
 img#scio_logo {
-    background-image: url('../icons/16-lightbulb.png');
-    height: 16px;
-    width: 16px;
+    height: 27px;
+    width:19px;
+    margin: 5px;
+    
 }
 a#scio_remote_viewer {
     float:left;
+    border:none;
 }
 
 /* DIVS */
@@ -369,7 +398,7 @@ section#top_banner {
 
 div.container.banner {
     width: 100%;
-    height: 25px;
+    height: 10%;
 }
 
 div.container.section {
@@ -395,7 +424,7 @@ div#local_devices, div#registered_devices, div#exp_window.info, div#setup_experi
 
 div#serial {
     /*height: 150px;*/
-    height:70px
+    height:62px;
 }
 
 div#alerts p {
@@ -406,6 +435,10 @@ div#alerts p {
 
 div#data_window {
     overflow:visible;
+}
+
+div#data {
+    height:350px;
 }
 
 div#configure.container {
@@ -439,6 +472,7 @@ div#data_window, div#alerts {
     height: 205px;
 }
 
+
 div#setup_experiment {
     border: 1px solid silver;
     padding-top: 0;
@@ -447,23 +481,13 @@ div#setup_experiment {
 
     /*-webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
-    box-sizing: border-box;
-
-    -webkit-transition-property: all;
-    -webkit-transition-duration: 350ms;
-    -webkit-transition-timing-function: ease-in;
-    -webkit-transition-delay: 0s;
-    /* Standard syntax
-    transition-property: all;
-    transition-duration: 350ms;
-    transition-timing-function: ease-in;
-    transition-delay: 0s;
-    overflow: hidden;*/
+    box-sizing: border-box;*/
 }
 
 div#cloud_login.info {
     background-color: #f5f5f5;
     float:right;
+    padding-bottom: 1%;
 }
 
 div#cloud_login.container{
@@ -477,6 +501,17 @@ div#login {
     opacity: 0;
     height: 0;
     padding-right:25px;
+    
+    -webkit-transition-property: all;
+    -webkit-transition-duration: 350ms;
+    -webkit-transition-timing-function: ease-in;
+    -webkit-transition-delay: 0s;
+    /* Standard syntax */
+    transition-property: all;
+    transition-duration: 350ms;
+    transition-timing-function: ease-in;
+    transition-delay: 0s;
+    overflow: hidden;
 }
 
 div#cloud_login_row.container.section {
@@ -495,12 +530,14 @@ div#scio {
     color: #ff0066;
 }
 
-input#cloud_submit {
+input#cloud_submit, input#cancel_login {
     margin-top: 5px;
-    width: 65px;
+    width: 50px;
 }
 
-
+input#cloud_pass, input#cloud_user{
+    width:100px;
+}
 
 
 /* ULS */
