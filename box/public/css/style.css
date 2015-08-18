@@ -9,6 +9,7 @@ html {
 body {
     font-family: 'Lato', san-serif;
     font-size: 120%;
+    height: 830px;
 }
 
 input {
@@ -439,6 +440,7 @@ div#data_window {
 
 div#data {
     height:350px;
+    padding-top: 10px;
 }
 
 div#configure.container {
