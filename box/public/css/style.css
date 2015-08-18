@@ -62,13 +62,13 @@ div {
  */
 
 #half-left {
-    width: 40%;
+    width: 50%;
     margin-left: 0;
     margin-right: 0;
     margin-bottom: 0;
     margin-top: 0;
     padding: 0;
-    border: 0;
+    border: 1px solid silver;
     float: left;
 }
 
@@ -79,7 +79,7 @@ div {
     margin-bottom: 0;
     margin-top: 0;
     padding: 0;
-    border: 0;
+    border: 1px solid silver;
     float: right;
 }
 
@@ -424,7 +424,7 @@ div#local_devices, div#registered_devices, div#exp_window.info, div#setup_experi
 
 div#serial {
     /*height: 150px;*/
-    height:62px;
+    height:54px;
 }
 
 div#alerts p {
