@@ -21,6 +21,10 @@ p {
     
 }
 
+a {
+    color: black;
+}
+
 div#scio_title {
     color: white;
     font-family: "Pacifico";
@@ -277,21 +281,9 @@ p.serial {
    user-select: auto;
 }
 
-div#login_link {
-    padding-right: 10px;
-    padding-top:5px;
-    margin-top:5px;
-    text-align: right;
-}
-
 a#login_logout {
     color: white;
     font-size: 15px;
-}
-
-div#half.menubar {
-    width: 50%;
-    margin: 0px;
 }
 
 
@@ -414,17 +406,11 @@ div#wrap.container {
     margin-right: 3%;
 }
 
-div#local_devices, div#alerts, div#setup_experiment {
-    /*width: 320px;*/
-}
-
 div#local_devices, div#registered_devices, div#exp_window.info, div#setup_experiment {
-    /*height: 110px;*/
     height:124px;
 }
 
 div#serial {
-    /*height: 150px;*/
     height:54px;
 }
 
@@ -432,6 +418,11 @@ div#alerts p {
     display: block;
     margin-top: 0px;
     margin-bottom: 0px;
+}
+
+div#half.menubar {
+    width: 50%;
+    margin: 0px;
 }
 
 div#data_window {
@@ -479,11 +470,6 @@ div#setup_experiment {
     border: 1px solid silver;
     padding-top: 0;
     background-color: #f5f5f5;
-    
-
-    /*-webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;*/
 }
 
 div#cloud_login.info {
@@ -521,7 +507,6 @@ div#cloud_login_row.container.section {
 }
 
 div#scio {
-    /*font-family: "Pacifico";*/
     line-height: 40px;
     font-weight: 400;
     font-style: normal;
@@ -530,6 +515,13 @@ div#scio {
     margin-top: 15px;
     margin-bottom; 0;
     color: #ff0066;
+}
+
+div#login_link {
+    padding-right: 10px;
+    padding-top:5px;
+    margin-top:5px;
+    text-align: right;
 }
 
 input#cloud_submit, input#cancel_login {
@@ -570,12 +562,8 @@ ul#exp_list {
 
 /* Data table header */
 table,th,td {
-    
     border: 1px solid silver;
-    /*border-top: none;*/
     border-bottom: 1px solid silver;
-    /*border-right: none;*/
-    /*border-left: none;*/
     border-collapse: collapse;
     height: 16px;
     table-layout: fixed;

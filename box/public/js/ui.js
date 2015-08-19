@@ -120,6 +120,8 @@ bt.ui = function() {
 		var d = document.getElementById('setup_experiment');
         //get lock button
 		var b = document.getElementById('lock');
+        //get lock span
+        var span = document.getElementById('lock_span');
         //get form elements
         var form = document.getElementById('setup_form');
         var elements = form.elements;
@@ -131,6 +133,7 @@ bt.ui = function() {
             //"unlock" edit function (ie white background and set unlock button)
             d.style.backgroundColor = "rgb(255, 255, 255)";
             b.style.backgroundImage = "url('../icons/unlock.png')";
+            span.innerHTML = "save";
             //enable form elements
             for (i = 0; i < elements.length; i++){
                 elements[i].readOnly = false;
@@ -154,7 +157,7 @@ bt.ui = function() {
             //"lock" edit function (ie gray background and set lock button)
             d.style.backgroundColor = "rgb(245, 245, 245)";
             b.style.backgroundImage = "url('../icons/lock.png')";
-            
+            span.innerHTML = "edit";
             //disable form elements
             for (i = 0; i < elements.length; i++){
                 elements[i].readOnly = true;
@@ -173,8 +176,6 @@ bt.ui = function() {
                 checkBox.disabled = true;
             }
             
-            //if button is unlocked, lock and save, if locked, unlock and edit
-            //button = document.getElementById('lock'); //REDO ---- Issues after trash button
             
             
         }
@@ -235,16 +236,27 @@ bt.ui = function() {
      * corresponding behaviour according to the button that was clicked.
      */
     var alertsMenu = function(e) {
+        
+        // Get the id of the target that was clicked and deploy
+        // the corresponding action.
+        var target = e.target;
+        var action = target.id
 
-	// Get the id of the target that was clicked and deploy
-	// the corresponding action.
-	var target = e.target;
-	var action = target.id
-
-	if (action === 'trash') {
-	    bt.ui.clear(target);
-	}
+        if (action === 'trash') {
+            bt.ui.clear(target);
+        }
     
+    }
+    
+    /**
+     * clearSerialPortLog()
+     *
+     * Clears the log.
+     *
+     */
+    var clearSerialPortLog = function() {
+        var log = document.getElementById('serial_list');
+        log.innerHTML = "";
     }
     
     /**
@@ -264,6 +276,7 @@ bt.ui = function() {
 
 	if (action === 'delete') {
         if (currentExp === undefined) {
+            bt.ui.error("Please select an experiment.");
             return;
         }
         bt.ui.clearDataTable();
@@ -291,13 +304,19 @@ bt.ui = function() {
         if (currentExp != undefined) {
             bt.local.save(currentExp);
         }
+        else {
+            bt.ui.error("Please select an experiment.");
+        }
 	}
 
     else if (action === 'upload') {
         if (currentExp != undefined) {
             bt.cloud.pushExperiment(currentExp);
+            bt.ui.info("Experiment pushed to server.");
         }
-        bt.ui.info("Experiment pushed to server.");
+        else {
+            bt.ui.error("Please select an experiment.");
+        }
     }
     };
 
@@ -734,10 +753,12 @@ bt.ui = function() {
 	menu = document.getElementById('alerts_menu');
 	menu.onclick = alertsMenu;
 
-        var login = document.getElementById('login_logout');
-        login.onclick = bt.ui.delegateLogin;
+    var login = document.getElementById('login_logout');
+    login.onclick = bt.ui.delegateLogin;
         
-        
+        var serialLog = document.getElementById('serial_log_menu');
+        serialLog.onclick = clearSerialPortLog;
+    
 	// Part 2 -- Setup selection highlighting
 
 	// Grab the local devices list and add an event handler to it.
@@ -1155,6 +1176,7 @@ bt.ui = function() {
         newTb.id = "data_table_body";
         dt.replaceChild(newTb,tb);
     };
+    
     
     /**
      * selectExperiment()

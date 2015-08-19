@@ -17,7 +17,7 @@
                         <div class="col-sm-12">
                             <div class="col-sm-3">
                                 <a id="scio_remote_viewer" href="http://54.69.58.101/home" target="blank">
-                                <img id="scio_logo" src="../icons/27-lightbulb-clear.png"></img>
+                                <img id="scio_logo" src="../icons/lightbulb-clear.png"></img>
                                 </a>
                             </div>
                             <div class="col-sm-6" id="scio_title">Scio</div>
@@ -90,11 +90,6 @@
                     <div class = "menubar" >
                         
                         <ul class = "menu" id = "local_devices_menu">
-                            
-                            <!-- Comment out buttons that haven't been implemented yet
-                             
-                             <li> <p class = "menuitem" id = "register"><span>register</span></p></li>
-                             -->
                             
                             <li><p class = "menuitem local_devices r" id = "connect"><span>add</span></p></li>
                             
@@ -187,11 +182,6 @@
                                         <input type = "checkbox" id = "cloud_storage" checked>
                                         </input>
                                         
-                                        <!-- <div class = "buttons">
-                                             <button type="button" id="cancel">cancel</button>
-                                             <button type="button" id="done">done</button>
-                                        </div> -->
-                                        
                                         </form>
                             
                         </div>
@@ -206,15 +196,13 @@
                                 
                                 <li> <p class = "menuitem exp_window" id = "stop"><span>stop</span></p></li>
                                 
-                                <!-- <li> <p class = "menuitem exp_window" id = "setup"><span>configure experiment</span></p></li> -->
-                                
                                 <li> <p class = "menuitem exp_window" id = "clearexp"><span>clear</span></p></li>
                                 
                             </ul>
                         </div>
                         <div class = "menubar" id="half-right">
                             <ul class = "menu" id="exp_config_menu">
-                                <li><p class="menuitem exp_window r" id="lock"><span>save</span></p></li>
+                                <li><p class="menuitem exp_window r" id="lock"><span id="lock_span">edit</span></p></li>
                             </ul>
                         </div>
                     </div>
@@ -259,7 +247,7 @@
                     </div>
                     <div class="row">
                         <div class="menubar">
-                            <ul class="menu" id="alerts_menu">
+                            <ul class="menu" id="serial_log_menu">
                                 <li>
                                     <p class="menuitem alerts" id="trash">
                                         <span>clear</span>
@@ -321,9 +309,9 @@
                             
                             <li> <p class = "menuitem data_window" id = "delete"><span>delete experiment</span></p></li>
                             
-                            <li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">save to csv</a></span></p></li>
+                            <li> <p class = "menuitem data_window" id = "save"><span><a href="#" target = "_blank" id = "save_link">download</a></span></p></li>
                             
-                            <li> <p class = "menuitem data_window" id = "upload"><span>upload to cloud</span></p></li>
+                            <li> <p class = "menuitem data_window" id = "upload"><span>upload</span></p></li>
                             
                         </ul>
                     </div>
@@ -331,10 +319,6 @@
                 </div>
             </div> <!-- end data -->
         </div>
-        
-        
-        
-        
         
         </div>
         
