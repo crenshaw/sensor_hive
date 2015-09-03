@@ -1,1 +1,3 @@
 FallbackResource /index.php
+
+AddType text/css .css
