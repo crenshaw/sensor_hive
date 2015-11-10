@@ -9,14 +9,24 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
     <link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="http://54.186.225.109/style.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+
+
+    <script src="dist/js/jquery.js"></script>
+    <script src="../dist/js/standalone/selectize.js"></script>
+    <script src="../dist/js/angular-selectize.js"></script>
+
+    <script src="dist/js/index.js"></script>
+    <link rel="stylesheet" href="dist/css/normalize.css">
 
     <!--Scripts-->
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-resource.min.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="http://twitter.github.io/typeahead.js/releases/latest/typeahead.bundle.js"></script>
 
     <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha256.js"></script>
 
@@ -29,7 +39,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="col-md-3 col-sm-3 col-xs-3">
-                        <img id = "scio-logo" src="lightbulb-clear.png"></img>
+                        <img id = "scio-logo" src="lightbulb-clear-74.png"></img>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-6" id="scio_title">Scio</div>
                     <div class="col-md-3 col-sm-3 col-xs-3"></div>
@@ -43,13 +53,16 @@
             {#</div>#}
         </div>
         <div class="panel-body" id="page-body">
-            <h5>Experiment: </h5>
-            <div class="dropdown">
-                <button class="btn btn-default dropdown-toggle" type="button" id="expDropdown" data-toggle="dropdown">
+            <div class="row">
+                <div class="col-md-10">
+
+            <div class="dropdown col-md-3 col-lg-2">
+                <button class="btn btn-default dropdown-toggle" type="button" id="expDropdown" data-toggle="dropdown"">
                     {% verbatim %} {{currentExperiment.experiment_name}} {% endverbatim %}
+                    <span>Select Experiment </span>
                     <span class="caret"></span>
                 </button>
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu scroll" role="menu">
                     <li role="presentation">
                         <a role="menuitem" tabindex="-1" ng-repeat="experiment in experiments" ng-click="updateCurrentExperiment(experiment)">
                             {% verbatim %} {{experiment.experiment_name}} {% endverbatim %}
@@ -58,7 +71,43 @@
                 </ul>
                 {#<button type="button" class="btn btn-default" ng-click="getData();">Get Data</button>#}
                 <a ng-click="download();" id="save_link">Download</a>
+
+
+
+
+
+                <div class="demo">
+                    <h2>&lt;select&gt;</h2>
+                    <div class="control-group">
+                        <label for="select-beast">Beast:</label>
+                        <select id="select-beast" class="demo-default" placeholder="Select a person...">
+                            <option value="">Select a person...</option>
+
+                            <option value="1">Nikola</option>
+                            <option value="3">Nikola Tesla</option>
+                            <option value="5">Arnold Schwarzenegger</option>
+                        </select>
+                    </div>
+                    <script>
+                        $('#select-beast').selectize({
+                            create: true,
+                            sortField: {
+                                field: 'text',
+                                direction: 'asc'
+                            },
+                            dropdownParent: 'body'
+                        });
+                    </script>
+                </div>
+
+
+
+
+
+
             </div>
+                </div></div>
+            <div class="row filler"></div>
             <div class="panel panel-default">
                 <div class="panel-heading">{% verbatim %} {{currentExperiment.experiment_name}} {% endverbatim %} Data</div>
 
@@ -86,10 +135,12 @@
                     </tbody>
                 </table>
             </div>
-            <h5>Port: </h5>
+
             <div class="dropdown">
                 <button class="btn btn-default dropdown-toggle" type="button" id="portDropdown" data-toggle="dropdown">
+                    Port
                     {% verbatim %} {{currentPort}} {% endverbatim %}
+
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
@@ -132,5 +183,8 @@
         </div>
     </form>
 </div>
+
+
+
 </body>
 </html>

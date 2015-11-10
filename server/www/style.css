@@ -29,3 +29,12 @@ div#scio_title {
     text-align: center;
     font-size: 400%;
 }
+
+.scroll {
+    max-height: 200px;
+    overflow-y: scroll;
+}
+
+.filler {
+    height: 20px;
+}

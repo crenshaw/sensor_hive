@@ -1,4 +1,5 @@
-var scioWebApp = angular.module('scioWebApp', ["scioServices"]);
+
+var scioWebApp = angular.module('scioWebApp', ["scioServices", "selectize"]);
 
 scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, ExperimentNames, AuthUser) {
 
