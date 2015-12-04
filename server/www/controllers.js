@@ -1,4 +1,5 @@
-var scioWebApp = angular.module('scioWebApp', ["scioServices"]);
+
+var scioWebApp = angular.module('scioWebApp', ["scioServices", "selectize", 'ui.select', 'ngSanitize']);
 
 scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, ExperimentNames, AuthUser) {
 
@@ -79,6 +80,18 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
             link.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(dataString);
         }
     };
+
+    //$scope.selectedItem = $scope.experiments[0];
+
+    $scope.itemArray = [
+        {id: 1, name: 'first'},
+        {id: 2, name: 'second'},
+        {id: 3, name: 'third'},
+        {id: 4, name: 'fourth'},
+        {id: 5, name: 'fifth'},
+    ];
+
+    $scope.selectedItem = $scope.experiments[0];
 
     $scope.updateChart = function() {
         $scope.data.$promise.then(function(stuff) {

@@ -7,13 +7,34 @@
     <!--Style-->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="style.css">
 
     <!--Scripts-->
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-resource.min.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular-sanitize.js"></script>
+
+    <script src="../dist/js/jquery.js"></script>
+    <script src="../dist/js/standalone/selectize.js"></script>
+    <script src="../dist/js/angular-selectize.js"></script>
+
+    <script src="dist/js/index.js"></script>
+    <link rel="stylesheet" href="dist/css/normalize.css">
+
+
+    <!-- ui-select files -->
+    <script src="dist/js/select.js"></script>
+    <link rel="stylesheet" href="dist/css/select.css">
+
+
+
+
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="http://twitter.github.io/typeahead.js/releases/latest/typeahead.bundle.js"></script>
 
     <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha256.js"></script>
 
@@ -22,13 +43,16 @@
 <body ng-controller="ExperimentDataCtrl">
 <div ng-show="authenticUser()">
     <div class="panel panel-primary">
-        <div class="panel-heading">
+        <div class="panel-heading" id="banner">
             <div class="row">
-                <div class="span4"></div>
-                <div class="span4">
-                    <h1 class="text-center">Scio</h1>
+                <div class="col-md-12">
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <img id = "scio-logo" src="lightbulb-clear-74.png"></img>
+                    </div>
+                    <div class="col-md-6 col-sm-6 col-xs-6" id="scio_title">Scio</div>
+                    <div class="col-md-3 col-sm-3 col-xs-3"></div>
                 </div>
-                <div class="span4"></div>
+
             </div>
             {#<div class="row">#}
                 {#<div class="span4"></div>#}
@@ -36,14 +60,17 @@
                 {#<div class="span4"></div>#}
             {#</div>#}
         </div>
-        <div class="panel-body">
-            <h5>Experiment: </h5>
-            <div class="dropdown">
+        <div class="panel-body" id="page-body">
+            <div class="row">
+                <div class="col-md-10">
+
+            <div class="dropdown col-md-3 col-lg-2">
                 <button class="btn btn-default dropdown-toggle" type="button" id="expDropdown" data-toggle="dropdown">
                     {% verbatim %} {{currentExperiment.experiment_name}} {% endverbatim %}
+                    <span>Select Experiment </span>
                     <span class="caret"></span>
                 </button>
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu scroll" role="menu">
                     <li role="presentation">
                         <a role="menuitem" tabindex="-1" ng-repeat="experiment in experiments" ng-click="updateCurrentExperiment(experiment)">
                             {% verbatim %} {{experiment.experiment_name}} {% endverbatim %}
@@ -52,7 +79,28 @@
                 </ul>
                 {#<button type="button" class="btn btn-default" ng-click="getData();">Get Data</button>#}
                 <a ng-click="download();" id="save_link">Download</a>
+
+
+
             </div>
+                </div></div>
+
+
+                <ui-select ng-model="selectedItem" on-select="updateCurrentExperiment($select.selected)">
+                    <ui-select-match>
+                        <span ng-bind="$select.selected.experiment_name"></span>
+                    </ui-select-match>
+                    <ui-select-choices repeat="item in (experiments | filter: $select.search) track by item.experiment_name">
+                        <span ng-bind="item.experiment_name" ng-click="updateCurrentExperiment(item)"></span>
+                    </ui-select-choices>
+                </ui-select>
+
+
+
+
+
+
+            <div class="row filler"></div>
             <div class="panel panel-default">
                 <div class="panel-heading">{% verbatim %} {{currentExperiment.experiment_name}} {% endverbatim %} Data</div>
 
@@ -80,10 +128,12 @@
                     </tbody>
                 </table>
             </div>
-            <h5>Port: </h5>
+
             <div class="dropdown">
                 <button class="btn btn-default dropdown-toggle" type="button" id="portDropdown" data-toggle="dropdown">
+                    Port
                     {% verbatim %} {{currentPort}} {% endverbatim %}
+
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
@@ -103,8 +153,8 @@
     <form ng-submit="auth()">
         <div class="col-md-4 col-md-offset-4">
             <div class="panel panel-default panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Scio Login</h3>
+                <div class="panel-heading" id="banner">
+                    <h3 class="panel-title login">Scio Login</h3>
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
@@ -126,5 +176,8 @@
         </div>
     </form>
 </div>
+
+
+
 </body>
 </html>

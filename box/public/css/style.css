@@ -3,9 +3,13 @@
  * GENERICS
  */
 
+html {
+    overflow-y: scroll;
+}
 body {
     font-family: 'Lato', san-serif;
-    font-size: 100%;
+    font-size: 120%;
+    height: 830px;
 }
 
 input {
@@ -14,13 +18,35 @@ input {
 
 p {
     display: inline;
-    margin-left: 0.6em;
+    
+}
+
+a {
+    color: black;
+}
+
+div#scio_title {
+    color: white;
+    font-family: "Pacifico";
+    font-style: normal;
+    font-weight: 400;
+    text-align: center;
+    font-size: 200%;
 }
 
 h1 {
     font-family: 'Varela Round', san-serif;
     font-size: 200%;
 }
+
+h3#top_title {
+    margin-top:0px;
+}
+
+h3 {
+    margin-top: 10px;
+}
+
 
 ul {
     list-style: none;
@@ -30,7 +56,6 @@ ul {
 
 li span {
     position: relative;
-    left: -5px;
 }
 
 div {
@@ -41,6 +66,34 @@ div {
  * CLASSES
  */
 
+#half-left {
+    width: 50%;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-top: 0;
+    padding: 0;
+    border: 1px solid silver;
+    float: left;
+}
+
+#half-right {
+    width: 50%;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-top: 0;
+    padding: 0;
+    border: 1px solid silver;
+    float: right;
+}
+
+#system_logs {
+    width:70%;
+    float: left;
+}
+
+
 /* DIVS */
 
 div.buttons {
@@ -50,13 +103,13 @@ div.buttons {
 
 div.info {
     padding-top:3px;
-    padding-right: 5px;
-    padding-left: 5px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border-radius: 3px;
+    padding-right: 1%;
+    padding-left: 1%;
+    /*-moz-border-radius: 3px;*/
+    /*-webkit-border-radius: 3px;*/
+    /*border-radius: 3px;*/
     border: 1px solid silver;
-    background-color: #f5f5f5;
+    background-color: white;
     overflow: auto;
 }
 
@@ -65,17 +118,49 @@ div.settings {
 }
 
 div.subsection {
-    float: left;
-    margin-left: 10px;
+    /*float: left;*/
+    /*margin-left: 10px;*/
 }
 
-div.menubar {
-    height: 60px;
-}
+/*div.menubar {
+    height: 30px;
+    overflow-y: hidden;
+}*/
 
 div.side-by-side {
     float: left;
 }
+
+div.menubar {
+    height: 22px;
+    border: 1px solid silver;
+    background-color: #f0f0f0;
+    overflow-y: hidden;
+    padding-left:0;
+    padding-right:0;
+    margin:0px;
+}
+
+
+div.title-bar {
+    height: 18px;
+    border: 1px solid silver;
+    background-color: #f5f5f5;
+    overflow: hidden;
+    padding-left: 3%;
+    padding-right: 3%;
+    font-weight: bold;
+}
+
+div#setup_experiment.info {
+    /*float: right;*/
+    /*height: 100%;*/
+}
+
+div#serial_port_log.container {
+    padding-top: 35px;
+}
+
 
 /* UNORDERED LISTS */
 
@@ -84,14 +169,35 @@ ul.menu {
     margin: 0;
     padding-left:0;
     height: 0;
+    padding-right: 0;
 }
 
+ul#local_devices_menu.menu, ul#registered_devices_menu.menu, ul#exp_config_menu.menu{
+    text-align: right;
+}
+
+
 ul.menu li {
-    display: inline-block;
+    display: inline;
     margin-left: 0;
     margin-top: 0.5em;
     margin-bottom: 0;
-    margin-right: 37px;
+    padding-right:22px;
+}
+
+ul.menu.data-table-titles li {
+    border-right: 1px solid silver;
+    padding-right: 0;
+    padding-left:0;
+    text-align: center;
+    width: 20%;
+    margin: 0;
+    
+}
+
+ul.menu.data-table-titles li:last-child {
+    border-right: none;
+    width: 60px;
 }
 
 li.selected {
@@ -103,6 +209,7 @@ li.disconnected {
     list-style-type: circle;
 }
 
+
 /* ---------------------------------------------------------- */
 
 /* PARAGRAPHS */
@@ -110,13 +217,26 @@ li.disconnected {
 /* menuitem class */
 p.menuitem {
     position: absolute;
-    width: 32px;
-    height: 32px;
+    width: 20px;
+    height: 20px;
     margin: 0;
-    border: 2px solid gray;
+    border-right: 1px solid silver;
+    /*border: 2px solid gray;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
-    border-radius: 3px;
+    /*border-radius: 3px;*/
+    background-color: #f6f6f6;
+}
+p.menuitem.r {
+    border-left: 1px solid silver;
+    border-right: none;
+}
+
+li.data-table-title {
+    width: 30px;
+    height: 20px;
+    margin: 0;
+    float: left;
 }
 
 p.menuitem:hover, .shadow {
@@ -130,9 +250,9 @@ p.menuitem span {
 }
 
 p.menuitem:hover span {
-    display: block;
-    position: absolute;
-    top: 40px;
+    display: inline-block;
+    position: relative;
+    top: 28px;
     padding: 3px;
     border: 1px solid #f06;    
     background-color: #f5f5f5;
@@ -161,6 +281,13 @@ p.serial {
    user-select: auto;
 }
 
+a#login_logout {
+    color: white;
+    font-size: 15px;
+}
+
+
+
 /* local_device class */
 span.local_device {
     color: gray;
@@ -182,13 +309,18 @@ span.local_device:hover {
     margin-bottom:0;
 }
 
+span.connected_device {
+    color: gray;
+    cursor: default;
+}
+
 /* ---------------------------------------------------------- 
  * UNIQUE IDENTIFIERS
  */
 
 /* For the menubar, set the images for * specific menu elements */
 p#clearexp {
-    background-image:url('../icons/disable.png');
+    background-image:url('../icons/trash.png');
 }
 
 p#connect {
@@ -196,7 +328,11 @@ p#connect {
 }
 
 p#disable {
-    background-image:url('../icons/disable.png');
+    background-image:url('../icons/subtract.png');
+}
+
+p#delete {
+    background-image:url('../icons/subtract.png');
 }
 
 p#go {
@@ -216,7 +352,7 @@ p#save {
 }
 
 p#setup {
-    background-image:url('../icons/setup.png');
+    background-image:url('../icons/configure.png');
 }
 
 p#stop {
@@ -230,22 +366,52 @@ p#upload {
     background-image:url('../icons/push.png');
 }
 
+p#lock {
+    background-image:url('../icons/lock.png');
+}
+
+img#scio_logo {
+    height: 27px;
+    width:19px;
+    margin: 5px;
+    
+}
+a#scio_remote_viewer {
+    float:left;
+    border:none;
+}
 
 /* DIVS */
+
+section#top_banner {
+    background: #ff0066;
+    text-align: right;
+}
+
+
+div.container.banner {
+    width: 100%;
+    height: 10%;
+}
+
+div.container.section {
+    padding: 0;
+}
 
 div#advanced {
 }
 
-div#local_devices, div#alerts, div#setup_experiment {
-    width: 320px;
+div#wrap.container {
+    margin-left: 4%;
+    margin-right: 3%;
 }
 
-div#exp_window, div#local_devices {
-    height: 110px;
+div#local_devices, div#registered_devices, div#exp_window.info, div#setup_experiment {
+    height:124px;
 }
 
 div#serial {
-    height: 150px;
+    height:54px;
 }
 
 div#alerts p {
@@ -254,29 +420,39 @@ div#alerts p {
     margin-bottom: 0px;
 }
 
-div#exp_window {
-    width: 430px;
-}
-
-div#data_window, div#setup_experiment {
-    width: 430px;
+div#half.menubar {
+    width: 50%;
+    margin: 0px;
 }
 
 div#data_window {
     overflow:visible;
 }
 
+div#data {
+    height:350px;
+    padding-top: 10px;
+}
+
+div#configure.container {
+    float: bottom;
+}
+
 div#exp_list_div {
     margin-left: 1%;
-    width:29%;
-    height: 100%;
+    width:100%;
+    height: 200px;
     overflow: auto;
+    padding-top: 0px;
+    padding-bottom: 0px;
 }
 
 div#exp_data_div {
-    width: 70%;
+    width: 100%;
     height: 100%;
     overflow: auto;
+    padding-right: 2%;
+    padding-left: 2%;
 }
 
 div#exp_settings {
@@ -286,21 +462,34 @@ div#exp_settings {
 }
 
 div#data_window, div#alerts {
-    height: 200px;
+    height: 205px;
 }
 
+
 div#setup_experiment {
-    border: 1px solid white;
+    border: 1px solid silver;
     padding-top: 0;
-    background-color: #ffeef5;
-    height: 0;
-    font-size: 90%
+    background-color: #f5f5f5;
+}
+
+div#cloud_login.info {
+    background-color: #f5f5f5;
+    float:right;
+    padding-bottom: 1%;
+}
+
+div#cloud_login.container{
+    float:right;
+}
+
+div#login {
+    padding: auto;
+    margin: 20px;
+    margin-bottom:0;
     opacity: 0;
-
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-
+    height: 0;
+    padding-right:25px;
+    
     -webkit-transition-property: all;
     -webkit-transition-duration: 350ms;
     -webkit-transition-timing-function: ease-in;
@@ -313,9 +502,41 @@ div#setup_experiment {
     overflow: hidden;
 }
 
+div#cloud_login_row.container.section {
+    text-align: right;
+}
+
+div#scio {
+    line-height: 40px;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 32px;
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom; 0;
+    color: #ff0066;
+}
+
+div#login_link {
+    padding-right: 10px;
+    padding-top:5px;
+    margin-top:5px;
+    text-align: right;
+}
+
+input#cloud_submit, input#cancel_login {
+    margin-top: 5px;
+    width: 50px;
+}
+
+input#cloud_pass, input#cloud_user{
+    width:100px;
+}
+
+
 /* ULS */
 
-ul#local_devices_list {
+ul#local_devices_list, ul#connected_devices_list {
     padding-left: 1em;
 }
 
@@ -341,6 +562,22 @@ ul#exp_list {
 
 /* Data table header */
 table,th,td {
-    border: 1px solid black;
+    border: 1px solid silver;
+    border-bottom: 1px solid silver;
     border-collapse: collapse;
+    height: 16px;
+    table-layout: fixed;
 }
+
+table col:first-child {
+    width: 25px;
+}
+
+th, td {
+    overflow: hidden;
+    width: 45px;
+    text-align: center;
+}
+
+
+
