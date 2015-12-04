@@ -1,0 +1,40 @@
+div#banner {
+    background-color: #ff0066;
+    border-color: #ff0066;
+    font-family: Pacifico, serif;
+    font-style: normal;
+}
+
+div.panel.panel-primary {
+    border-color: #ff0066;
+}
+
+p#scio_logo {
+    height: 27px;
+    width:19px;
+    margin: 5px;
+    background-image:url('lightbulb-clear.png');
+    background-repeat: no-repeat;
+}
+
+h3.login, body {
+    font-family: "Lato", sans-serif;
+}
+
+div#scio_title {
+    color: white;
+    font-family: "Pacifico";
+    font-style: normal;
+    font-weight: 400;
+    text-align: center;
+    font-size: 400%;
+}
+
+.scroll {
+    max-height: 200px;
+    overflow-y: scroll;
+}
+
+.filler {
+    height: 20px;
+}
