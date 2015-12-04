@@ -1,4 +1,5 @@
-var scioWebApp = angular.module('scioWebApp', ["scioServices"]);
+
+var scioWebApp = angular.module('scioWebApp', ["scioServices", "selectize", 'ui.select', 'ngSanitize']);
 
 scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, ExperimentNames, AuthUser) {
 
@@ -79,6 +80,18 @@ scioWebApp.controller('ExperimentDataCtrl', function ($scope, DataGather, Experi
             link.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(dataString);
         }
     };
+
+    //$scope.selectedItem = $scope.experiments[0];
+
+    $scope.itemArray = [
+        {id: 1, name: 'first'},
+        {id: 2, name: 'second'},
+        {id: 3, name: 'third'},
+        {id: 4, name: 'fourth'},
+        {id: 5, name: 'fifth'},
+    ];
+
+    $scope.selectedItem = $scope.experiments[0];
 
     $scope.updateChart = function() {
         $scope.data.$promise.then(function(stuff) {
@@ -180,7 +193,7 @@ var scioServices = angular.module('scioServices', ["ngResource"]);
 
 scioServices.factory("DataGather", function ($resource) {
     return $resource(
-        'http://54.69.58.101/api/experiments/get/:Name',
+        'http://54.186.225.109/api/experiments/get/:Name',
         {Name: "@Name"},
         {get : {method :'GET', params: {}, isArray:true}}
     )
@@ -188,7 +201,7 @@ scioServices.factory("DataGather", function ($resource) {
 
 scioServices.factory("ExperimentNames", function ($resource) {
     return $resource(
-        'http://54.69.58.101/api/experiments/names',
+        'http://54.186.225.109/api/experiments/names',
         {},
         {get : {method : 'GET', params : {}, isArray:true}}
     )
@@ -196,7 +209,7 @@ scioServices.factory("ExperimentNames", function ($resource) {
 
 scioServices.factory("AuthUser", function ($resource) {
     return $resource(
-        'http://54.69.58.101/api/authUser',
+        'http://54.186.225.109/api/authUser',
         {},
         {post : {method : 'POST', params: {}, isArray:true}}
     )
