@@ -11,18 +11,26 @@
     <link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="style.css">
 
+    <!--Scripts-->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-resource.min.js"></script>
 
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular-sanitize.js"></script>
 
-    <script src="dist/js/jquery.js"></script>
+    <script src="../dist/js/jquery.js"></script>
     <script src="../dist/js/standalone/selectize.js"></script>
     <script src="../dist/js/angular-selectize.js"></script>
 
     <script src="dist/js/index.js"></script>
     <link rel="stylesheet" href="dist/css/normalize.css">
 
-    <!--Scripts-->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-resource.min.js"></script>
+
+    <!-- ui-select files -->
+    <script src="dist/js/select.js"></script>
+    <link rel="stylesheet" href="dist/css/select.css">
+
+
+
 
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
@@ -57,7 +65,7 @@
                 <div class="col-md-10">
 
             <div class="dropdown col-md-3 col-lg-2">
-                <button class="btn btn-default dropdown-toggle" type="button" id="expDropdown" data-toggle="dropdown"">
+                <button class="btn btn-default dropdown-toggle" type="button" id="expDropdown" data-toggle="dropdown">
                     {% verbatim %} {{currentExperiment.experiment_name}} {% endverbatim %}
                     <span>Select Experiment </span>
                     <span class="caret"></span>
@@ -74,39 +82,24 @@
 
 
 
-
-
-                <div class="demo">
-                    <h2>&lt;select&gt;</h2>
-                    <div class="control-group">
-                        <label for="select-beast">Beast:</label>
-                        <select id="select-beast" class="demo-default" placeholder="Select a person...">
-                            <option value="">Select a person...</option>
-
-                            <option value="1">Nikola</option>
-                            <option value="3">Nikola Tesla</option>
-                            <option value="5">Arnold Schwarzenegger</option>
-                        </select>
-                    </div>
-                    <script>
-                        $('#select-beast').selectize({
-                            create: true,
-                            sortField: {
-                                field: 'text',
-                                direction: 'asc'
-                            },
-                            dropdownParent: 'body'
-                        });
-                    </script>
-                </div>
-
-
-
-
-
-
             </div>
                 </div></div>
+
+
+                <ui-select ng-model="selectedItem" on-select="updateCurrentExperiment($select.selected)">
+                    <ui-select-match>
+                        <span ng-bind="$select.selected.experiment_name"></span>
+                    </ui-select-match>
+                    <ui-select-choices repeat="item in (experiments | filter: $select.search) track by item.experiment_name">
+                        <span ng-bind="item.experiment_name" ng-click="updateCurrentExperiment(item)"></span>
+                    </ui-select-choices>
+                </ui-select>
+
+
+
+
+
+
             <div class="row filler"></div>
             <div class="panel panel-default">
                 <div class="panel-heading">{% verbatim %} {{currentExperiment.experiment_name}} {% endverbatim %} Data</div>
