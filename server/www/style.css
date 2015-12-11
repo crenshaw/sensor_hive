@@ -36,5 +36,13 @@ div#scio_title {
 }
 
 .filler {
-    height: 20px;
+    height: 40px;
+}
+
+.dropdown_experiment {
+    padding: 0;
+}
+
+.filler-small {
+    height: 5px;
 }

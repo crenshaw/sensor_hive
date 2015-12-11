@@ -1,5 +1,6 @@
 <?php
 
+
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -68,12 +69,31 @@ $app->post('/api/insert', function(Request $request) use($app, $dbm) {
     $auth['user'] = $request->request->get('user');
     $auth['pass'] = $request->request->get('pass');
 
-    $isAuthentic = $dbm->authUser($auth);
+    $isAuthentic = $dbm->authUser($auth) || isset($_COOKIE['lastVisit']);
 
     if($isAuthentic) {
+        session_start();
+        if( isset( $_SESSION['counter'] ) )
+        {
+            $_SESSION['counter'] += 1;
+        }
+        else
+        {
+            $_SESSION['counter'] = 1;
+        }
+
+        $inOneHour = 60 * 60 + time();
+        setcookie('lastVisit', date("G:i - m/d/y"), $inOneHour);
+
+        if(isset($_COOKIE['lastVisit'])) {
+            $visit = $_COOKIE['lastVisit'];
+        }
         $result = $dbm->insert($post);
+
     }
-    else {
+    else if(isset($_COOKIE['lastVisit'])) {
+        $result = $dbm->insert($post);
+    } else {
         $result = false;
     }
 
